@@ -6,6 +6,7 @@ import os
 from ConfigParser import RawConfigParser
 from okta_auth import OktaAuth
 import boto3
+import click
 
 def choose_aws_role(assertion):
     """ Choose AWS role from SAML assertion """
@@ -61,8 +62,13 @@ def write_sts_token(profile, access_key_id, secret_access_key, session_token):
 
     with open(creds_file, 'w+') as configfile:
         config.write(configfile)
+    print "Temporary credentials written to profile: %s" % profile
+    print "Invoke using: aws --profile %s <service> <command>" % profile
 
-def main():
+@click.command()
+@click.option('--profile', help="Name of the profile to store credentials. \
+If none is provided, then a name comprised of the Okta app and assumed role will be used.")
+def main(profile):
     """ Main entrypoint """
     okta = OktaAuth()
     app_name, assertion = okta.get_assertion()
@@ -71,7 +77,8 @@ def main():
     principal_arn, role_arn = role
 
     role_name = role_arn.split('/')[1]
-    profile = "okta-%s-%s" % (app_name, role_name)
+    if not profile:
+        profile = "okta-%s-%s" % (app_name, role_name)
 
     token = get_sts_token(role_arn, principal_arn, assertion)
     access_key_id = token['AccessKeyId']
@@ -80,4 +87,6 @@ def main():
     write_sts_token(profile, access_key_id, secret_access_key, session_token)
 
 if __name__ == "__main__":
+    #pylint: disable=E1120
     main()
+    #pylint: enable=E1120
