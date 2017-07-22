@@ -6,6 +6,7 @@ import os
 from ConfigParser import RawConfigParser
 from okta_auth import OktaAuth
 import boto3
+from botocore.exceptions import ClientError
 import click
 
 def choose_aws_role(assertion):
@@ -34,6 +35,21 @@ def get_sts_token(role_arn, principal_arn, assertion):
                                          SAMLAssertion=assertion)
     credentials = response['Credentials']
     return credentials
+
+def check_sts_token(profile):
+    """ Verifies that STS credentials are valid """
+    session = boto3.Session(profile_name=profile)
+    sts = session.client('sts')
+    try:
+        sts.get_caller_identity()
+
+    except ClientError as ex:
+        if ex.response['Error']['Code'] == 'ExpiredToken':
+            print "Temporary credentials have expired. Renewing..."
+            return False
+
+    print "STS credentials are valid. Nothing to do."
+    return True
 
 def write_sts_token(profile, access_key_id, secret_access_key, session_token):
     """ Writes STS auth information to credentials file """
@@ -72,6 +88,8 @@ If none is provided, then the default profile will be used.")
 If none is provided, then a name comprised of the Okta app and assumed role will be used.")
 def main(okta_profile, profile):
     """ Main entrypoint """
+    if check_sts_token(profile):
+        exit(0)
     if not okta_profile:
         okta_profile = "default"
     okta = OktaAuth(okta_profile)

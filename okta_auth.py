@@ -101,7 +101,8 @@ class OktaAuth(object):
         app_choice = input('Please select AWS app: ')-1
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
-    def get_saml_assertion(self, html):
+    @staticmethod
+    def get_saml_assertion(html):
         """ Returns the SAML assertion from HTML """
         soup = bs(html.text, "html.parser")
         assertion = ''
@@ -116,6 +117,7 @@ class OktaAuth(object):
         return assertion
 
     def get_assertion(self):
+        """ Main method to get SAML assertion from Okta """
         session_token = self.primary_auth()
         session_id = self.get_session(session_token)
         app_name, app_link = self.get_apps(session_id)
