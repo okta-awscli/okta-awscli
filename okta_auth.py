@@ -1,5 +1,6 @@
 """ Handles auth to Okta and returns SAML assertion """
 import sys
+import os
 from ConfigParser import RawConfigParser
 from bs4 import BeautifulSoup as bs
 import requests
@@ -7,8 +8,10 @@ import requests
 class OktaAuth(object):
     """ Handles auth to Okta and returns SAML assertion """
     def __init__(self, okta_profile='default'):
+        home_dir = os.path.expanduser('~')
+        okta_config = home_dir + '/.okta-aws'
         parser = RawConfigParser()
-        parser.read('.okta-aws')
+        parser.read(okta_config)
         profile = okta_profile
         self.base_url = "https://%s" % parser.get(profile, 'base-url')
         self.username = parser.get(profile, 'username')
