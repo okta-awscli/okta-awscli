@@ -29,24 +29,24 @@ class OktaAuth(object):
         if len(factors_list) == 1:
             self.verify_single_factor(factors_list[0]['id'], state_token)
         else:
-            print "Registered MFA factors: "
+            print "Registered MFA factors:"
 
             for index, factor in enumerate(factors_list):
-                if factor['provider'] == "GOOGLE":
-                    factor_name = "Google Authenticator"
-                elif factor['provider'] == "OKTA":
-                    if factor['factorType'] == "push":
-                        factor_name == "Okta Verify - Push"
-                    else:
-                        factor_name == "Okta Verify"
-                else:
-                    factor_name = "Unsupported factor type: %s" % factor['provider']
+                factor_type = factor['factorType']
+                factor_provider = factor['provider']
 
+                if factor_provider == "GOOGLE":
+                    factor_name = "Google Authenticator"
+                elif factor_provider == "OKTA":
+                    if factor_type == "push":
+                        factor_name = "Okta Verify - Push"
+                    else:
+                        factor_name = "Okta Verify"
+                else:
+                    factor_name = "Unsupported factor type: %s" % factor_provider
 
                 print "%d - %s"%(index+1, factor_name)
             factor_choice = input('Please select the MFA factor: ')-1
-
-            print factors_list[factor_choice]['id']
             self.verify_single_factor(factors_list[factor_choice]['id'], state_token)
 
 
