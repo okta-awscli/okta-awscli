@@ -1,9 +1,6 @@
 """ Handles auth to Okta and returns SAML assertion """
 import sys
 from ConfigParser import RawConfigParser
-from collections import namedtuple
-import base64
-import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup as bs
 import requests
 
@@ -16,8 +13,7 @@ class OktaAuth(object):
         self.base_url = "https://%s" % parser.get(profile, 'base-url')
         self.username = parser.get(profile, 'username')
         self.password = parser.get(profile, 'password')
-        self.aws_attribute_role = 'https://aws.amazon.com/SAML/Attributes/Role'
-        self.attribute_value_urn = '{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue'
+
 
     def primary_auth(self):
         """ Performs primary auth against Okta """
@@ -33,13 +29,7 @@ class OktaAuth(object):
             state_token = resp['stateToken']
             session_token = self.verify_mfa(factors_list, state_token)
 
-        session_id = self.get_session(session_token)
-        app_link = self.get_apps(session_id)
-        sid = "sid=%s" % session_id
-        headers = {'Cookie': sid}
-        resp = requests.get(app_link, headers=headers)
-        assertion = self.get_saml_assertion(resp)
-        self.choose_aws_role(assertion)
+        return session_token
 
     def verify_mfa(self, factors_list, state_token):
         """ Performs MFA auth against Okta """
@@ -111,22 +101,21 @@ class OktaAuth(object):
         soup = bs(html.text, "html.parser")
         assertion = ''
 
-        for inputtag in soup.find_all('input'):
-            if inputtag.get('name') == 'SAMLResponse':
-                assertion = inputtag.get('value')
+        for input_tag in soup.find_all('input'):
+            if input_tag.get('name') == 'SAMLResponse':
+                assertion = input_tag.get('value')
 
         if not assertion:
-            print "Invalid assertion: "+assertion
+            print "SAML assertion not valid: " + assertion
             exit(-1)
         return assertion
 
-    def choose_aws_role(self, assertion):
-        """ Choose AWS role from SAML assertion """
-        roles = []
-        role_tuple = namedtuple("RoleTuple", ["principal_arn", "role_arn"])
-        root = ET.fromstring(base64.b64decode(assertion))
-        for saml2attribute in root.iter('{urn:oasis:names:tc:SAML:2.0:assertion}Attribute'):
-            if saml2attribute.get('Name') == self.aws_attribute_role:
-                for saml2attributevalue in saml2attribute.iter(self.attribute_value_urn):
-                    roles.append(role_tuple(*saml2attributevalue.text.split(',')))
-        print roles
+    def get_assertion(self):
+        session_token = self.primary_auth()
+        session_id = self.get_session(session_token)
+        app_link = self.get_apps(session_id)
+        sid = "sid=%s" % session_id
+        headers = {'Cookie': sid}
+        resp = requests.get(app_link, headers=headers)
+        assertion = self.get_saml_assertion(resp)
+        return assertion
