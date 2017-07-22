@@ -5,3 +5,6 @@ def main():
     """ Main entrypoint """
     okta = OktaAuth()
     okta.primary_auth()
+
+if __name__ == "__main__":
+    main()
