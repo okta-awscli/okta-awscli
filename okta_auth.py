@@ -28,6 +28,8 @@ class OktaAuth(object):
             factors_list = resp['_embedded']['factors']
             state_token = resp['stateToken']
             session_token = self.verify_mfa(factors_list, state_token)
+        elif resp['status'] == 'SUCCESS':
+            session_token = resp['sessionToken']
 
         return session_token
 

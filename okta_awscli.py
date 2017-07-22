@@ -66,11 +66,15 @@ def write_sts_token(profile, access_key_id, secret_access_key, session_token):
     print "Invoke using: aws --profile %s <service> <command>" % profile
 
 @click.command()
+@click.option('--okta_profile', help="Name of the profile to use in .okta-aws. \
+If none is provided, then the default profile will be used.")
 @click.option('--profile', help="Name of the profile to store credentials. \
 If none is provided, then a name comprised of the Okta app and assumed role will be used.")
-def main(profile):
+def main(okta_profile, profile):
     """ Main entrypoint """
-    okta = OktaAuth()
+    if not okta_profile:
+        okta_profile = "default"
+    okta = OktaAuth(okta_profile)
     app_name, assertion = okta.get_assertion()
     app_name = app_name.replace(" ", "")
     role = choose_aws_role(assertion)
