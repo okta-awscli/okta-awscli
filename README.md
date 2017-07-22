@@ -17,3 +17,8 @@ Note: Multiple Okta profiles are supported, but if none is specifed, then "defau
 
 - `./okta_aws.py`
 - Follow the prompts to enter MFA information (if required) and choose your AWS app.
+
+## To-do:
+- Support username and password as command line args.
+- Add checking for validity of existing STS credentials.
+- Add "wrapper" functionality, so awscli commands can be passed through.
