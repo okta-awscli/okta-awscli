@@ -2,6 +2,8 @@
 
 ### Authenticates a user against Okta and then retrieves temporary STS credentials from AWS.
 
+Largely inspired by https://github.com/nimbusscale/okta_aws_login, but uses a purely API-driven approach, instead of parsing HTML during the auth phase.
+
 Supports MFA if it is enabled for the entire Okta tenant. MFA that is required "per app", is not supported.
 
 Usage:
