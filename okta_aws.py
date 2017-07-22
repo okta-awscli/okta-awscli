@@ -2,9 +2,10 @@
 from collections import namedtuple
 import base64
 import xml.etree.ElementTree as ET
+import os
+from ConfigParser import RawConfigParser
 from okta_auth import OktaAuth
 import boto3
-
 
 def choose_aws_role(assertion):
     """ Choose AWS role from SAML assertion """
@@ -31,16 +32,52 @@ def get_sts_token(role_arn, principal_arn, assertion):
                                          PrincipalArn=principal_arn,
                                          SAMLAssertion=assertion)
     credentials = response['Credentials']
-    print credentials
+    return credentials
 
+def write_sts_token(profile, access_key_id, secret_access_key, session_token):
+    """ Writes STS auth information to credentials file """
+
+    home_dir = os.path.expanduser('~')
+    creds_dir = home_dir + "/.aws"
+    creds_file = creds_dir + "/credentials"
+    print creds_file
+    region = 'us-east-1'
+    output = 'json'
+    if not os.path.exists(creds_dir):
+        os.makedirs(creds_dir)
+    config = RawConfigParser()
+
+    if os.path.isfile(creds_file):
+        config.read(creds_file)
+
+    if not config.has_section(profile):
+        config.add_section(profile)
+
+    config.set(profile, 'output', output)
+    config.set(profile, 'region', region)
+    config.set(profile, 'aws_access_key_id', access_key_id)
+    config.set(profile, 'aws_secret_access_key', secret_access_key)
+    config.set(profile, 'aws_session_token', session_token)
+
+    with open(creds_file, 'w+') as configfile:
+        config.write(configfile)
 
 def main():
     """ Main entrypoint """
     okta = OktaAuth()
-    assertion = okta.get_assertion()
+    app_name, assertion = okta.get_assertion()
+    app_name = app_name.replace(" ", "")
     role = choose_aws_role(assertion)
     principal_arn, role_arn = role
-    get_sts_token(role_arn, principal_arn, assertion)
+
+    role_name = role_arn.split('/')[1]
+    profile = "okta-%s-%s" % (app_name, role_name)
+
+    token = get_sts_token(role_arn, principal_arn, assertion)
+    access_key_id = token['AccessKeyId']
+    secret_access_key = token['SecretAccessKey']
+    session_token = token['SessionToken']
+    write_sts_token(profile, access_key_id, secret_access_key, session_token)
 
 if __name__ == "__main__":
     main()

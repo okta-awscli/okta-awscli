@@ -6,10 +6,10 @@ import requests
 
 class OktaAuth(object):
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self):
+    def __init__(self, okta_profile='default'):
         parser = RawConfigParser()
         parser.read('.okta-aws')
-        profile = "test"
+        profile = okta_profile
         self.base_url = "https://%s" % parser.get(profile, 'base-url')
         self.username = parser.get(profile, 'username')
         self.password = parser.get(profile, 'password')
@@ -94,7 +94,7 @@ class OktaAuth(object):
             print "%d: %s" % (index+1, app_name)
 
         app_choice = input('Please select AWS app: ')-1
-        return aws_apps[app_choice]['linkUrl']
+        return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
     def get_saml_assertion(self, html):
         """ Returns the SAML assertion from HTML """
@@ -113,9 +113,9 @@ class OktaAuth(object):
     def get_assertion(self):
         session_token = self.primary_auth()
         session_id = self.get_session(session_token)
-        app_link = self.get_apps(session_id)
+        app_name, app_link = self.get_apps(session_id)
         sid = "sid=%s" % session_id
         headers = {'Cookie': sid}
         resp = requests.get(app_link, headers=headers)
         assertion = self.get_saml_assertion(resp)
-        return assertion
+        return app_name, assertion
