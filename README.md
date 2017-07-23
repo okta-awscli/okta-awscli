@@ -21,6 +21,6 @@ Note: Multiple Okta profiles are supported, but if none are specified, then "def
 - Follow the prompts to enter MFA information (if required) and choose your AWS app.
 
 ## To-do:
-- Support username and password as command line args.
-- Add checking for validity of existing STS credentials.
-- Add "wrapper" functionality, so awscli commands can be passed through.
+- [x] Add checking for validity of existing STS credentials.
+- [ ] Support username and password as command line args.
+- [ ] Add "wrapper" functionality, so awscli commands can be passed through.
