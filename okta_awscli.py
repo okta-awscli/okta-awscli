@@ -38,6 +38,24 @@ def get_sts_token(role_arn, principal_arn, assertion):
 
 def check_sts_token(profile):
     """ Verifies that STS credentials are valid """
+    home_dir = os.path.expanduser('~')
+    creds_dir = home_dir + "/.aws"
+    creds_file = creds_dir + "/credentials"
+    parser = RawConfigParser()
+    parser.read(creds_file)
+
+    if not os.path.exists(creds_dir):
+        print "AWS credentials path does not exit. Not checking."
+        return False
+
+    elif not os.path.isfile(creds_file):
+        print "AWS credentials file does not exist. Not checking."
+        return False
+
+    elif not parser.has_section(profile):
+        print "No existing credentials found. Requesting new credentials."
+        return False
+
     session = boto3.Session(profile_name=profile)
     sts = session.client('sts')
     try:
@@ -45,7 +63,7 @@ def check_sts_token(profile):
 
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'ExpiredToken':
-            print "Temporary credentials have expired. Renewing..."
+            print "Temporary credentials have expired. Requesting new credentials."
             return False
 
     print "STS credentials are valid. Nothing to do."
@@ -57,7 +75,6 @@ def write_sts_token(profile, access_key_id, secret_access_key, session_token):
     home_dir = os.path.expanduser('~')
     creds_dir = home_dir + "/.aws"
     creds_file = creds_dir + "/credentials"
-    print creds_file
     region = 'us-east-1'
     output = 'json'
     if not os.path.exists(creds_dir):

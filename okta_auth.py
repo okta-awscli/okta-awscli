@@ -25,14 +25,21 @@ class OktaAuth(object):
             "username": self.username,
             "password": self.password
         }
-        resp = requests.post(self.base_url+'/api/v1/authn', json=auth_data).json()
-
-        if resp['status'] == 'MFA_REQUIRED':
-            factors_list = resp['_embedded']['factors']
-            state_token = resp['stateToken']
-            session_token = self.verify_mfa(factors_list, state_token)
-        elif resp['status'] == 'SUCCESS':
-            session_token = resp['sessionToken']
+        resp = requests.post(self.base_url+'/api/v1/authn', json=auth_data)
+        resp_json = resp.json()
+        if 'status' in resp_json:
+            if resp_json['status'] == 'MFA_REQUIRED':
+                factors_list = resp_json['_embedded']['factors']
+                state_token = resp_json['stateToken']
+                session_token = self.verify_mfa(factors_list, state_token)
+            elif resp_json['status'] == 'SUCCESS':
+                session_token = resp_json['sessionToken']
+        elif resp.status_code != 200:
+            print resp_json['errorSummary']
+            exit(1)
+        else:
+            print resp_json
+            exit(1)
 
         return session_token
 
@@ -71,9 +78,18 @@ class OktaAuth(object):
             "answer": factor_answer
         }
         post_url = "%s/api/v1/authn/factors/%s/verify" % (self.base_url, factor_id)
-        resp = requests.post(post_url, json=req_data).json()
-        if resp['status'] == "SUCCESS":
-            return resp['sessionToken']
+        resp = requests.post(post_url, json=req_data)
+        resp_json = resp.json()
+        if 'status' in resp_json:
+            if resp_json['status'] == "SUCCESS":
+                return resp_json['sessionToken']
+        elif resp.status_code != 200:
+            print resp_json['errorSummary']
+            exit(1)
+        else:
+            print resp_json
+            exit(1)
+
 
     def get_session(self, session_token):
         """ Gets a session cookie from a session token """
@@ -91,7 +107,7 @@ class OktaAuth(object):
             if app['appName'] == "amazon_aws":
                 aws_apps.append(app)
         if not aws_apps:
-            print "No AWS apps are availble for your user. Exiting."
+            print "No AWS apps are available for your user. Exiting."
             sys.exit(1)
         print "Available apps:"
         for index, app in enumerate(aws_apps):
