@@ -24,5 +24,5 @@ Note: Multiple Okta profiles are supported, but if none are specified, then "def
 
 ## To-do:
 - [x] Add checking for validity of existing STS credentials.
+- [x] Add "wrapper" functionality, so awscli commands can be passed through.
 - [ ] Support username and password as command line args.
-- [ ] Add "wrapper" functionality, so awscli commands can be passed through.
