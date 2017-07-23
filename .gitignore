@@ -1,3 +1,2 @@
-*.pyc
-.okta-aws
-sample*
+**/*.pyc
+**/.DS_Store
