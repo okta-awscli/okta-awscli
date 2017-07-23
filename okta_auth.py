@@ -48,9 +48,13 @@ class OktaAuth(object):
         if len(factors_list) == 1:
             session_token = self.verify_single_factor(factors_list[0]['id'], state_token)
         else:
-            print "Registered MFA factors:"
+            supported_factors = []
+            for factor in factors_list:
+                if factor['factorType'] == "token:software:totp":
+                    supported_factors.append(factor)
 
-            for index, factor in enumerate(factors_list):
+            print "Registered MFA factors:"
+            for index, factor in enumerate(supported_factors):
                 factor_type = factor['factorType']
                 factor_provider = factor['provider']
 
