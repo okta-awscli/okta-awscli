@@ -7,7 +7,7 @@ import requests
 
 class OktaAuth(object):
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self, okta_profile='default'):
+    def __init__(self, okta_profile, verbose):
         home_dir = os.path.expanduser('~')
         okta_config = home_dir + '/.okta-aws'
         parser = RawConfigParser()
@@ -16,7 +16,7 @@ class OktaAuth(object):
         self.base_url = "https://%s" % parser.get(profile, 'base-url')
         self.username = parser.get(profile, 'username')
         self.password = parser.get(profile, 'password')
-
+        self.verbose = verbose
 
     def primary_auth(self):
         """ Performs primary auth against Okta """
