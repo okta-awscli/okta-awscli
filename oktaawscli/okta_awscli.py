@@ -30,7 +30,7 @@ If none is provided, then the default profile will be used.")
 credentials in ~/.aws/credentials. If profile doesn't exist, it will be created.")
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, awscli_args):
-    """ Main entrypoint """
+    """ Authenticate to awscli using Okta """
     if not okta_profile:
         okta_profile = "default"
 

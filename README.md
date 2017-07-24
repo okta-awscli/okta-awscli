@@ -6,7 +6,8 @@ This project is largely inspired by https://github.com/nimbusscale/okta_aws_logi
 
 Parsing the HTML is still required to get the SAML assertion, after authentication is complete. However, since we only need to look for the SAML assertion in a single, predictable tag, `<input name="SAMLResponse"...`, the results are a lot more stable across any changes that Okta may make to their interface.
 
-*okta_awscli supports MFA if it is enabled for the entire Okta tenant. MFA that is required "per app", is not supported.*
+*okta_awscli supports MFA if it is enabled for the entire Okta tenant.*
+*MFA that is required "per app", is not supported.*
 
 Installation:
 - `pip install okta-awscli`
@@ -20,18 +21,18 @@ base-url = <your_okta_org>.okta.com
 username = <your_okta_username>
 password = <your_okta_password>
 ```
-Note: Multiple Okta profiles are supported, but if none are specified, then "default" will be used.
+Note: Multiple Okta profiles are supported, but if none are specified, then `default` will be used.
 
-- `./okta_aws.py --profile <aws_profile> <awscli action> <awscli arguments>`
+- `okta-awscli --profile <aws_profile> <awscli action> <awscli arguments>`
 - Follow the prompts to enter MFA information (if required) and choose your AWS app and IAM role.
-- Subsequent executions will first check if the STS credentials are still valid and skip Okta authentication if true.
+- Subsequent executions will first check if the STS credentials are still valid and skip Okta authentication if so.
 
 Example:
-`./okta_aws.py --profile my-aws-account iam list-users`
+`okta-awscli --profile my-aws-account iam list-users`
 
 Optional flags:
 - `--verbose` Verbose output. Useful for debugging.
-- `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
+- `--okta_profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
 
 ## To-do:
 - [x] Add checking for validity of existing STS credentials.
