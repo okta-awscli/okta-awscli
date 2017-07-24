@@ -8,6 +8,9 @@ Parsing the HTML is still required to get the SAML assertion, after authenticati
 
 *okta_awscli supports MFA if it is enabled for the entire Okta tenant. MFA that is required "per app", is not supported.*
 
+Installation:
+- `pip install okta-awscli`
+
 Usage:
 
 - First, create a `~/.okta-aws` file, with the following parameters:
@@ -19,10 +22,21 @@ password = <your_okta_password>
 ```
 Note: Multiple Okta profiles are supported, but if none are specified, then "default" will be used.
 
-- `./okta_aws.py --okta_profile default --profile my-aws-account`
+- `./okta_aws.py --profile <aws_profile> <awscli action> <awscli arguments>`
 - Follow the prompts to enter MFA information (if required) and choose your AWS app and IAM role.
+- Subsequent executions will first check if the STS credentials are still valid and skip Okta authentication if true.
+
+Example:
+`./okta_aws.py --profile my-aws-account iam list-users`
+
+Optional flags:
+- `--verbose` Verbose output. Useful for debugging.
+- `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
 
 ## To-do:
 - [x] Add checking for validity of existing STS credentials.
 - [x] Add "wrapper" functionality, so awscli commands can be passed through.
+- [ ] Add flag to support output of STS credentials to env variables.
+- [ ] Add flag to force new credentials if STS creds are still valid / skip check.
+- [ ] Add flag for creds output only / disable wrapper pass-through.
 - [ ] Support username and password as command line args.
