@@ -1,4 +1,5 @@
 """ AWS authentication """
+#pylint: disable=C0325
 import os
 import base64
 import xml.etree.ElementTree as ET
@@ -32,7 +33,7 @@ class AwsAuth(object):
 
         for index, role in enumerate(roles):
             role_name = role.role_arn.split('/')[1]
-            print "%d: %s" % (index+1, role_name)
+            print("%d: %s" % (index+1, role_name))
         role_choice = input('Please select the AWS role: ')-1
         return roles[role_choice]
 
@@ -48,22 +49,26 @@ class AwsAuth(object):
 
     def check_sts_token(self, profile):
         """ Verifies that STS credentials are valid """
+        # Don't check for creds if profile is blank
+        if not profile:
+            return False
+
         parser = RawConfigParser()
         parser.read(self.creds_file)
 
         if not os.path.exists(self.creds_dir):
             if self.verbose:
-                print "AWS credentials path does not exit. Not checking."
+                print("AWS credentials path does not exit. Not checking.")
             return False
 
         elif not os.path.isfile(self.creds_file):
             if self.verbose:
-                print "AWS credentials file does not exist. Not checking."
+                print("AWS credentials file does not exist. Not checking.")
             return False
 
         elif not parser.has_section(profile):
             if self.verbose:
-                print "No existing credentials found. Requesting new credentials."
+                print("No existing credentials found. Requesting new credentials.")
             return False
 
         session = boto3.Session(profile_name=profile)
@@ -73,11 +78,11 @@ class AwsAuth(object):
 
         except ClientError as ex:
             if ex.response['Error']['Code'] == 'ExpiredToken':
-                print "Temporary credentials have expired. Requesting new credentials."
+                print("Temporary credentials have expired. Requesting new credentials.")
                 return False
 
         if self.verbose:
-            print "STS credentials are valid. Nothing to do."
+            print("STS credentials are valid. Nothing to do.")
         return True
 
     def write_sts_token(self, profile, access_key_id, secret_access_key, session_token):
@@ -102,5 +107,5 @@ class AwsAuth(object):
 
         with open(self.creds_file, 'w+') as configfile:
             config.write(configfile)
-        print "Temporary credentials written to profile: %s" % profile
-        print "Invoke using: aws --profile %s <service> <command>" % profile
+        print("Temporary credentials written to profile: %s" % profile)
+        print("Invoke using: aws --profile %s <service> <command>" % profile)

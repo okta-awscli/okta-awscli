@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='okta-awscli',
-    version='0.1.1',
+    version='0.1.2',
     description='Provides a wrapper for Okta authentication to awscli',
     packages=find_packages(),
     license='Apache License 2.0',
@@ -18,6 +18,7 @@ setup(
         'requests',
         'click',
         'bs4',
-        'boto3'
+        'boto3',
+        'ConfigParser'
         ],
 )
