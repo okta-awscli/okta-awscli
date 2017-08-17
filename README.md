@@ -36,12 +36,4 @@ Optional flags:
 - `--profile` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted, credentials will output to console.
 - `--force` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
 - `--verbose` Verbose output. Useful for debugging.
-- `--okta_profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
-
-## To-do:
-- [x] Add checking for validity of existing STS credentials.
-- [x] Add "wrapper" functionality, so awscli commands can be passed through.
-- [x] Add flag to support output of STS credentials to console.
-- [x] Add flag to force new credentials if STS creds are still valid / skip check.
-- [x] Add flag for creds output only / disable wrapper pass-through.
-- [ ] Support username and password as command line args.
+- `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.

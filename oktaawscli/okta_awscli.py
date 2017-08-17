@@ -36,7 +36,7 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
 @click.option('-v', '--verbose', is_flag=True, help='Enables verbose mode')
 @click.option('-f', '--force', is_flag=True, help='Forces new STS credentials. \
 Skips STS credentials validation.')
-@click.option('--okta_profile', help="Name of the profile to use in .okta-aws. \
+@click.option('--okta-profile', help="Name of the profile to use in .okta-aws. \
 If none is provided, then the default profile will be used.")
 @click.option('--profile', help="Name of the profile to store temporary \
 credentials in ~/.aws/credentials. If profile doesn't exist, it will be created. If omitted, credentials \
