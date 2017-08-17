@@ -21,6 +21,9 @@ base-url = <your_okta_org>.okta.com
 username = <your_okta_username>
 password = <your_okta_password>
 ```
+
+If you omit a username or password from the config file. okta-awscli will prompt you for it.
+
 Note: Multiple Okta profiles are supported, but if none are specified, then `default` will be used.
 
 - `okta-awscli --profile <aws_profile> <awscli action> <awscli arguments>`

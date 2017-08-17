@@ -3,6 +3,7 @@
 import sys
 import os
 from ConfigParser import RawConfigParser
+from getpass import getpass
 from bs4 import BeautifulSoup as bs
 import requests
 
@@ -14,9 +15,20 @@ class OktaAuth(object):
         parser = RawConfigParser()
         parser.read(okta_config)
         profile = okta_profile
-        self.base_url = "https://%s" % parser.get(profile, 'base-url')
-        self.username = parser.get(profile, 'username')
-        self.password = parser.get(profile, 'password')
+        if parser.has_option(profile, 'base-url'):
+            self.base_url = "https://%s" % parser.get(profile, 'base-url')
+        else:
+            print("No base-url set in ~/.okta-aws")
+        if parser.has_option(profile, 'username'):
+            self.username = parser.get(profile, 'username')
+            if verbose:
+                print("Authenticating as: %s" % self.username)
+        else:
+            self.username = raw_input('Enter username: ')
+        if parser.has_option(profile, 'password'):
+            self.password = parser.get(profile, 'password')
+        else:
+            self.password = getpass('Enter password: ')
         self.verbose = verbose
 
     def primary_auth(self):
