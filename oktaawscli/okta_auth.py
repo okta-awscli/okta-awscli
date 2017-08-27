@@ -82,7 +82,7 @@ class OktaAuth(object):
                     factor_name = "Unsupported factor type: %s" % factor_provider
 
                 print("%d: %s" % (index+1, factor_name))
-            factor_choice = input('Please select the MFA factor: ')-1
+            factor_choice = input('Please select the MFA factor: ')
             if self.verbose:
                 print("Performing secondary authentication using: %s" %
                       factors_list[factor_choice]['provider'])
