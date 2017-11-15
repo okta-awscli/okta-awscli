@@ -85,8 +85,8 @@ class OktaAuth(object):
             factor_choice = input('Please select the MFA factor: ')
             if self.verbose:
                 print("Performing secondary authentication using: %s" %
-                      factors_list[factor_choice]['provider'])
-            session_token = self.verify_single_factor(factors_list[factor_choice]['id'],
+                      supported_factors[factor_choice]['provider'])
+            session_token = self.verify_single_factor(supported_factors[factor_choice-1]['id'],
                                                       state_token)
         return session_token
 
