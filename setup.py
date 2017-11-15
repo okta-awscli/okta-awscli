@@ -7,7 +7,7 @@ setup(
     packages=find_packages(),
     license='Apache License 2.0',
     author='James Hale',
-    author_email='james@jameshale.me',
+    author_email='james@jameshale.net',
     url='https://github.com/jmhale/okta_awscli',
     entry_points={
         'console_scripts': [
