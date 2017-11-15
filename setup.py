@@ -2,12 +2,12 @@ from setuptools import setup, find_packages
 
 setup(
     name='okta-awscli',
-    version='0.1.4',
+    version='0.1.5',
     description='Provides a wrapper for Okta authentication to awscli',
     packages=find_packages(),
     license='Apache License 2.0',
     author='James Hale',
-    author_email='james@jameshale.me',
+    author_email='james@jameshale.net',
     url='https://github.com/jmhale/okta_awscli',
     entry_points={
         'console_scripts': [

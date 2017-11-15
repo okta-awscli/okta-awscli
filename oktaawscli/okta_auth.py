@@ -58,14 +58,15 @@ class OktaAuth(object):
 
     def verify_mfa(self, factors_list, state_token):
         """ Performs MFA auth against Okta """
-        if len(factors_list) == 1:
-            session_token = self.verify_single_factor(factors_list[0]['id'], state_token)
-        else:
-            supported_factors = []
-            for factor in factors_list:
-                if factor['factorType'] == "token:software:totp":
-                    supported_factors.append(factor)
 
+        supported_factors = []
+        for factor in factors_list:
+            if factor['factorType'] == "token:software:totp":
+                supported_factors.append(factor)
+
+        if supported_factors == 1:
+            session_token = self.verify_single_factor(supported_factors[0]['id'], state_token)
+        elif supported_factors > 0:
             print("Registered MFA factors:")
             for index, factor in enumerate(supported_factors):
                 factor_type = factor['factorType']
@@ -85,9 +86,12 @@ class OktaAuth(object):
             factor_choice = input('Please select the MFA factor: ')
             if self.verbose:
                 print("Performing secondary authentication using: %s" %
-                      factors_list[factor_choice]['provider'])
-            session_token = self.verify_single_factor(factors_list[factor_choice]['id'],
+                      supported_factors[factor_choice]['provider'])
+            session_token = self.verify_single_factor(supported_factors[factor_choice-1]['id'],
                                                       state_token)
+        else:
+            print("MFA required, but no supported factors enrolled! Exiting.")
+            exit(1)
         return session_token
 
     def verify_single_factor(self, factor_id, state_token):
