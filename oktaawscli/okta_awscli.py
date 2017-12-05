@@ -1,13 +1,14 @@
 """ Wrapper script for awscli which handles Okta auth """
 #pylint: disable=C0325
 from subprocess import call
+import logging
 from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.aws_auth import AwsAuth
 import click
 
-def get_credentials(aws_auth, okta_profile, profile, verbose):
+def get_credentials(aws_auth, okta_profile, profile, verbose, logger):
     """ Gets credentials from Okta """
-    okta = OktaAuth(okta_profile, verbose)
+    okta = OktaAuth(okta_profile, verbose, logger)
     app_name, assertion = okta.get_assertion()
     app_name = app_name.replace(" ", "")
     role = aws_auth.choose_aws_role(assertion)
@@ -34,6 +35,7 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
 #pylint: disable=R0913
 @click.command()
 @click.option('-v', '--verbose', is_flag=True, help='Enables verbose mode')
+@click.option('-d', '--debug', is_flag=True, help='Enables debug mode')
 @click.option('-f', '--force', is_flag=True, help='Forces new STS credentials. \
 Skips STS credentials validation.')
 @click.option('--okta-profile', help="Name of the profile to use in .okta-aws. \
@@ -42,22 +44,34 @@ If none is provided, then the default profile will be used.")
 credentials in ~/.aws/credentials. If profile doesn't exist, it will be created. If omitted, credentials \
 will output to console.")
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
-def main(okta_profile, profile, verbose, force, awscli_args):
+def main(okta_profile, profile, verbose, debug, force, awscli_args):
     """ Authenticate to awscli using Okta """
+    ## Set up logging
+    logger = logging.getLogger('okta-awscli')
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.WARN)
+    formatter = logging.Formatter('%(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    if verbose:
+        handler.setLevel(logging.INFO)
+    if debug:
+        handler.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+
     if not okta_profile:
         okta_profile = "default"
-    aws_auth = AwsAuth(profile, verbose)
+    aws_auth = AwsAuth(profile, verbose, logger)
     if not aws_auth.check_sts_token(profile) or force:
-        if verbose and force and profile:
-            click.echo("Force option selected, getting new credentials anyway.")
-        elif verbose and force:
-            click.echo("Force option selected, but no profile provided. Option has no effect.")
-        get_credentials(aws_auth, okta_profile, profile, verbose)
+        if force and profile:
+            logger.info("Force option selected, getting new credentials anyway.")
+        elif force:
+            logger.info("Force option selected, but no profile provided. Option has no effect.")
+        get_credentials(aws_auth, okta_profile, profile, verbose, logger)
 
     if awscli_args:
         cmdline = ['aws', '--profile', profile] + list(awscli_args)
-        if verbose:
-            click.echo('Invoking: %s' % ' '.join(cmdline))
+        logger.info('Invoking: %s' % ' '.join(cmdline))
         call(cmdline)
 
 if __name__ == "__main__":
