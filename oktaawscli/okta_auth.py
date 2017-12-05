@@ -9,26 +9,34 @@ import requests
 
 class OktaAuth(object):
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self, okta_profile, verbose):
+    def __init__(self, okta_profile, verbose, logger):
         home_dir = os.path.expanduser('~')
         okta_config = home_dir + '/.okta-aws'
         parser = RawConfigParser()
         parser.read(okta_config)
         profile = okta_profile
+        self.logger = logger
+        self.factor = ""
         if parser.has_option(profile, 'base-url'):
             self.base_url = "https://%s" % parser.get(profile, 'base-url')
+            self.logger.info("Authenticating to: %s" % self.base_url)
         else:
-            print("No base-url set in ~/.okta-aws")
+            self.logger.error("No base-url set in ~/.okta-aws")
+            exit(1)
         if parser.has_option(profile, 'username'):
             self.username = parser.get(profile, 'username')
-            if verbose:
-                print("Authenticating as: %s" % self.username)
+            self.logger.info("Authenticating as: %s" % self.username)
         else:
             self.username = raw_input('Enter username: ')
         if parser.has_option(profile, 'password'):
             self.password = parser.get(profile, 'password')
         else:
             self.password = getpass('Enter password: ')
+
+        if parser.has_option(profile, 'factor'):
+            self.factor = parser.get(profile, 'factor')
+            self.logger.debug("Setting MFA factor to %s" % self.factor)
+
         self.verbose = verbose
 
     def primary_auth(self):
@@ -48,10 +56,10 @@ class OktaAuth(object):
             elif resp_json['status'] == 'SUCCESS':
                 session_token = resp_json['sessionToken']
         elif resp.status_code != 200:
-            print(resp_json['errorSummary'])
+            self.logger.error(resp_json['errorSummary'])
             exit(1)
         else:
-            print(resp_json)
+            self.logger.error(resp_json)
             exit(1)
 
         return session_token
@@ -65,8 +73,8 @@ class OktaAuth(object):
             for factor in factors_list:
                 if factor['factorType'] == "token:software:totp":
                     supported_factors.append(factor)
-
-            print("Registered MFA factors:")
+            if not self.factor:
+                print("Registered MFA factors:")
             for index, factor in enumerate(supported_factors):
                 factor_type = factor['factorType']
                 factor_provider = factor['provider']
@@ -81,12 +89,18 @@ class OktaAuth(object):
                 else:
                     factor_name = "Unsupported factor type: %s" % factor_provider
 
-                print("%d: %s" % (index+1, factor_name))
-            factor_choice = input('Please select the MFA factor: ')
-            if self.verbose:
-                print("Performing secondary authentication using: %s" %
-                      factors_list[factor_choice]['provider'])
-            session_token = self.verify_single_factor(factors_list[factor_choice]['id'],
+                if self.factor:
+                    if self.factor == factor_provider:
+                        factor_choice = index
+                        self.logger.info("Using pre-selected factor choice from ~/.okta-aws")
+                        break
+                else:
+                    print("%d: %s" % (index+1, factor_name))
+            if not self.factor:
+                factor_choice = input('Please select the MFA factor: ')-1
+            self.logger.info("Performing secondary authentication using: %s" %
+                             supported_factors[factor_choice]['provider'])
+            session_token = self.verify_single_factor(supported_factors[factor_choice]['id'],
                                                       state_token)
         return session_token
 
@@ -104,10 +118,10 @@ class OktaAuth(object):
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
         elif resp.status_code != 200:
-            print(resp_json['errorSummary'])
+            self.logger.error(resp_json['errorSummary'])
             exit(1)
         else:
-            print(resp_json)
+            self.logger.error(resp_json)
             exit(1)
 
 
@@ -127,7 +141,7 @@ class OktaAuth(object):
             if app['appName'] == "amazon_aws":
                 aws_apps.append(app)
         if not aws_apps:
-            print("No AWS apps are available for your user. Exiting.")
+            self.logger.error("No AWS apps are available for your user. Exiting.")
             sys.exit(1)
         print("Available apps:")
         for index, app in enumerate(aws_apps):
@@ -137,8 +151,7 @@ class OktaAuth(object):
         app_choice = input('Please select AWS app: ')-1
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
-    @staticmethod
-    def get_saml_assertion(html):
+    def get_saml_assertion(self, html):
         """ Returns the SAML assertion from HTML """
         soup = bs(html.text, "html.parser")
         assertion = ''
@@ -148,7 +161,7 @@ class OktaAuth(object):
                 assertion = input_tag.get('value')
 
         if not assertion:
-            print("SAML assertion not valid: " + assertion)
+            self.logger.error("SAML assertion not valid: " + assertion)
             exit(-1)
         return assertion
 

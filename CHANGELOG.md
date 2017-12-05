@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.0] TBD
+### Added:
+- Ability to store MFA factor choice in `~/.okta-aws`. (#3)
+
 ## [0.1.4] 2017-08-27
 ### Added:
 - This CHANGELOG!
