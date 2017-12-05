@@ -16,8 +16,10 @@ class OktaAuth(object):
         parser.read(okta_config)
         profile = okta_profile
         self.logger = logger
+        self.factor = ""
         if parser.has_option(profile, 'base-url'):
             self.base_url = "https://%s" % parser.get(profile, 'base-url')
+            self.logger.info("Authenticating to: %s" % self.base_url)
         else:
             self.logger.error("No base-url set in ~/.okta-aws")
             exit(1)
@@ -30,6 +32,11 @@ class OktaAuth(object):
             self.password = parser.get(profile, 'password')
         else:
             self.password = getpass('Enter password: ')
+
+        if parser.has_option(profile, 'factor'):
+            self.factor = parser.get(profile, 'factor')
+            self.logger.debug("Setting MFA factor to %s" % self.factor)
+
         self.verbose = verbose
 
     def primary_auth(self):
@@ -66,8 +73,8 @@ class OktaAuth(object):
             for factor in factors_list:
                 if factor['factorType'] == "token:software:totp":
                     supported_factors.append(factor)
-
-            print("Registered MFA factors:")
+            if not self.factor:
+                print("Registered MFA factors:")
             for index, factor in enumerate(supported_factors):
                 factor_type = factor['factorType']
                 factor_provider = factor['provider']
@@ -82,11 +89,18 @@ class OktaAuth(object):
                 else:
                     factor_name = "Unsupported factor type: %s" % factor_provider
 
-                print("%d: %s" % (index+1, factor_name))
-            factor_choice = input('Please select the MFA factor: ')
+                if self.factor:
+                    if self.factor == factor_provider:
+                        factor_choice = index
+                        self.logger.info("Using pre-selected factor choice from ~/.okta-aws")
+                        break
+                else:
+                    print("%d: %s" % (index+1, factor_name))
+            if not self.factor:
+                factor_choice = input('Please select the MFA factor: ')-1
             self.logger.info("Performing secondary authentication using: %s" %
-                             factors_list[factor_choice]['provider'])
-            session_token = self.verify_single_factor(factors_list[factor_choice]['id'],
+                             supported_factors[factor_choice]['provider'])
+            session_token = self.verify_single_factor(supported_factors[factor_choice]['id'],
                                                       state_token)
         return session_token
 
