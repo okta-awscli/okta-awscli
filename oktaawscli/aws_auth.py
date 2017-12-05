@@ -11,12 +11,13 @@ from botocore.exceptions import ClientError
 class AwsAuth(object):
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, verbose):
+    def __init__(self, profile, verbose, logger):
         home_dir = os.path.expanduser('~')
         self.creds_dir = home_dir + "/.aws"
         self.creds_file = self.creds_dir + "/credentials"
         self.profile = profile
         self.verbose = verbose
+        self.logger = logger
 
     @staticmethod
     def choose_aws_role(assertion):
@@ -57,18 +58,15 @@ class AwsAuth(object):
         parser.read(self.creds_file)
 
         if not os.path.exists(self.creds_dir):
-            if self.verbose:
-                print("AWS credentials path does not exit. Not checking.")
+            self.logger.info("AWS credentials path does not exit. Not checking.")
             return False
 
         elif not os.path.isfile(self.creds_file):
-            if self.verbose:
-                print("AWS credentials file does not exist. Not checking.")
+            self.logger.info("AWS credentials file does not exist. Not checking.")
             return False
 
         elif not parser.has_section(profile):
-            if self.verbose:
-                print("No existing credentials found. Requesting new credentials.")
+            self.logger.info("No existing credentials found. Requesting new credentials.")
             return False
 
         session = boto3.Session(profile_name=profile)
@@ -78,11 +76,10 @@ class AwsAuth(object):
 
         except ClientError as ex:
             if ex.response['Error']['Code'] == 'ExpiredToken':
-                print("Temporary credentials have expired. Requesting new credentials.")
+                self.logger.info("Temporary credentials have expired. Requesting new credentials.")
                 return False
 
-        if self.verbose:
-            print("STS credentials are valid. Nothing to do.")
+        self.logger.info("STS credentials are valid. Nothing to do.")
         return True
 
     def write_sts_token(self, profile, access_key_id, secret_access_key, session_token):
@@ -107,5 +104,5 @@ class AwsAuth(object):
 
         with open(self.creds_file, 'w+') as configfile:
             config.write(configfile)
-        print("Temporary credentials written to profile: %s" % profile)
-        print("Invoke using: aws --profile %s <service> <command>" % profile)
+        self.logger.info("Temporary credentials written to profile: %s" % profile)
+        self.logger.info("Invoke using: aws --profile %s <service> <command>" % profile)

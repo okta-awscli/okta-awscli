@@ -18,11 +18,13 @@ Usage:
 ```
 [default]
 base-url = <your_okta_org>.okta.com
-username = <your_okta_username>
-password = <your_okta_password>
-```
 
-If you omit a username or password from the config file. okta-awscli will prompt you for it.
+## The remaining parameters are optional.
+## You will be prompted for them, if they're not included here.
+username = <your_okta_username>
+password = <your_okta_password> # Only save your password if you know what you are doing!
+factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
+```
 
 Note: Multiple Okta profiles are supported, but if none are specified, then `default` will be used.
 
