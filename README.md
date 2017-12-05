@@ -38,5 +38,6 @@ If no awscli commands are provided, then okta-awscli will simply output STS cred
 Optional flags:
 - `--profile` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted, credentials will output to console.
 - `--force` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
-- `--verbose` Verbose output. Useful for debugging.
+- `--verbose` More verbose output.
+- `--debug` Very verbose output. Useful for debugging.
 - `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
