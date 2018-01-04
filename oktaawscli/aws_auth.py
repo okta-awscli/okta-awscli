@@ -11,7 +11,7 @@ from botocore.exceptions import ClientError
 class AwsAuth(object):
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, verbose, logger):
+    def __init__(self, profile, okta_profile, verbose, logger):
         home_dir = os.path.expanduser('~')
         self.creds_dir = home_dir + "/.aws"
         self.creds_file = self.creds_dir + "/credentials"
@@ -19,8 +19,15 @@ class AwsAuth(object):
         self.verbose = verbose
         self.logger = logger
 
-    @staticmethod
-    def choose_aws_role(assertion):
+        okta_config = home_dir + '/.okta-aws'
+        parser = RawConfigParser()
+        parser.read(okta_config)
+
+        if parser.has_option(okta_profile, 'role'):
+            self.role = parser.get(okta_profile, 'role')
+            self.logger.debug("Setting AWS role to %s" % self.role)
+
+    def choose_aws_role(self, assertion):
         """ Choose AWS role from SAML assertion """
         aws_attribute_role = 'https://aws.amazon.com/SAML/Attributes/Role'
         attribute_value_urn = '{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue'
@@ -32,9 +39,27 @@ class AwsAuth(object):
                 for saml2attributevalue in saml2attribute.iter(attribute_value_urn):
                     roles.append(role_tuple(*saml2attributevalue.text.split(',')))
 
+        role_list = []
+
         for index, role in enumerate(roles):
             role_name = role.role_arn.split('/')[1]
+
+            ## Return the role as soon as it matches the saved role
+            ## Proceed to user choice if it's not found.
+            if self.role:
+                if role_name == self.role:
+                    self.logger.info("Using predefined role: %s" % self.role)
+                    return roles[index]
+            role_list.append("%d: %s" % (index+1, role_name))
+
+        if self.role:
+            self.logger.info("Predefined role, %s, not found in the list of roles assigned to you."
+                             % self.role)
+            self.logger.info("Please choose a role.")
+
+        for index, role_name in enumerate(role_list):
             print("%d: %s" % (index+1, role_name))
+
         role_choice = input('Please select the AWS role: ')-1
         return roles[role_choice]
 

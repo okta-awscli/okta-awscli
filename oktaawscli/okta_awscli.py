@@ -1,6 +1,7 @@
 """ Wrapper script for awscli which handles Okta auth """
 #pylint: disable=C0325
 from subprocess import call
+from version import __version__
 import logging
 from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.aws_auth import AwsAuth
@@ -35,6 +36,7 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
 #pylint: disable=R0913
 @click.command()
 @click.option('-v', '--verbose', is_flag=True, help='Enables verbose mode')
+@click.option('-V', '--version', is_flag=True, help='Outputs version number and exits')
 @click.option('-d', '--debug', is_flag=True, help='Enables debug mode')
 @click.option('-f', '--force', is_flag=True, help='Forces new STS credentials. \
 Skips STS credentials validation.')
@@ -44,8 +46,11 @@ If none is provided, then the default profile will be used.")
 credentials in ~/.aws/credentials. If profile doesn't exist, it will be created. If omitted, credentials \
 will output to console.")
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
-def main(okta_profile, profile, verbose, debug, force, awscli_args):
+def main(okta_profile, profile, verbose, version, debug, force, awscli_args):
     """ Authenticate to awscli using Okta """
+    if version:
+        print(__version__)
+        exit(0)
     ## Set up logging
     logger = logging.getLogger('okta-awscli')
     logger.setLevel(logging.DEBUG)
@@ -61,7 +66,7 @@ def main(okta_profile, profile, verbose, debug, force, awscli_args):
 
     if not okta_profile:
         okta_profile = "default"
-    aws_auth = AwsAuth(profile, verbose, logger)
+    aws_auth = AwsAuth(profile, okta_profile, verbose, logger)
     if not aws_auth.check_sts_token(profile) or force:
         if force and profile:
             logger.info("Force option selected, getting new credentials anyway.")

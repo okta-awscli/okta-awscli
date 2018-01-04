@@ -1,8 +1,11 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, os
+
+here = os.path.abspath(os.path.dirname(__file__))
+exec(open(os.path.join(here, 'oktaawscli/version.py')).read())
 
 setup(
     name='okta-awscli',
-    version='0.1.4',
+    version=__version__,
     description='Provides a wrapper for Okta authentication to awscli',
     packages=find_packages(),
     license='Apache License 2.0',
