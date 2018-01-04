@@ -4,6 +4,10 @@
 ### Added:
 - Ability to store MFA factor choice in `~/.okta-aws`. (#3)
 
+## [0.1.5] 2017-11-15
+### Fixed:
+- Issue #8. Another pass at trying to fix the MFA list. Factor chosen was being pulled from list which included unsupported factors.
+
 ## [0.1.4] 2017-08-27
 ### Added:
 - This CHANGELOG!
