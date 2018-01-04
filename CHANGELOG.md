@@ -4,6 +4,7 @@
 ### Added:
 - Ability to store MFA factor choice in `~/.okta-aws`. (#3)
 - Flag to output the version.
+- Ability to store AWS Role choice in `~/.okta-aws`. (#4)
 
 ## [0.1.5] 2017-11-15
 ### Fixed:
