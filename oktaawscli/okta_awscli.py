@@ -66,7 +66,7 @@ def main(okta_profile, profile, verbose, version, debug, force, awscli_args):
 
     if not okta_profile:
         okta_profile = "default"
-    aws_auth = AwsAuth(profile, verbose, logger)
+    aws_auth = AwsAuth(profile, okta_profile, verbose, logger)
     if not aws_auth.check_sts_token(profile) or force:
         if force and profile:
             logger.info("Force option selected, getting new credentials anyway.")
