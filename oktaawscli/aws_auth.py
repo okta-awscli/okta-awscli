@@ -67,7 +67,14 @@ class AwsAuth(object):
     @staticmethod
     def get_sts_token(role_arn, principal_arn, assertion):
         """ Gets a token from AWS STS """
-        sts = boto3.client('sts')
+
+        ## Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
+        arn_region = principal_arn.split(':')[1]
+        if arn_region == 'aws-us-gov':
+            sts = boto3.client('sts', region_name='us-gov-west-1')
+        else:
+            sts = boto3.client('sts')
+
         response = sts.assume_role_with_saml(RoleArn=role_arn,
                                              PrincipalArn=principal_arn,
                                              SAMLAssertion=assertion)
