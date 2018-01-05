@@ -6,6 +6,9 @@
 - Flag to output the version.
 - Ability to store AWS Role choice in `~/.okta-aws`. (#4)
 
+### Fixed:
+- Issue #14. Fixed a bug where okta-awscli wasn't connecting to the STS API endpoint in us-gov-west-1 when trying to obtain credential for GovCloud.
+
 ## [0.1.5] 2017-11-15
 ### Fixed:
 - Issue #8. Another pass at trying to fix the MFA list. Factor chosen was being pulled from list which included unsupported factors.
