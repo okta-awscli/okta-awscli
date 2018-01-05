@@ -18,6 +18,7 @@ class AwsAuth(object):
         self.profile = profile
         self.verbose = verbose
         self.logger = logger
+        self.role = ""
 
         okta_config = home_dir + '/.okta-aws'
         parser = RawConfigParser()
@@ -58,7 +59,7 @@ class AwsAuth(object):
             self.logger.info("Please choose a role.")
 
         for index, role_name in enumerate(role_list):
-            print("%d: %s" % (index+1, role_name))
+            print(role_name)
 
         role_choice = input('Please select the AWS role: ')-1
         return roles[role_choice]
