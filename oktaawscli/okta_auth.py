@@ -2,19 +2,22 @@
 #pylint: disable=C0325
 import sys
 import os
-from ConfigParser import RawConfigParser
+import json
+import time
+from configparser import RawConfigParser
 from getpass import getpass
 from bs4 import BeautifulSoup as bs
 import requests
 
 class OktaAuth(object):
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self, okta_profile, verbose, logger):
+    def __init__(self, okta_profile, verbose, logger, totp_token):
         home_dir = os.path.expanduser('~')
         okta_config = home_dir + '/.okta-aws'
         parser = RawConfigParser()
         parser.read(okta_config)
         profile = okta_profile
+        self.totp_token = totp_token
         self.logger = logger
         self.factor = ""
         if parser.has_option(profile, 'base-url'):
@@ -66,14 +69,18 @@ class OktaAuth(object):
 
     def verify_mfa(self, factors_list, state_token):
         """ Performs MFA auth against Okta """
+
+        supported_factor_types = [ "token:software:totp", "push" ]
         supported_factors = []
         for factor in factors_list:
-            if factor['factorType'] == "token:software:totp":
+            if factor['factorType'] in supported_factor_types:
                 supported_factors.append(factor)
+            else:
+                self.logger.info("Unsupported factorType: %s" % (factor['factorType'],))
+        if len(supported_factors) == 1:
 
-        if supported_factors == 1:
             session_token = self.verify_single_factor(supported_factors[0]['id'], state_token)
-        elif supported_factors > 0:
+        elif len(supported_factors) > 0:
             if not self.factor:
                 print("Registered MFA factors:")
             for index, factor in enumerate(supported_factors):
@@ -101,26 +108,47 @@ class OktaAuth(object):
                 factor_choice = input('Please select the MFA factor: ')
             self.logger.info("Performing secondary authentication using: %s" %
                              supported_factors[factor_choice]['provider'])
-            session_token = self.verify_single_factor(supported_factors[factor_choice-1]['id'],
+            session_token = self.verify_single_factor(supported_factors[factor_choice-1],
                                                       state_token)
         else:
             print("MFA required, but no supported factors enrolled! Exiting.")
             exit(1)
         return session_token
 
-    def verify_single_factor(self, factor_id, state_token):
+    def verify_single_factor(self, factor, state_token):
         """ Verifies a single MFA factor """
-        factor_answer = raw_input('Enter MFA token: ')
+        if self.totp_token:
+            factor_answer = self.totp_token
+        else:
+            factor_answer = raw_input('Enter MFA token: ')
         req_data = {
-            "stateToken": state_token,
-            "answer": factor_answer
+            "stateToken": state_token
         }
-        post_url = "%s/api/v1/authn/factors/%s/verify" % (self.base_url, factor_id)
+
+        if factor['factorType'] == 'token:software:totp':
+            req_data['answer'] = raw_input('Enter MFA token: ')
+        post_url = factor['_links']['verify']['href']
         resp = requests.post(post_url, json=req_data)
         resp_json = resp.json()
         if 'status' in resp_json:
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
+            elif resp_json['status'] == "MFA_CHALLENGE":
+                print "Waiting for push verification..."
+                validated = False
+                while True:
+                    resp = requests.post(resp_json['_links']['next']['href'], json=req_data)
+                    resp_json = resp.json()
+                    if resp_json['status'] == 'SUCCESS':
+                        return resp_json['sessionToken']
+                    elif resp_json['factorResult'] == 'TIMEOUT':
+                        print "Verification timed out"
+                        exit(1)
+                    elif resp_json['factorResult'] == 'REJECTED':
+                        print "Verification was rejected"
+                        exit(1)
+                    else:
+                        time.sleep(0.5)
         elif resp.status_code != 200:
             self.logger.error(resp_json['errorSummary'])
             exit(1)

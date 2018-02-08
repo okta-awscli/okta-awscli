@@ -4,7 +4,7 @@ import os
 import base64
 import xml.etree.ElementTree as ET
 from collections import namedtuple
-from ConfigParser import RawConfigParser
+from configparser import RawConfigParser
 import boto3
 from botocore.exceptions import ClientError
 
