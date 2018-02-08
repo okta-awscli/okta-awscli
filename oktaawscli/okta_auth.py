@@ -2,7 +2,7 @@
 #pylint: disable=C0325
 import sys
 import os
-from ConfigParser import RawConfigParser
+from configparser import RawConfigParser
 from getpass import getpass
 from bs4 import BeautifulSoup as bs
 import requests
@@ -71,9 +71,9 @@ class OktaAuth(object):
             if factor['factorType'] == "token:software:totp":
                 supported_factors.append(factor)
 
-        if supported_factors == 1:
+        if len(supported_factors) == 1:
             session_token = self.verify_single_factor(supported_factors[0]['id'], state_token)
-        elif supported_factors > 0:
+        elif len(supported_factors) > 0:
             if not self.factor:
                 print("Registered MFA factors:")
             for index, factor in enumerate(supported_factors):
