@@ -43,3 +43,4 @@ Optional flags:
 - `--verbose` More verbose output.
 - `--debug` Very verbose output. Useful for debugging.
 - `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
+- `--token` or `-t` Pass in the TOTP token from your authenticator

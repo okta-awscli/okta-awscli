@@ -4,19 +4,20 @@ import sys
 import os
 import json
 import time
-from ConfigParser import RawConfigParser
+from configparser import RawConfigParser
 from getpass import getpass
 from bs4 import BeautifulSoup as bs
 import requests
 
 class OktaAuth(object):
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self, okta_profile, verbose, logger):
+    def __init__(self, okta_profile, verbose, logger, totp_token):
         home_dir = os.path.expanduser('~')
         okta_config = home_dir + '/.okta-aws'
         parser = RawConfigParser()
         parser.read(okta_config)
         profile = okta_profile
+        self.totp_token = totp_token
         self.logger = logger
         self.factor = ""
         if parser.has_option(profile, 'base-url'):
@@ -76,9 +77,10 @@ class OktaAuth(object):
                 supported_factors.append(factor)
             else:
                 self.logger.info("Unsupported factorType: %s" % (factor['factorType'],))
-        if supported_factors == 1:
+        if len(supported_factors) == 1:
+
             session_token = self.verify_single_factor(supported_factors[0]['id'], state_token)
-        elif supported_factors > 0:
+        elif len(supported_factors) > 0:
             if not self.factor:
                 print("Registered MFA factors:")
             for index, factor in enumerate(supported_factors):
@@ -115,6 +117,10 @@ class OktaAuth(object):
 
     def verify_single_factor(self, factor, state_token):
         """ Verifies a single MFA factor """
+        if self.totp_token:
+            factor_answer = self.totp_token
+        else:
+            factor_answer = raw_input('Enter MFA token: ')
         req_data = {
             "stateToken": state_token
         }
