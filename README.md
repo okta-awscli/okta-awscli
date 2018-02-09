@@ -42,4 +42,5 @@ Optional flags:
 - `--force` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
 - `--verbose` More verbose output.
 - `--debug` Very verbose output. Useful for debugging.
+- `--cache` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
 - `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
