@@ -44,3 +44,4 @@ Optional flags:
 - `--debug` Very verbose output. Useful for debugging.
 - `--cache` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
 - `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
+- `--token` or `-t` Pass in the TOTP token from your authenticator

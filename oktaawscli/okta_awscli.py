@@ -8,18 +8,18 @@ from oktaawscli.aws_auth import AwsAuth
 import click
 import os
 
-def get_credentials(aws_auth, okta_profile, profile, verbose, logger, cache):
+def get_credentials(aws_auth, okta_profile, profile, verbose, logger, totp_token, cache):
     """ Gets credentials from Okta """
-    okta = OktaAuth(okta_profile, verbose, logger)
+    okta = OktaAuth(okta_profile, verbose, logger, totp_token)
     app_name, assertion = okta.get_assertion()
     app_name = app_name.replace(" ", "")
     role = aws_auth.choose_aws_role(assertion)
     principal_arn, role_arn = role
 
-    token = aws_auth.get_sts_token(role_arn, principal_arn, assertion)
-    access_key_id = token['AccessKeyId']
-    secret_access_key = token['SecretAccessKey']
-    session_token = token['SessionToken']
+    sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion)
+    access_key_id = sts_token['AccessKeyId']
+    secret_access_key = sts_token['SecretAccessKey']
+    session_token = sts_token['SessionToken']
     if not profile:
         exports = console_output(access_key_id, secret_access_key, session_token, verbose)
         if cache:
@@ -58,7 +58,9 @@ will output to console.")
 @click.option('-c', '--cache', is_flag=True, help='Cache the default profile credentials \
 to ~/.okta-credentials.cache')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
-def main(okta_profile, profile, verbose, version, debug, force, cache, awscli_args):
+@click.option('-t', '--token', help='TOTP token from your authenticator app')
+@click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
+def main(okta_profile, profile, verbose, version, debug, force, cache, awscli_args, token):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -84,7 +86,7 @@ def main(okta_profile, profile, verbose, version, debug, force, cache, awscli_ar
             logger.info("Force option selected, getting new credentials anyway.")
         elif force:
             logger.info("Force option selected, but no profile provided. Option has no effect.")
-        get_credentials(aws_auth, okta_profile, profile, verbose, logger, cache)
+        get_credentials(aws_auth, okta_profile, profile, verbose, logger, cache, token)
 
     if awscli_args:
         cmdline = ['aws', '--profile', profile] + list(awscli_args)
