@@ -57,7 +57,6 @@ credentials in ~/.aws/credentials. If profile doesn't exist, it will be created.
 will output to console.")
 @click.option('-c', '--cache', is_flag=True, help='Cache the default profile credentials \
 to ~/.okta-credentials.cache')
-@click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version, debug, force, cache, awscli_args, token):
@@ -86,7 +85,7 @@ def main(okta_profile, profile, verbose, version, debug, force, cache, awscli_ar
             logger.info("Force option selected, getting new credentials anyway.")
         elif force:
             logger.info("Force option selected, but no profile provided. Option has no effect.")
-        get_credentials(aws_auth, okta_profile, profile, verbose, logger, cache, token)
+        get_credentials(aws_auth, okta_profile, profile, verbose, logger, token, cache)
 
     if awscli_args:
         cmdline = ['aws', '--profile', profile] + list(awscli_args)

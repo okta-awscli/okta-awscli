@@ -77,7 +77,6 @@ class OktaAuth(object):
                 supported_factors.append(factor)
             else:
                 self.logger.info("Unsupported factorType: %s" % (factor['factorType'],))
-        if len(supported_factors) == 1:
 
         supported_factors = sorted(supported_factors, key=lambda factor: (factor['provider'], factor['factorType']))
         if len(supported_factors) == 1:
@@ -119,16 +118,16 @@ class OktaAuth(object):
 
     def verify_single_factor(self, factor, state_token):
         """ Verifies a single MFA factor """
-        if self.totp_token:
-            factor_answer = self.totp_token
-        else:
-            factor_answer = raw_input('Enter MFA token: ')
         req_data = {
             "stateToken": state_token
         }
 
         if factor['factorType'] == 'token:software:totp':
-            req_data['answer'] = raw_input('Enter MFA token: ')
+            if self.totp_token:
+                self.logger.debug("Using TOTP token from command line arg")
+                req_data['answer'] = self.totp_token
+            else:
+                req_data['answer'] = raw_input('Enter MFA token: ')
         post_url = factor['_links']['verify']['href']
         resp = requests.post(post_url, json=req_data)
         resp_json = resp.json()
