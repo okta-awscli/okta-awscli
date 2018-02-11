@@ -6,8 +6,9 @@ import logging
 from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.aws_auth import AwsAuth
 import click
+import os
 
-def get_credentials(aws_auth, okta_profile, profile, verbose, logger, totp_token):
+def get_credentials(aws_auth, okta_profile, profile, verbose, logger, totp_token, cache):
     """ Gets credentials from Okta """
     okta = OktaAuth(okta_profile, verbose, logger, totp_token)
     app_name, assertion = okta.get_assertion()
@@ -20,7 +21,11 @@ def get_credentials(aws_auth, okta_profile, profile, verbose, logger, totp_token
     secret_access_key = sts_token['SecretAccessKey']
     session_token = sts_token['SessionToken']
     if not profile:
-        console_output(access_key_id, secret_access_key, session_token, verbose)
+        exports = console_output(access_key_id, secret_access_key, session_token, verbose)
+        if cache:
+            cache = open("%s/.okta-credentials.cache" % (os.path.expanduser('~'),), 'w')
+            cache.write(exports)
+            cache.close()
         exit(0)
     else:
         aws_auth.write_sts_token(profile, access_key_id, secret_access_key, session_token)
@@ -29,9 +34,14 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
     """ Outputs STS credentials to console """
     if verbose:
         print("Use these to set your environment variables:")
-    print("export AWS_ACCESS_KEY_ID=%s" % access_key_id)
-    print("export AWS_SECRET_ACCESS_KEY=%s" % secret_access_key)
-    print("export AWS_SESSION_TOKEN=%s" % session_token)
+    exports = "\n".join([
+        "export AWS_ACCESS_KEY_ID=%s" % access_key_id,
+        "export AWS_SECRET_ACCESS_KEY=%s" % secret_access_key,
+        "export AWS_SESSION_TOKEN=%s" % session_token
+    ])
+    print(exports)
+
+    return exports
 
 #pylint: disable=R0913
 @click.command()
@@ -45,9 +55,12 @@ If none is provided, then the default profile will be used.")
 @click.option('--profile', help="Name of the profile to store temporary \
 credentials in ~/.aws/credentials. If profile doesn't exist, it will be created. If omitted, credentials \
 will output to console.")
+@click.option('-c', '--cache', is_flag=True, help='Cache the default profile credentials \
+to ~/.okta-credentials.cache')
+@click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
-def main(okta_profile, profile, verbose, version, debug, force, awscli_args, token):
+def main(okta_profile, profile, verbose, version, debug, force, cache, awscli_args, token):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -73,7 +86,7 @@ def main(okta_profile, profile, verbose, version, debug, force, awscli_args, tok
             logger.info("Force option selected, getting new credentials anyway.")
         elif force:
             logger.info("Force option selected, but no profile provided. Option has no effect.")
-        get_credentials(aws_auth, okta_profile, profile, verbose, logger, token)
+        get_credentials(aws_auth, okta_profile, profile, verbose, logger, cache, token)
 
     if awscli_args:
         cmdline = ['aws', '--profile', profile] + list(awscli_args)
