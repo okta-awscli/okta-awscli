@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0] 2018-02-11
+### Added:
+- Ability to store MFA factor choice in `~/.okta-aws`. (#3)
+- Flag to output the version.
+- Ability to store AWS Role choice in `~/.okta-aws`. (#4)
+- Ability to pass in TOTP token as a command-line argument. (#13)
+- Support for MFA push notifications. Thanks Justin! (#10)
+- Support for caching credentials to use in other sessions. Thanks Justin! (#6, #7)
+
+### Fixed:
+- Issue #14. Fixed a bug where okta-awscli wasn't connecting to the STS API endpoint in us-gov-west-1 when trying to obtain credential for GovCloud.
+- Improved sorting in the app list to be more consistent. Thanks Justin!
+- Cleaned up README to improve clarity. Thanks Justin!
+
 ## [0.1.5] 2017-11-15
 ### Fixed:
 - Issue #8. Another pass at trying to fix the MFA list. Factor chosen was being pulled from list which included unsupported factors.
