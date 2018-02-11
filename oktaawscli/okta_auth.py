@@ -79,6 +79,8 @@ class OktaAuth(object):
                 self.logger.info("Unsupported factorType: %s" % (factor['factorType'],))
         if len(supported_factors) == 1:
 
+        supported_factors = sorted(supported_factors, key=lambda factor: (factor['provider'], factor['factorType']))
+        if len(supported_factors) == 1:
             session_token = self.verify_single_factor(supported_factors[0]['id'], state_token)
         elif len(supported_factors) > 0:
             if not self.factor:
@@ -175,6 +177,8 @@ class OktaAuth(object):
         if not aws_apps:
             self.logger.error("No AWS apps are available for your user. Exiting.")
             sys.exit(1)
+
+        aws_apps = sorted(aws_apps, key=lambda app: app['sortOrder'])
         print("Available apps:")
         for index, app in enumerate(aws_apps):
             app_name = app['label']
