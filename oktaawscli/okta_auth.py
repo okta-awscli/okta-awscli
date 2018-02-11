@@ -1,20 +1,23 @@
 """ Handles auth to Okta and returns SAML assertion """
-#pylint: disable=C0325
+# pylint: disable=C0325
 import sys
 import os
-from ConfigParser import RawConfigParser
+import time
+from configparser import RawConfigParser
 from getpass import getpass
 from bs4 import BeautifulSoup as bs
 import requests
 
+
 class OktaAuth(object):
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self, okta_profile, verbose, logger):
+    def __init__(self, okta_profile, verbose, logger, totp_token):
         home_dir = os.path.expanduser('~')
         okta_config = home_dir + '/.okta-aws'
         parser = RawConfigParser()
         parser.read(okta_config)
         profile = okta_profile
+        self.totp_token = totp_token
         self.logger = logger
         self.factor = ""
         if parser.has_option(profile, 'base-url'):
@@ -46,7 +49,7 @@ class OktaAuth(object):
             "username": self.username,
             "password": self.password
         }
-        resp = requests.post(self.base_url+'/api/v1/authn', json=auth_data)
+        resp = requests.post(self.base_url + '/api/v1/authn', json=auth_data)
         resp_json = resp.json()
         if 'status' in resp_json:
             if resp_json['status'] == 'MFA_REQUIRED':
@@ -66,14 +69,24 @@ class OktaAuth(object):
 
     def verify_mfa(self, factors_list, state_token):
         """ Performs MFA auth against Okta """
+
+        supported_factor_types = ["token:software:totp", "push"]
         supported_factors = []
         for factor in factors_list:
-            if factor['factorType'] == "token:software:totp":
+            if factor['factorType'] in supported_factor_types:
                 supported_factors.append(factor)
+            else:
+                self.logger.info("Unsupported factorType: %s" %
+                                 (factor['factorType'],))
 
-        if supported_factors == 1:
-            session_token = self.verify_single_factor(supported_factors[0]['id'], state_token)
-        elif supported_factors > 0:
+        supported_factors = sorted(supported_factors,
+                                   key=lambda factor: (
+                                       factor['provider'],
+                                       factor['factorType']))
+        if len(supported_factors) == 1:
+            session_token = self.verify_single_factor(
+                supported_factors[0]['id'], state_token)
+        elif len(supported_factors) > 0:
             if not self.factor:
                 print("Registered MFA factors:")
             for index, factor in enumerate(supported_factors):
@@ -93,34 +106,56 @@ class OktaAuth(object):
                 if self.factor:
                     if self.factor == factor_provider:
                         factor_choice = index
-                        self.logger.info("Using pre-selected factor choice from ~/.okta-aws")
+                        self.logger.info("Using pre-selected factor choice \
+                                         from ~/.okta-aws")
                         break
                 else:
-                    print("%d: %s" % (index+1, factor_name))
+                    print("%d: %s" % (index + 1, factor_name))
             if not self.factor:
                 factor_choice = input('Please select the MFA factor: ')
             self.logger.info("Performing secondary authentication using: %s" %
                              supported_factors[factor_choice]['provider'])
-            session_token = self.verify_single_factor(supported_factors[factor_choice-1]['id'],
+            session_token = self.verify_single_factor(supported_factors[factor_choice-1],
                                                       state_token)
         else:
             print("MFA required, but no supported factors enrolled! Exiting.")
             exit(1)
         return session_token
 
-    def verify_single_factor(self, factor_id, state_token):
+    def verify_single_factor(self, factor, state_token):
         """ Verifies a single MFA factor """
-        factor_answer = raw_input('Enter MFA token: ')
         req_data = {
-            "stateToken": state_token,
-            "answer": factor_answer
+            "stateToken": state_token
         }
-        post_url = "%s/api/v1/authn/factors/%s/verify" % (self.base_url, factor_id)
+
+        if factor['factorType'] == 'token:software:totp':
+            if self.totp_token:
+                self.logger.debug("Using TOTP token from command line arg")
+                req_data['answer'] = self.totp_token
+            else:
+                req_data['answer'] = raw_input('Enter MFA token: ')
+        post_url = factor['_links']['verify']['href']
         resp = requests.post(post_url, json=req_data)
         resp_json = resp.json()
         if 'status' in resp_json:
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
+            elif resp_json['status'] == "MFA_CHALLENGE":
+                print "Waiting for push verification..."
+                while True:
+                    resp = requests.post(
+                        resp_json['_links']['next']['href'], json=req_data)
+                    resp_json = resp.json()
+                    if resp_json['status'] == 'SUCCESS':
+                        return resp_json['sessionToken']
+                    elif resp_json['factorResult'] == 'TIMEOUT':
+                        print "Verification timed out"
+                        exit(1)
+                    elif resp_json['factorResult'] == 'REJECTED':
+                        print "Verification was rejected"
+                        exit(1)
+                    else:
+                        time.sleep(0.5)
         elif resp.status_code != 200:
             self.logger.error(resp_json['errorSummary'])
             exit(1)
@@ -128,31 +163,36 @@ class OktaAuth(object):
             self.logger.error(resp_json)
             exit(1)
 
-
     def get_session(self, session_token):
         """ Gets a session cookie from a session token """
         data = {"sessionToken": session_token}
-        resp = requests.post(self.base_url+'/api/v1/sessions', json=data).json()
+        resp = requests.post(
+            self.base_url + '/api/v1/sessions', json=data).json()
         return resp['id']
 
     def get_apps(self, session_id):
         """ Gets apps for the user """
         sid = "sid=%s" % session_id
         headers = {'Cookie': sid}
-        resp = requests.get(self.base_url+'/api/v1/users/me/appLinks', headers=headers).json()
+        resp = requests.get(
+            self.base_url + '/api/v1/users/me/appLinks',
+            headers=headers).json()
         aws_apps = []
         for app in resp:
             if app['appName'] == "amazon_aws":
                 aws_apps.append(app)
         if not aws_apps:
-            self.logger.error("No AWS apps are available for your user. Exiting.")
+            self.logger.error("No AWS apps are available for your user. \
+                Exiting.")
             sys.exit(1)
+
+        aws_apps = sorted(aws_apps, key=lambda app: app['sortOrder'])
         print("Available apps:")
         for index, app in enumerate(aws_apps):
             app_name = app['label']
-            print("%d: %s" % (index+1, app_name))
+            print("%d: %s" % (index + 1, app_name))
 
-        app_choice = input('Please select AWS app: ')-1
+        app_choice = input('Please select AWS app: ') - 1
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
     def get_saml_assertion(self, html):

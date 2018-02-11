@@ -1,12 +1,13 @@
 """ AWS authentication """
-#pylint: disable=C0325
+# pylint: disable=C0325
 import os
 import base64
 import xml.etree.ElementTree as ET
 from collections import namedtuple
-from ConfigParser import RawConfigParser
+from configparser import RawConfigParser
 import boto3
 from botocore.exceptions import ClientError
+
 
 class AwsAuth(object):
     """ Methods to support AWS authentication using STS """
@@ -45,13 +46,13 @@ class AwsAuth(object):
         for index, role in enumerate(roles):
             role_name = role.role_arn.split('/')[1]
 
-            ## Return the role as soon as it matches the saved role
-            ## Proceed to user choice if it's not found.
+            # Return the role as soon as it matches the saved role
+            # Proceed to user choice if it's not found.
             if self.role:
                 if role_name == self.role:
                     self.logger.info("Using predefined role: %s" % self.role)
                     return roles[index]
-            role_list.append("%d: %s" % (index+1, role_name))
+            role_list.append("%d: %s" % (index + 1, role_name))
 
         if self.role:
             self.logger.info("Predefined role, %s, not found in the list of roles assigned to you."
@@ -61,14 +62,14 @@ class AwsAuth(object):
         for index, role_name in enumerate(role_list):
             print(role_name)
 
-        role_choice = input('Please select the AWS role: ')-1
+        role_choice = input('Please select the AWS role: ') - 1
         return roles[role_choice]
 
     @staticmethod
     def get_sts_token(role_arn, principal_arn, assertion):
         """ Gets a token from AWS STS """
 
-        ## Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
+        # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
         arn_region = principal_arn.split(':')[1]
         if arn_region == 'aws-us-gov':
             sts = boto3.client('sts', region_name='us-gov-west-1')
@@ -91,7 +92,7 @@ class AwsAuth(object):
         parser.read(self.creds_file)
 
         if not os.path.exists(self.creds_dir):
-            self.logger.info("AWS credentials path does not exit. Not checking.")
+            self.logger.info("AWS credentials path does not exist. Not checking.")
             return False
 
         elif not os.path.isfile(self.creds_file):
