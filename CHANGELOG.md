@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.1] 2018-02-14
+### Fixed:
+- Issue where secondary auth would fail when only a single factor is enrolled for the user. (#27)
+
 ## [0.2.0] 2018-02-11
 ### Added:
 - Ability to store MFA factor choice in `~/.okta-aws`. (#3)
