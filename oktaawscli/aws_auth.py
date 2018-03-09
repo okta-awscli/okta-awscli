@@ -145,7 +145,8 @@ class AwsAuth(object):
         return options
 
     def __find_predefiend_role_from(self, roles):
-        return fliter(lambda role_tuple: __role_name_of(role_tuple) == self.role, roles)[0]
-
-    def __role_name_of(self, role_tuple):
-        role_tuple.role_arn.split('/')[1]
+        found_roles = filter(lambda role_tuple: role_tuple.role_arn == self.role, roles)
+        if (len(found_roles) == 0) :
+            return None
+        else:
+            return found_roles[0]
