@@ -4,6 +4,7 @@ from subprocess import call
 from version import __version__
 import logging
 from oktaawscli.okta_auth import OktaAuth
+from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 import click
 import os
@@ -12,9 +13,11 @@ import os
 def get_credentials(aws_auth, okta_profile, profile,
                     verbose, logger, totp_token, cache):
     """ Gets credentials from Okta """
-    okta = OktaAuth(okta_profile, verbose, logger, totp_token)
+
+    okta_auth_config = OktaAuthConfig(logger)
+    okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
+
     app_name, assertion = okta.get_assertion()
-    app_name = app_name.replace(" ", "")
     role = aws_auth.choose_aws_role(assertion)
     principal_arn, role_arn = role
 
