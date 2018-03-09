@@ -47,7 +47,7 @@ class AwsAuth(object):
         for option in role_options:
             print(option)
 
-        role_choice = input('Please select the AWS role: ') - 1
+        role_choice = int(input('Please select the AWS role: ')) - 1
         return roles[role_choice]
 
     @staticmethod
