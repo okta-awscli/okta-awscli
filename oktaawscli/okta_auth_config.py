@@ -37,8 +37,9 @@ class OktaAuthConfig(object):
 
     def factor_for(self, okta_profile):
         if self._value.has_option(okta_profile, 'factor'):
-            self.logger.debug("Setting MFA factor to %s" % self.factor)
-            return self._value.get(okta_profile, 'factor')
+            factor = self._value.get(okta_profile, 'factor')
+            self.logger.debug("Setting MFA factor to %s" % factor)
+            return factor
 
     def save_chosen_role_for_profile(self, okta_profile, role_arn):
         if not self._value.has_section(okta_profile):

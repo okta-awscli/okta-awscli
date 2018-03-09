@@ -21,6 +21,8 @@ def get_credentials(aws_auth, okta_profile, profile,
     role = aws_auth.choose_aws_role(assertion)
     principal_arn, role_arn = role
 
+    okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
+
     sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion)
     access_key_id = sts_token['AccessKeyId']
     secret_access_key = sts_token['SecretAccessKey']
