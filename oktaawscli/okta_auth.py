@@ -1,5 +1,5 @@
 """ Handles auth to Okta and returns SAML assertion """
-# pylint: disable=C0325
+# pylint: disable=C0325,R0912,C1801
 import sys
 import os
 import time

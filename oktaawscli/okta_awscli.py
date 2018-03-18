@@ -1,13 +1,12 @@
 """ Wrapper script for awscli which handles Okta auth """
-# pylint: disable=C0325
+# pylint: disable=C0325,R0913,R0914
+import os
 from subprocess import call
-from version import __version__
 import logging
+from oktaawscli.version import __version__
 from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.aws_auth import AwsAuth
 import click
-import os
-
 
 def get_credentials(aws_auth, okta_profile, profile,
                     verbose, logger, totp_token, cache):
@@ -102,7 +101,7 @@ def main(okta_profile, profile, verbose, version,
 
     if awscli_args:
         cmdline = ['aws', '--profile', profile] + list(awscli_args)
-        logger.info('Invoking: %s' % ' '.join(cmdline))
+        logger.info('Invoking: %s', ' '.join(cmdline))
         call(cmdline)
 
 
