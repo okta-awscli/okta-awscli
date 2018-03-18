@@ -21,6 +21,7 @@ base-url = <your_okta_org>.okta.com
 username = <your_okta_username>
 password = <your_okta_password> # Only save your password if you know what you are doing!
 factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
+role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
 ```
 
 ## Supported Features
