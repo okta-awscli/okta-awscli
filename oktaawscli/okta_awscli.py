@@ -3,10 +3,10 @@
 import os
 from subprocess import call
 import logging
+import click
 from oktaawscli.version import __version__
 from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.aws_auth import AwsAuth
-import click
 
 def get_credentials(aws_auth, okta_profile, profile,
                     verbose, logger, totp_token, cache):

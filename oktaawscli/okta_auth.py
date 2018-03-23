@@ -164,6 +164,7 @@ class OktaAuth(object):
         else:
             self.logger.error(resp_json)
             exit(1)
+        return None
 
     def get_session(self, session_token):
         """ Gets a session cookie from a session token """
