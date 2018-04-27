@@ -7,6 +7,7 @@ from configparser import RawConfigParser
 from getpass import getpass
 from bs4 import BeautifulSoup as bs
 import requests
+from builtins import input
 
 
 class OktaAuth(object):
@@ -30,7 +31,7 @@ class OktaAuth(object):
             self.username = parser.get(profile, 'username')
             self.logger.info("Authenticating as: %s" % self.username)
         else:
-            self.username = raw_input('Enter username: ')
+            self.username = input('Enter username: ')
         if parser.has_option(profile, 'password'):
             self.password = parser.get(profile, 'password')
         else:
@@ -135,7 +136,7 @@ class OktaAuth(object):
                 self.logger.debug("Using TOTP token from command line arg")
                 req_data['answer'] = self.totp_token
             else:
-                req_data['answer'] = raw_input('Enter MFA token: ')
+                req_data['answer'] = input('Enter MFA token: ')
         post_url = factor['_links']['verify']['href']
         resp = requests.post(post_url, json=req_data)
         resp_json = resp.json()
@@ -143,7 +144,7 @@ class OktaAuth(object):
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
             elif resp_json['status'] == "MFA_CHALLENGE":
-                print "Waiting for push verification..."
+                print("Waiting for push verification...")
                 while True:
                     resp = requests.post(
                         resp_json['_links']['next']['href'], json=req_data)
@@ -151,10 +152,10 @@ class OktaAuth(object):
                     if resp_json['status'] == 'SUCCESS':
                         return resp_json['sessionToken']
                     elif resp_json['factorResult'] == 'TIMEOUT':
-                        print "Verification timed out"
+                        print("Verification timed out")
                         exit(1)
                     elif resp_json['factorResult'] == 'REJECTED':
-                        print "Verification was rejected"
+                        print("Verification was rejected")
                         exit(1)
                     else:
                         time.sleep(0.5)
@@ -195,7 +196,7 @@ class OktaAuth(object):
             app_name = app['label']
             print("%d: %s" % (index + 1, app_name))
 
-        app_choice = input('Please select AWS app: ') - 1
+        app_choice = int(input('Please select AWS app: ')) - 1
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
     def get_saml_assertion(self, html):
