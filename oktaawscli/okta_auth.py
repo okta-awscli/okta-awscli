@@ -196,11 +196,13 @@ class OktaAuth(object):
             sys.exit(1)
 
         aws_apps = sorted(aws_apps, key=lambda app: app['sortOrder'])
-        print("Available apps:")
+        if not self.app:
+            print("Available apps:")
         app_choice = None
         for index, app in enumerate(aws_apps):
             app_name = app['label']
-            print("%d: %s" % (index + 1, app_name))
+            if not self.app:
+                print("%d: %s" % (index + 1, app_name))
             if self.app and app_name == self.app:
                 app_choice = index
 
