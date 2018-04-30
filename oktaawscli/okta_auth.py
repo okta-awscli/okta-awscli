@@ -113,10 +113,10 @@ class OktaAuth(object):
                 else:
                     print("%d: %s" % (index + 1, factor_name))
             if not self.factor:
-                factor_choice = int(input('Please select the MFA factor: '))
+                factor_choice = int(input('Please select the MFA factor: ')) - 1
             self.logger.info("Performing secondary authentication using: %s" %
-                             supported_factors[factor_choice]['provider'])
-            session_token = self.verify_single_factor(supported_factors[factor_choice-1],
+                             supported_factors[factor_choice]['factorType'])
+            session_token = self.verify_single_factor(supported_factors[factor_choice],
                                                       state_token)
         else:
             print("MFA required, but no supported factors enrolled! Exiting.")
