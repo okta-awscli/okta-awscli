@@ -21,6 +21,7 @@ class OktaAuth(object):
         self.totp_token = totp_token
         self.logger = logger
         self.factor = ""
+        self.app = None
         if parser.has_option(profile, 'base-url'):
             self.base_url = "https://%s" % parser.get(profile, 'base-url')
             self.logger.info("Authenticating to: %s" % self.base_url)
@@ -40,6 +41,10 @@ class OktaAuth(object):
         if parser.has_option(profile, 'factor'):
             self.factor = parser.get(profile, 'factor')
             self.logger.debug("Setting MFA factor to %s" % self.factor)
+
+        if parser.has_option(profile, 'app'):
+            self.app = parser.get(profile, 'app')
+            self.logger.debug("Setting AWS app to %s" % self.app)
 
         self.verbose = verbose
 
@@ -192,11 +197,15 @@ class OktaAuth(object):
 
         aws_apps = sorted(aws_apps, key=lambda app: app['sortOrder'])
         print("Available apps:")
+        app_choice = None
         for index, app in enumerate(aws_apps):
             app_name = app['label']
             print("%d: %s" % (index + 1, app_name))
+            if self.app and app_name == self.app:
+                app_choice = index
 
-        app_choice = int(input('Please select AWS app: ')) - 1
+        if not app_choice:
+            app_choice = int(input('Please select AWS app: ')) - 1
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
     def get_saml_assertion(self, html):
