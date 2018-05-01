@@ -62,7 +62,7 @@ class AwsAuth(object):
         for index, role_name in enumerate(role_list):
             print(role_name)
 
-        role_choice = input('Please select the AWS role: ') - 1
+        role_choice = int(input('Please select the AWS role: ')) - 1
         return roles[role_choice]
 
     @staticmethod

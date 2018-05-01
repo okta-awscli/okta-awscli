@@ -7,6 +7,7 @@ from configparser import RawConfigParser
 from getpass import getpass
 from bs4 import BeautifulSoup as bs
 import requests
+from builtins import input
 
 
 class OktaAuth(object):
@@ -20,17 +21,18 @@ class OktaAuth(object):
         self.totp_token = totp_token
         self.logger = logger
         self.factor = ""
+        self.app = None
         if parser.has_option(profile, 'base-url'):
             self.base_url = "https://%s" % parser.get(profile, 'base-url')
             self.logger.info("Authenticating to: %s" % self.base_url)
         else:
-            self.logger.error("No base-url set in ~/.okta-aws")
+            self.logger.error("No base-url set in ~/.okta-aws, make sure you have profile " + profile + " setup")
             exit(1)
         if parser.has_option(profile, 'username'):
             self.username = parser.get(profile, 'username')
             self.logger.info("Authenticating as: %s" % self.username)
         else:
-            self.username = raw_input('Enter username: ')
+            self.username = input('Enter username: ')
         if parser.has_option(profile, 'password'):
             self.password = parser.get(profile, 'password')
         else:
@@ -39,6 +41,10 @@ class OktaAuth(object):
         if parser.has_option(profile, 'factor'):
             self.factor = parser.get(profile, 'factor')
             self.logger.debug("Setting MFA factor to %s" % self.factor)
+
+        if parser.has_option(profile, 'app'):
+            self.app = parser.get(profile, 'app')
+            self.logger.debug("Setting AWS app to %s" % self.app)
 
         self.verbose = verbose
 
@@ -112,10 +118,10 @@ class OktaAuth(object):
                 else:
                     print("%d: %s" % (index + 1, factor_name))
             if not self.factor:
-                factor_choice = input('Please select the MFA factor: ')
+                factor_choice = int(input('Please select the MFA factor: ')) - 1
             self.logger.info("Performing secondary authentication using: %s" %
-                             supported_factors[factor_choice]['provider'])
-            session_token = self.verify_single_factor(supported_factors[factor_choice-1],
+                             supported_factors[factor_choice]['factorType'])
+            session_token = self.verify_single_factor(supported_factors[factor_choice],
                                                       state_token)
         else:
             print("MFA required, but no supported factors enrolled! Exiting.")
@@ -135,7 +141,7 @@ class OktaAuth(object):
                 self.logger.debug("Using TOTP token from command line arg")
                 req_data['answer'] = self.totp_token
             else:
-                req_data['answer'] = raw_input('Enter MFA token: ')
+                req_data['answer'] = input('Enter MFA token: ')
         post_url = factor['_links']['verify']['href']
         resp = requests.post(post_url, json=req_data)
         resp_json = resp.json()
@@ -143,7 +149,7 @@ class OktaAuth(object):
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
             elif resp_json['status'] == "MFA_CHALLENGE":
-                print "Waiting for push verification..."
+                print("Waiting for push verification...")
                 while True:
                     resp = requests.post(
                         resp_json['_links']['next']['href'], json=req_data)
@@ -151,10 +157,10 @@ class OktaAuth(object):
                     if resp_json['status'] == 'SUCCESS':
                         return resp_json['sessionToken']
                     elif resp_json['factorResult'] == 'TIMEOUT':
-                        print "Verification timed out"
+                        print("Verification timed out")
                         exit(1)
                     elif resp_json['factorResult'] == 'REJECTED':
-                        print "Verification was rejected"
+                        print("Verification was rejected")
                         exit(1)
                     else:
                         time.sleep(0.5)
@@ -190,12 +196,18 @@ class OktaAuth(object):
             sys.exit(1)
 
         aws_apps = sorted(aws_apps, key=lambda app: app['sortOrder'])
-        print("Available apps:")
+        if not self.app:
+            print("Available apps:")
+        app_choice = None
         for index, app in enumerate(aws_apps):
             app_name = app['label']
-            print("%d: %s" % (index + 1, app_name))
+            if not self.app:
+                print("%d: %s" % (index + 1, app_name))
+            if self.app and app_name == self.app:
+                app_choice = index
 
-        app_choice = input('Please select AWS app: ') - 1
+        if not app_choice:
+            app_choice = int(input('Please select AWS app: ')) - 1
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
     def get_saml_assertion(self, html):

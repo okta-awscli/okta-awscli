@@ -85,6 +85,8 @@ def main(okta_profile, profile, verbose, version,
         handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
+    if not okta_profile and profile:
+        okta_profile = profile
     if not okta_profile:
         okta_profile = "default"
     aws_auth = AwsAuth(profile, okta_profile, verbose, logger)
