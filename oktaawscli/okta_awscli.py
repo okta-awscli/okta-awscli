@@ -6,16 +6,21 @@ import logging
 import click
 from oktaawscli.version import __version__
 from oktaawscli.okta_auth import OktaAuth
+from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
 def get_credentials(aws_auth, okta_profile, profile,
                     verbose, logger, totp_token, cache):
     """ Gets credentials from Okta """
-    okta = OktaAuth(okta_profile, verbose, logger, totp_token)
+
+    okta_auth_config = OktaAuthConfig(logger)
+    okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
+
     app_name, assertion = okta.get_assertion()
-    app_name = app_name.replace(" ", "")
     role = aws_auth.choose_aws_role(assertion)
     principal_arn, role_arn = role
+
+    okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
 
     sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion)
     access_key_id = sts_token['AccessKeyId']

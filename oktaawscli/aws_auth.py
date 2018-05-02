@@ -29,38 +29,23 @@ class AwsAuth(object):
             self.role = parser.get(okta_profile, 'role')
             self.logger.debug("Setting AWS role to %s" % self.role)
 
+
     def choose_aws_role(self, assertion):
         """ Choose AWS role from SAML assertion """
-        aws_attribute_role = 'https://aws.amazon.com/SAML/Attributes/Role'
-        attribute_value_urn = '{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue'
-        roles = []
-        role_tuple = namedtuple("RoleTuple", ["principal_arn", "role_arn"])
-        root = ET.fromstring(base64.b64decode(assertion))
-        for saml2attribute in root.iter('{urn:oasis:names:tc:SAML:2.0:assertion}Attribute'):
-            if saml2attribute.get('Name') == aws_attribute_role:
-                for saml2attributevalue in saml2attribute.iter(attribute_value_urn):
-                    roles.append(role_tuple(*saml2attributevalue.text.split(',')))
 
-        role_list = []
-
-        for index, role in enumerate(roles):
-            role_name = role.role_arn.split('/')[1]
-
-            # Return the role as soon as it matches the saved role
-            # Proceed to user choice if it's not found.
-            if self.role:
-                if role_name == self.role:
-                    self.logger.info("Using predefined role: %s" % self.role)
-                    return roles[index]
-            role_list.append("%d: %s" % (index + 1, role_name))
-
+        roles = self.__extract_available_roles_from(assertion)
         if self.role:
-            self.logger.info("Predefined role, %s, not found in the list of roles assigned to you."
-                             % self.role)
-            self.logger.info("Please choose a role.")
+            predefined_role = self.__find_predefiend_role_from(roles)
+            if predefined_role:
+                self.logger.info("Using predefined role: %s" % self.role)
+                return predefined_role
+            else:
+                self.logger.info("Predefined role, %s, not found in the list of roles assigned to you." % self.role)
+                self.logger.info("Please choose a role.")
 
-        for index, role_name in enumerate(role_list):
-            print(role_name)
+        role_options = self.__create_options_from(roles)
+        for option in role_options:
+            print(option)
 
         role_choice = input('Please select the AWS role: ') - 1
         return roles[role_choice]
@@ -140,3 +125,28 @@ class AwsAuth(object):
             config.write(configfile)
         self.logger.info("Temporary credentials written to profile: %s" % profile)
         self.logger.info("Invoke using: aws --profile %s <service> <command>" % profile)
+
+    def __extract_available_roles_from(self, assertion):
+        aws_attribute_role = 'https://aws.amazon.com/SAML/Attributes/Role'
+        attribute_value_urn = '{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue'
+        roles = []
+        role_tuple = namedtuple("RoleTuple", ["principal_arn", "role_arn"])
+        root = ET.fromstring(base64.b64decode(assertion))
+        for saml2attribute in root.iter('{urn:oasis:names:tc:SAML:2.0:assertion}Attribute'):
+            if saml2attribute.get('Name') == aws_attribute_role:
+                for saml2attributevalue in saml2attribute.iter(attribute_value_urn):
+                    roles.append(role_tuple(*saml2attributevalue.text.split(',')))
+        return roles
+
+    def __create_options_from(self, roles):
+        options = []
+        for index, role in enumerate(roles):
+            options.append("%d: %s" % (index + 1, role.role_arn))
+        return options
+
+    def __find_predefiend_role_from(self, roles):
+        found_roles = filter(lambda role_tuple: role_tuple.role_arn == self.role, roles)
+        if (len(found_roles) == 0) :
+            return None
+        else:
+            return found_roles[0]

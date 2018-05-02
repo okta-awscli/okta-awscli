@@ -1,46 +1,23 @@
 """ Handles auth to Okta and returns SAML assertion """
 # pylint: disable=C0325,R0912,C1801
 import sys
-import os
 import time
-from configparser import RawConfigParser
-from getpass import getpass
-from bs4 import BeautifulSoup as bs
 import requests
 
+from bs4 import BeautifulSoup as bs
 
 class OktaAuth(object):
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self, okta_profile, verbose, logger, totp_token):
-        home_dir = os.path.expanduser('~')
-        okta_config = home_dir + '/.okta-aws'
-        parser = RawConfigParser()
-        parser.read(okta_config)
-        profile = okta_profile
+    def __init__(self, okta_profile, verbose, logger, totp_token, okta_auth_config):
+        self.okta_profile = okta_profile
         self.totp_token = totp_token
         self.logger = logger
         self.factor = ""
-        if parser.has_option(profile, 'base-url'):
-            self.base_url = "https://%s" % parser.get(profile, 'base-url')
-            self.logger.info("Authenticating to: %s" % self.base_url)
-        else:
-            self.logger.error("No base-url set in ~/.okta-aws")
-            exit(1)
-        if parser.has_option(profile, 'username'):
-            self.username = parser.get(profile, 'username')
-            self.logger.info("Authenticating as: %s" % self.username)
-        else:
-            self.username = raw_input('Enter username: ')
-        if parser.has_option(profile, 'password'):
-            self.password = parser.get(profile, 'password')
-        else:
-            self.password = getpass('Enter password: ')
-
-        if parser.has_option(profile, 'factor'):
-            self.factor = parser.get(profile, 'factor')
-            self.logger.debug("Setting MFA factor to %s" % self.factor)
-
         self.verbose = verbose
+        self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
+        self.username = okta_auth_config.username_for(okta_profile)
+        self.password = okta_auth_config.password_for(okta_profile)
+        self.factor = okta_auth_config.factor_for(okta_profile)
 
     def primary_auth(self):
         """ Performs primary auth against Okta """
@@ -49,7 +26,7 @@ class OktaAuth(object):
             "username": self.username,
             "password": self.password
         }
-        resp = requests.post(self.base_url + '/api/v1/authn', json=auth_data)
+        resp = requests.post(self.https_base_url + '/api/v1/authn', json=auth_data)
         resp_json = resp.json()
         if 'status' in resp_json:
             if resp_json['status'] == 'MFA_REQUIRED':
@@ -112,10 +89,10 @@ class OktaAuth(object):
                 else:
                     print("%d: %s" % (index + 1, factor_name))
             if not self.factor:
-                factor_choice = input('Please select the MFA factor: ')
+                factor_choice = input('Please select the MFA factor: ') - 1
             self.logger.info("Performing secondary authentication using: %s" %
                              supported_factors[factor_choice]['provider'])
-            session_token = self.verify_single_factor(supported_factors[factor_choice-1],
+            session_token = self.verify_single_factor(supported_factors[factor_choice],
                                                       state_token)
         else:
             print("MFA required, but no supported factors enrolled! Exiting.")
@@ -170,7 +147,7 @@ class OktaAuth(object):
         """ Gets a session cookie from a session token """
         data = {"sessionToken": session_token}
         resp = requests.post(
-            self.base_url + '/api/v1/sessions', json=data).json()
+            self.https_base_url + '/api/v1/sessions', json=data).json()
         return resp['id']
 
     def get_apps(self, session_id):
@@ -178,7 +155,7 @@ class OktaAuth(object):
         sid = "sid=%s" % session_id
         headers = {'Cookie': sid}
         resp = requests.get(
-            self.base_url + '/api/v1/users/me/appLinks',
+            self.https_base_url + '/api/v1/users/me/appLinks',
             headers=headers).json()
         aws_apps = []
         for app in resp:
