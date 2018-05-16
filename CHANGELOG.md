@@ -1,4 +1,8 @@
 # Changelog
+## [0.2.2] 2018-05-15
+### Changed
+- If exactly one AWS App exists select it by default and
+display the choice
 
 ## [0.2.1] 2018-02-14
 ### Fixed:
