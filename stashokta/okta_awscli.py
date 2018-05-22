@@ -4,20 +4,22 @@ import os
 from subprocess import call
 import logging
 import click
-from oktaawscli.version import __version__
-from oktaawscli.okta_auth import OktaAuth
-from oktaawscli.aws_auth import AwsAuth
+from stashokta.version import __version__
+from stashokta.okta_auth import OktaAuth
+from stashokta.aws_auth import AwsAuth
+
 
 def get_credentials(aws_auth, okta_profile, profile,
-                    verbose, logger, totp_token, cache):
+                    verbose, logger, totp_token, cache, duration):
     """ Gets credentials from Okta """
     okta = OktaAuth(okta_profile, verbose, logger, totp_token)
     app_name, assertion = okta.get_assertion()
     app_name = app_name.replace(" ", "")
     role = aws_auth.choose_aws_role(assertion)
     principal_arn, role_arn = role
+    duration_seconds = okta.get_duration() if not duration else int(duration)
 
-    sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion)
+    sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion, duration_seconds)
     access_key_id = sts_token['AccessKeyId']
     secret_access_key = sts_token['SecretAccessKey']
     session_token = sts_token['SessionToken']
@@ -64,10 +66,11 @@ credentials in ~/.aws/credentials. If profile doesn't exist, it will be \
 created. If omitted, credentials will output to console.\n")
 @click.option('-c', '--cache', is_flag=True, help='Cache the default profile credentials \
 to ~/.okta-credentials.cache\n')
+@click.option('--duration', help="number of seconds for token to be valid, max is 43200 (12 Hours)")
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
-         debug, force, cache, awscli_args, token):
+         debug, force, cache, awscli_args, token, duration):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -85,6 +88,7 @@ def main(okta_profile, profile, verbose, version,
         handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
+
     if not okta_profile:
         okta_profile = "default"
     aws_auth = AwsAuth(profile, okta_profile, verbose, logger)
@@ -96,7 +100,7 @@ def main(okta_profile, profile, verbose, version,
             logger.info("Force option selected, but no profile provided. \
                 Option has no effect.")
         get_credentials(
-            aws_auth, okta_profile, profile, verbose, logger, token, cache
+            aws_auth, okta_profile, profile, verbose, logger, token, cache, duration
         )
 
     if awscli_args:

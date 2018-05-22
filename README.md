@@ -1,4 +1,4 @@
-# okta_awscli - Retrieve AWS credentials from Okta
+# stash-okta - Retrieve AWS credentials from Okta 
 
 Authenticates a user against Okta and then uses the resulting SAML assertion to retrieve temporary STS credentials from AWS.
 
@@ -9,19 +9,20 @@ Parsing the HTML is still required to get the SAML assertion, after authenticati
 
 ## Installation
 
-- `pip install okta-awscli`
-- Configure okta-awscli via the `~/.okta-aws` file with the following parameters:
+1. `pip install stash-okta`
+2. Configure `stash-okta` via the `~/.okta-aws` file with the following parameters:
 
 ```
 [default]
-base-url = <your_okta_org>.okta.com
+base-url = <your_okta_org>.okta.com 
 
 ## The remaining parameters are optional.
 ## You will be prompted for them, if they're not included here.
-username = <your_okta_username>
+username = <your_okta_username> # if you add the entry please include the username
 password = <your_okta_password> # Only save your password if you know what you are doing!
 factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
 role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
+duration = <number_of_seconds_till_token_expires> # the default value 43200
 ```
 
 ## Supported Features
@@ -59,3 +60,4 @@ Optional flags:
 - `--cache` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
 - `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
 - `--token` or `-t` Pass in the TOTP token from your authenticator
+- `--duration` Pass in the number of seconds you would like for the token to be valid (default is 43200)

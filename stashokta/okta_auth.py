@@ -20,6 +20,7 @@ class OktaAuth(object):
         self.totp_token = totp_token
         self.logger = logger
         self.factor = ""
+        self.duration = self.default_duration_seconds
         if parser.has_option(profile, 'base-url'):
             self.base_url = "https://%s" % parser.get(profile, 'base-url')
             self.logger.info("Authenticating to: %s" % self.base_url)
@@ -30,7 +31,7 @@ class OktaAuth(object):
             self.username = parser.get(profile, 'username')
             self.logger.info("Authenticating as: %s" % self.username)
         else:
-            self.username = raw_input('Enter username: ')
+            self.username = input('Enter username: ')
         if parser.has_option(profile, 'password'):
             self.password = parser.get(profile, 'password')
         else:
@@ -40,7 +41,21 @@ class OktaAuth(object):
             self.factor = parser.get(profile, 'factor')
             self.logger.debug("Setting MFA factor to %s" % self.factor)
 
+        if parser.has_option(profile, 'duration'):
+            self.duration = parser.get(profile, 'duration')
+            self.logger.info("Setting duration in seconds to %s" % self.duration)
+
         self.verbose = verbose
+
+    @property
+    def default_duration_seconds(self):
+        return 43200
+
+    def get_duration(self):
+        try:
+            return int(self.duration)
+        except:
+            return self.default_duration_seconds
 
     def primary_auth(self):
         """ Performs primary auth against Okta """
@@ -112,7 +127,7 @@ class OktaAuth(object):
                 else:
                     print("%d: %s" % (index + 1, factor_name))
             if not self.factor:
-                factor_choice = input('Please select the MFA factor: ')
+                factor_choice = int(input('Please select the MFA factor: '))
             self.logger.info("Performing secondary authentication using: %s" %
                              supported_factors[factor_choice]['provider'])
             session_token = self.verify_single_factor(supported_factors[factor_choice-1],
@@ -135,7 +150,7 @@ class OktaAuth(object):
                 self.logger.debug("Using TOTP token from command line arg")
                 req_data['answer'] = self.totp_token
             else:
-                req_data['answer'] = raw_input('Enter MFA token: ')
+                req_data['answer'] = input('Enter MFA token: ')
         post_url = factor['_links']['verify']['href']
         resp = requests.post(post_url, json=req_data)
         resp_json = resp.json()
@@ -189,7 +204,7 @@ class OktaAuth(object):
                 Exiting.")
             sys.exit(1)
 
-        aws_apps = sorted(aws_apps, key=lambda app: app['sortOrder'])
+        aws_apps = sorted(aws_apps, key=lambda a: a['sortOrder'])
 
         if len(aws_apps) == 1:
             label = aws_apps[0]['label']
@@ -202,7 +217,7 @@ class OktaAuth(object):
                 app_name = app['label']
                 print("%d: %s" % (index + 1, app_name))
 
-            app_choice = input('Please select AWS app: ') - 1
+            app_choice = int(input('Please select AWS app: ')) - 1
 
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
