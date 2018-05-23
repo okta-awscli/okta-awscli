@@ -1,5 +1,5 @@
 # Changelog
-## [0.2.3] 2018-05-22
+## [0.3.2] 2018-05-22
 ### Changed
 - Forked to `stash-okta` 
 - Useable for python3 

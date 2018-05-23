@@ -40,7 +40,7 @@ duration = <number_of_seconds_till_token_expires> # the default value 43200
 
 ## Usage
 
-`okta-awscli --profile <aws_profile> <awscli action> <awscli arguments>`
+`stash-okta --profile <aws_profile> <awscli action> <awscli arguments>`
 - Follow the prompts to enter MFA information (if required) and choose your AWS app and IAM role.
 - Subsequent executions will first check if the STS credentials are still valid and skip Okta authentication if so.
 - Multiple Okta profiles are supported, but if none are specified, then `default` will be used.
@@ -48,7 +48,7 @@ duration = <number_of_seconds_till_token_expires> # the default value 43200
 
 ### Example
 
-`okta-awscli --profile my-aws-account iam list-users`
+`stash-okta --profile my-aws-account iam list-users`
 
 If no awscli commands are provided, then okta-awscli will simply output STS credentials to your credentials file, or console, depending on how `--profile` is set.
 
