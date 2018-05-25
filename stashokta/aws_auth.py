@@ -62,11 +62,11 @@ class AwsAuth(object):
         for index, role_name in enumerate(role_list):
             print(role_name)
 
-        role_choice = input('Please select the AWS role: ') - 1
+        role_choice = int(input('Please select the AWS role: ')) - 1
         return roles[role_choice]
 
     @staticmethod
-    def get_sts_token(role_arn, principal_arn, assertion):
+    def get_sts_token(role_arn, principal_arn, assertion, duration_seconds):
         """ Gets a token from AWS STS """
 
         # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
@@ -78,7 +78,8 @@ class AwsAuth(object):
 
         response = sts.assume_role_with_saml(RoleArn=role_arn,
                                              PrincipalArn=principal_arn,
-                                             SAMLAssertion=assertion)
+                                             SAMLAssertion=assertion,
+                                             DurationSeconds=duration_seconds)
         credentials = response['Credentials']
         return credentials
 
