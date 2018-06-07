@@ -26,7 +26,7 @@ class OktaAuth(object):
             self.base_url = "https://%s" % parser.get(profile, 'base-url')
             self.logger.info("Authenticating to: %s" % self.base_url)
         else:
-            self.logger.error("No base-url set in ~/.okta-aws, make sure you have profile " + profile + " setup")
+            self.logger.error("No base-url set in ~/.okta-aws")
             exit(1)
         if parser.has_option(profile, 'username'):
             self.username = parser.get(profile, 'username')
@@ -195,18 +195,24 @@ class OktaAuth(object):
                 Exiting.")
             sys.exit(1)
 
+        self.logger.debug(aws_apps)
+
         aws_apps = sorted(aws_apps, key=lambda app: app['sortOrder'])
         if not self.app:
             print("Available apps:")
         app_choice = None
         for index, app in enumerate(aws_apps):
             app_name = app['label']
+            self.logger.debug("Check " + app_name + " against " + self.app)
             if not self.app:
                 print("%d: %s" % (index + 1, app_name))
             if self.app and app_name == self.app:
+                self.logger.debug("Found")
                 app_choice = index
+            else:
+                self.logger.debug("Not Found")
 
-        if not app_choice:
+        if not app_choice and app_choice != 0:
             app_choice = int(input('Please select AWS app: ')) - 1
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
