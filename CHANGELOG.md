@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.2] 2018-07-18
+### Fixed:
+- Python3 Compatibility. (#38)
+
 ## [0.2.1] 2018-02-14
 ### Fixed:
 - Issue where secondary auth would fail when only a single factor is enrolled for the user. (#27)
