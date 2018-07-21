@@ -1,5 +1,5 @@
 """ AWS authentication """
-# pylint: disable=C0325,E1136
+# pylint: disable=C0325
 import os
 import base64
 import xml.etree.ElementTree as ET
@@ -152,4 +152,4 @@ of roles assigned to you.""" % self.role)
         if not found_roles:
             return None
         else:
-            return found_roles[0]
+            return next(found_roles)
