@@ -20,6 +20,9 @@ pip install .
 
 - Ensure that you can run pylint against your code and no errors are returned. Pull Requests with pylint errors will be rejected.
 
+  - Currently, automated builds are only checking for actual errors, as there are some refactoring and other such notices that need to be resolved.
+  - You can safely run `pylint --errors-only oktaawscli` to replicate what the build will be checking.
+
 - Increment the version in `oktaawscli/version.py`, according to [SemVer](https://semver.org/).
 
 - Be sure to document your changes in CHANGELOG.

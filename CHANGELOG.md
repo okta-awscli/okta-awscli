@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3] 2018-07-21
+### Added:
+- Travis CI builds to run linting tests for branches and PRs.
+
+### Fixed:
+- Python3 Compatibility issues.
+
 ## [0.2.2] 2018-07-18
 ### Fixed:
 - Python3 Compatibility. (#38)
