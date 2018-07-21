@@ -6,7 +6,12 @@ import requests
 
 from bs4 import BeautifulSoup as bs
 
-class OktaAuth(object):
+try:
+    input = raw_input
+except NameError:
+    pass
+
+class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """
     def __init__(self, okta_profile, verbose, logger, totp_token, okta_auth_config):
         self.okta_profile = okta_profile
@@ -112,7 +117,7 @@ class OktaAuth(object):
                 self.logger.debug("Using TOTP token from command line arg")
                 req_data['answer'] = self.totp_token
             else:
-                req_data['answer'] = raw_input('Enter MFA token: ')
+                req_data['answer'] = input('Enter MFA token: ')
         post_url = factor['_links']['verify']['href']
         resp = requests.post(post_url, json=req_data)
         resp_json = resp.json()

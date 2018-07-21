@@ -9,7 +9,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-class AwsAuth(object):
+class AwsAuth():
     """ Methods to support AWS authentication using STS """
 
     def __init__(self, profile, okta_profile, verbose, logger):
@@ -40,7 +40,8 @@ class AwsAuth(object):
                 self.logger.info("Using predefined role: %s" % self.role)
                 return predefined_role
             else:
-                self.logger.info("Predefined role, %s, not found in the list of roles assigned to you." % self.role)
+                self.logger.info("""Predefined role, %s, not found in the list
+of roles assigned to you.""" % self.role)
                 self.logger.info("Please choose a role.")
 
         role_options = self.__create_options_from(roles)
@@ -126,7 +127,8 @@ class AwsAuth(object):
         self.logger.info("Temporary credentials written to profile: %s" % profile)
         self.logger.info("Invoke using: aws --profile %s <service> <command>" % profile)
 
-    def __extract_available_roles_from(self, assertion):
+    @staticmethod
+    def __extract_available_roles_from(assertion):
         aws_attribute_role = 'https://aws.amazon.com/SAML/Attributes/Role'
         attribute_value_urn = '{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue'
         roles = []
@@ -138,7 +140,8 @@ class AwsAuth(object):
                     roles.append(role_tuple(*saml2attributevalue.text.split(',')))
         return roles
 
-    def __create_options_from(self, roles):
+    @staticmethod
+    def __create_options_from(roles):
         options = []
         for index, role in enumerate(roles):
             options.append("%d: %s" % (index + 1, role.role_arn))
@@ -146,7 +149,7 @@ class AwsAuth(object):
 
     def __find_predefiend_role_from(self, roles):
         found_roles = filter(lambda role_tuple: role_tuple.role_arn == self.role, roles)
-        if (len(found_roles) == 0) :
+        if not found_roles:
             return None
         else:
-            return found_roles[0]
+            return next(found_roles)
