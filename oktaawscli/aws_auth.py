@@ -1,5 +1,5 @@
 """ AWS authentication """
-# pylint: disable=C0325
+# pylint: disable=C0325,E1136
 import os
 import base64
 import xml.etree.ElementTree as ET
