@@ -11,14 +11,16 @@ from oktaawscli.aws_auth import AwsAuth
 
 
 def get_credentials(aws_auth, okta_profile, profile,
-                    verbose, logger, totp_token, cache):
+                    verbose, logger, totp_token, cache, reset):
     """ Gets credentials from Okta """
-    okta_auth_config = OktaAuthConfig(logger)
+    okta_auth_config = OktaAuthConfig(logger, reset)
     okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
 
     _, assertion = okta.get_assertion()
     role = aws_auth.choose_aws_role(assertion)
-    principal_arn, role_arn = role
+    print(role)
+    role_arn, principal_arn, _= role
+    print(role_arn)
 
     okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
 
@@ -60,6 +62,7 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
 @click.option('-V', '--version', is_flag=True,
               help='Outputs version number and exits')
 @click.option('-d', '--debug', is_flag=True, help='Enables debug mode')
+@click.option('-r', '--reset', is_flag=True, help='Resets default values in ~/.okta-aws')
 @click.option('-f', '--force', is_flag=True, help='Forces new STS credentials. \
 Skips STS credentials validation.')
 @click.option('--okta-profile', help="Name of the profile to use in .okta-aws. \
@@ -72,7 +75,7 @@ to ~/.okta-credentials.cache\n')
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
-         debug, force, cache, awscli_args, token):
+         debug, force, cache, awscli_args, token, reset):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -103,7 +106,7 @@ def main(okta_profile, profile, verbose, version,
             logger.info("Force option selected, but no profile provided. \
                 Option has no effect.")
         get_credentials(
-            aws_auth, okta_profile, profile, verbose, logger, token, cache
+            aws_auth, okta_profile, profile, verbose, logger, token, cache, reset
         )
 
     if awscli_args:

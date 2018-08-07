@@ -185,6 +185,10 @@ class OktaAuth():
             print("%d: %s" % (index + 1, app['label']))
         if app_choice is None:
             app_choice = int(input('Please select AWS app: ')) - 1
+            self.okta_auth_config.save_chosen_app_for_profile(
+                self.okta_profile,
+                aws_apps[app_choice]['label']
+            )
 
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 

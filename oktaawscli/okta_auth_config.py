@@ -13,8 +13,9 @@ except NameError:
 
 class OktaAuthConfig():
     """ Config helper class """
-    def __init__(self, logger):
+    def __init__(self, logger, reset):
         self.logger = logger
+        self.reset = reset
         self.config_path = os.path.expanduser('~') + '/.okta-aws'
         self._value = RawConfigParser()
         self._value.read(self.config_path)
@@ -31,7 +32,7 @@ class OktaAuthConfig():
 
     def username_for(self, okta_profile):
         """ Gets username from config """
-        if self._value.has_option(okta_profile, 'username'):
+        if self._value.has_option(okta_profile, 'username') and not self.reset:
             username = self._value.get(okta_profile, 'username')
             self.logger.info("Authenticating as: %s" % username)
         else:
@@ -48,7 +49,7 @@ class OktaAuthConfig():
 
     def factor_for(self, okta_profile):
         """ Gets factor from config """
-        if self._value.has_option(okta_profile, 'factor'):
+        if self._value.has_option(okta_profile, 'factor') and not self.reset:
             factor = self._value.get(okta_profile, 'factor')
             self.logger.debug("Setting MFA factor to %s" % factor)
             return factor
@@ -56,7 +57,7 @@ class OktaAuthConfig():
 
     def app_for(self, okta_profile):
         """ Gets app from config """
-        if self._value.has_option(okta_profile, 'app'):
+        if self._value.has_option(okta_profile, 'app') and not self.reset:
             app = self._value.get(okta_profile, 'app')
             self.logger.debug("Setting app to %s" % app)
             return app
@@ -81,6 +82,16 @@ class OktaAuthConfig():
             self._value.add_section(okta_profile)
 
         self._value.set(okta_profile, 'factor', factor)
+
+        with open(self.config_path, 'w+') as configfile:
+            self._value.write(configfile)
+
+    def save_chosen_app_for_profile(self, okta_profile, app):
+        """ Saves app to config """
+        if not self._value.has_section(okta_profile):
+            self._value.add_section(okta_profile)
+
+        self._value.set(okta_profile, 'app', app)
 
         with open(self.config_path, 'w+') as configfile:
             self._value.write(configfile)

@@ -55,7 +55,7 @@ of roles assigned to you.""" % self.role)
                     print(option)
 
                 role_choice = int(input('Please select the AWS role: ')) - 1
-                return roles[role_choice]
+                return role_info[role_choice]
             except ValueError as ex:
                 print("\nYou have selected an invalid role index, please try again.\n")
                 role_choice = None
@@ -225,7 +225,7 @@ of roles assigned to you.""" % self.role)
     def __create_options_from(roles):
         options = []
         for index, role in enumerate(roles):
-            options.append("[%s]: %s : %s" % (str(index + 1).ljust(2), role[2].ljust(27), role[1]))
+            options.append("[%s]: %s : %s" % (str(index + 1).ljust(2), role[2].ljust(27), role[0]))
         return options
 
     def __find_predefined_role_from(self, roles):
