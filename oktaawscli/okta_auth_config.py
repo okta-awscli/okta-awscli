@@ -10,6 +10,7 @@ try:
 except NameError:
     pass
 
+
 class OktaAuthConfig():
     """ Config helper class """
     def __init__(self, logger):
@@ -53,6 +54,14 @@ class OktaAuthConfig():
             return factor
         return None
 
+    def app_for(self, okta_profile):
+        """ Gets app from config """
+        if self._value.has_option(okta_profile, 'app'):
+            app = self._value.get(okta_profile, 'app')
+            self.logger.debug("Setting app to %s" % app)
+            return app
+        return None
+
     def save_chosen_role_for_profile(self, okta_profile, role_arn):
         """ Gets role from config """
         if not self._value.has_section(okta_profile):
@@ -60,7 +69,18 @@ class OktaAuthConfig():
 
         base_url = self.base_url_for(okta_profile)
         self._value.set(okta_profile, 'base-url', base_url)
-        self._value.set(okta_profile, 'role', role_arn)
+        if okta_profile != "default":
+            self._value.set(okta_profile, 'role', role_arn)
+
+        with open(self.config_path, 'w+') as configfile:
+            self._value.write(configfile)
+
+    def save_chosen_factor_for_profile(self, okta_profile, factor):
+        """ Saves factor to config """
+        if not self._value.has_section(okta_profile):
+            self._value.add_section(okta_profile)
+
+        self._value.set(okta_profile, 'factor', factor)
 
         with open(self.config_path, 'w+') as configfile:
             self._value.write(configfile)

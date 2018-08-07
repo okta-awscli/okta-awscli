@@ -9,10 +9,10 @@ from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
+
 def get_credentials(aws_auth, okta_profile, profile,
                     verbose, logger, totp_token, cache):
     """ Gets credentials from Okta """
-
     okta_auth_config = OktaAuthConfig(logger)
     okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
 
@@ -66,7 +66,7 @@ Skips STS credentials validation.')
 If none is provided, then the default profile will be used.\n")
 @click.option('--profile', help="Name of the profile to store temporary \
 credentials in ~/.aws/credentials. If profile doesn't exist, it will be \
-created. If omitted, credentials will output to console.\n")
+created.\n")
 @click.option('-c', '--cache', is_flag=True, help='Cache the default profile credentials \
 to ~/.okta-credentials.cache\n')
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
@@ -92,6 +92,8 @@ def main(okta_profile, profile, verbose, version,
 
     if not okta_profile:
         okta_profile = "default"
+    if not profile:
+        profile = "default"
     aws_auth = AwsAuth(profile, okta_profile, verbose, logger)
     if not aws_auth.check_sts_token(profile) or force:
         if force and profile:
