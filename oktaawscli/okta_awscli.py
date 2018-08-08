@@ -15,9 +15,6 @@ def get_credentials(aws_auth, okta_profile, profile,
     """ Gets credentials from Okta """
     okta_auth_config = OktaAuthConfig(logger, reset)
     use_alias = okta_auth_config.get_profile_alias(okta_profile)
-    print(use_alias)
-    print(type(use_alias))
-
     okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
 
     _, assertion = okta.get_assertion()
@@ -70,7 +67,7 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
 @click.option('-d', '--debug', is_flag=True, help='Enables debug mode')
 @click.option('-r', '--reset', is_flag=True, help='Resets default values in ~/.okta-aws')
 @click.option('-e', '--export', is_flag=True, help='Outputs credentials to console instead \
-of writing to ~/.aws/credentials.')
+of writing to ~/.aws/credentials')
 @click.option('--okta-profile', help="Name of the profile to use in .okta-aws. \
 If none is provided, then the default profile will be used.\n")
 @click.option('--profile', help="Name of the profile to store temporary \
