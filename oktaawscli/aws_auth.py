@@ -3,7 +3,7 @@
 import os
 import json
 import base64
-from datetime import date
+from datetime import datetime, date
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from configparser import RawConfigParser
@@ -129,10 +129,11 @@ of roles assigned to you.""" % self.role)
         new_okta_info = {}
         for role in roles:
             # read the role info from ~/.okta-info.json
-            role_updated = okta_info.get(role, {})
+            role_updated = okta_info.get(role.role_arn, {})
             alias = role_updated.get('alias')
 
-            last_updated = role_updated.get('last_updated', date.min)
+            last_updated = role_updated.get('last_updated', "0001-01-01")
+            last_updated = datetime.strptime(last_updated, '%Y-%m-%d').date()
             current_date = date.today()
             alias_age = current_date - last_updated
             if alias_age.days >= 7 or alias is None:
@@ -140,6 +141,7 @@ of roles assigned to you.""" % self.role)
                 alias = self.__get_account_alias(role.role_arn, role.principal_arn, assertion)
                 last_updated = current_date
 
+            self.logger.info("Using cached alias for role %s" % role.role_arn)
             role_info.append(
                 (role.role_arn, role.principal_arn, alias)
             )
