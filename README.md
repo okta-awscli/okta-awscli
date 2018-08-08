@@ -31,12 +31,6 @@ app = <your_prefered_okta_app>
 # ex. `Amazon Web Services` to automatically select Amazon Web Services
 ```
 
-- Initialize the `~/.okta-info.json` file with the following:
-
-```
-{}
-```
-
 ## Supported Features
 
 - Tenant wide MFA support

@@ -23,6 +23,10 @@ class AwsAuth():
         self.logger = logger
         self.role = ""
 
+        okta_info = home_dir + '/.okta-info.json'
+        if not os.path.isfile(okta_info):
+            open(okta_info, 'a').close()
+
         okta_config = home_dir + '/.okta-aws'
         parser = RawConfigParser()
         parser.read(okta_config)
@@ -122,7 +126,10 @@ of roles assigned to you.""" % self.role)
         """ Gets role info from okta-info.json """
         info_file_path = os.path.expanduser('~') + "/.okta-info.json"
         info_file = open(info_file_path, 'r')
-        okta_info = json.loads(info_file.read())
+        okta_info = info_file.read()
+        print(okta_info)
+        print(type(okta_info))
+        okta_info = {} if okta_info is "" else json.loads(okta_info)
         info_file.close()
 
         role_info = []
