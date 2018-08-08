@@ -149,7 +149,7 @@ of roles assigned to you.""" % self.role)
 
     def __find_predefiend_role_from(self, roles):
         found_roles = filter(lambda role_tuple: role_tuple.role_arn == self.role, roles)
-        if not found_roles:
+        if not list(found_roles):
             return None
         else:
             return next(found_roles)
