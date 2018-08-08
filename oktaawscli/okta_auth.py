@@ -11,18 +11,23 @@ try:
 except NameError:
     pass
 
+
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self, okta_profile, verbose, logger, totp_token, okta_auth_config):
+    def __init__(self, okta_profile, verbose, logger,
+                 totp_token, okta_auth_config):
         self.okta_profile = okta_profile
         self.totp_token = totp_token
         self.logger = logger
         self.factor = ""
         self.verbose = verbose
+        self.okta_auth_config = okta_auth_config
         self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
         self.username = okta_auth_config.username_for(okta_profile)
         self.password = okta_auth_config.password_for(okta_profile)
         self.factor = okta_auth_config.factor_for(okta_profile)
+        self.app = okta_auth_config.app_for(okta_profile)
+
 
     def primary_auth(self):
         """ Performs primary auth against Okta """
@@ -58,8 +63,7 @@ class OktaAuth():
             if factor['factorType'] in supported_factor_types:
                 supported_factors.append(factor)
             else:
-                self.logger.info("Unsupported factorType: %s" %
-                                 (factor['factorType'],))
+                self.logger.info("Unsupported factorType: %s" % (factor['factorType'],))
 
         supported_factors = sorted(supported_factors,
                                    key=lambda factor: (
@@ -94,7 +98,8 @@ class OktaAuth():
                 else:
                     print("%d: %s" % (index + 1, factor_name))
             if not self.factor:
-                factor_choice = input('Please select the MFA factor: ') - 1
+                factor_choice = int(input('Please select the MFA factor: ')) - 1
+                self.okta_auth_config.save_chosen_factor_for_profile(self.okta_profile, supported_factors[factor_choice]['provider'])
             self.logger.info("Performing secondary authentication using: %s" %
                              supported_factors[factor_choice]['provider'])
             session_token = self.verify_single_factor(supported_factors[factor_choice],
@@ -172,12 +177,19 @@ class OktaAuth():
             sys.exit(1)
 
         aws_apps = sorted(aws_apps, key=lambda app: app['sortOrder'])
-        print("Available apps:")
+        app_choice = None
         for index, app in enumerate(aws_apps):
-            app_name = app['label']
-            print("%d: %s" % (index + 1, app_name))
+            if self.app and app['label'] == self.app:
+                app_choice = index
+                break
+            print("%d: %s" % (index + 1, app['label']))
+        if app_choice is None:
+            app_choice = int(input('Please select AWS app: ')) - 1
+            self.okta_auth_config.save_chosen_app_for_profile(
+                self.okta_profile,
+                aws_apps[app_choice]['label']
+            )
 
-        app_choice = int(input('Please select AWS app: ')) - 1
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
     def get_saml_assertion(self, html):

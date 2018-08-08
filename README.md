@@ -26,6 +26,14 @@ username = <your_okta_username>
 password = <your_okta_password> # Only save your password if you know what you are doing!
 factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
 role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
+use-alias-profile = True # Set this to True if you want to use the AWS account alias as the aws profile name. Defaults to False.
+app = <your_prefered_okta_app> # ex. `Amazon Web Services` to automatically select Amazon Web Services
+```
+
+- Initialize the `~/.okta-info.json` file with the following:
+
+```
+{}
 ```
 
 ## Supported Features
@@ -45,11 +53,16 @@ role = <your_preferred_okta_role> # AWS role name (match one of the options prom
 
 `okta-awscli --profile <aws_profile> <awscli action> <awscli arguments>`
 - Follow the prompts to enter MFA information (if required) and choose your AWS app and IAM role.
-- Subsequent executions will first check if the STS credentials are still valid and skip Okta authentication if so.
+- The default Okta profile will not store your chosen IAM role, but other profiles will.
 - Multiple Okta profiles are supported, but if none are specified, then `default` will be used.
 
 
-### Example
+### Examples
+
+`okta-awscli --profile cfer-dev`
+
+This command will simply output STS credentials to `cfer-dev` in your credentials file.
+
 
 `okta-awscli --profile my-aws-account iam list-users`
 
@@ -57,7 +70,8 @@ If no awscli commands are provided, then okta-awscli will simply output STS cred
 
 Optional flags:
 - `--profile` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted, credentials will output to console.
-- `--force` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
+- `--export` Outputs credentials to console instead of writing to ~/.aws/credentials.
+- `--reset` Resets default values in ~/.okta-aws.
 - `--verbose` More verbose output.
 - `--debug` Very verbose output. Useful for debugging.
 - `--cache` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
