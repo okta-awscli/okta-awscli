@@ -14,13 +14,15 @@ def get_credentials(aws_auth, okta_profile, profile,
                     verbose, logger, totp_token, cache, reset):
     """ Gets credentials from Okta """
     okta_auth_config = OktaAuthConfig(logger, reset)
+    use_alias = okta_auth_config.get_profile_alias(okta_profile)
+
     okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
 
     _, assertion = okta.get_assertion()
     role = aws_auth.choose_aws_role(assertion)
-    print(role)
-    role_arn, principal_arn, _= role
-    print(role_arn)
+    role_arn, principal_arn, alias = role
+    if use_alias:
+        profile = alias
 
     okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
 
@@ -97,17 +99,16 @@ def main(okta_profile, profile, verbose, version,
         okta_profile = "default"
     if not profile:
         profile = "default"
-    aws_auth = AwsAuth(profile, okta_profile, verbose, logger)
-    if not aws_auth.check_sts_token(profile) or force:
-        if force and profile:
-            logger.info("Force option selected, \
-                getting new credentials anyway.")
-        elif force:
-            logger.info("Force option selected, but no profile provided. \
-                Option has no effect.")
-        get_credentials(
-            aws_auth, okta_profile, profile, verbose, logger, token, cache, reset
-        )
+    aws_auth = AwsAuth(profile, okta_profile, verbose, logger, reset)
+    if force and profile:
+        logger.info("Force option selected, \
+            getting new credentials anyway.")
+    elif force:
+        logger.info("Force option selected, but no profile provided. \
+            Option has no effect.")
+    get_credentials(
+        aws_auth, okta_profile, profile, verbose, logger, token, cache, reset
+    )
 
     if awscli_args:
         cmdline = ['aws', '--profile', profile] + list(awscli_args)

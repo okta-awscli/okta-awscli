@@ -63,8 +63,18 @@ class OktaAuthConfig():
             return app
         return None
 
+    def get_profile_alias(self, okta_profile):
+        """ Gets if should use alias as profile from config """
+        use_alias_as_profile = "False"
+        if self._value.has_option(okta_profile, 'use-alias-profile'):
+            use_alias_as_profile = self._value.get(okta_profile, 'use-alias-profile')
+        else:
+            use_alias_as_profile = self._value.get('default', 'use-alias-profile')
+        self.logger.info("Use alias as profile: %s" % use_alias_as_profile)
+        return use_alias_as_profile
+
     def save_chosen_role_for_profile(self, okta_profile, role_arn):
-        """ Gets role from config """
+        """ Saves role to config """
         if not self._value.has_section(okta_profile):
             self._value.add_section(okta_profile)
 

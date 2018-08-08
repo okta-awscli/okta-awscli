@@ -14,7 +14,7 @@ from botocore.exceptions import ClientError
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, okta_profile, verbose, logger):
+    def __init__(self, profile, okta_profile, verbose, logger, reset):
         home_dir = os.path.expanduser('~')
         self.creds_dir = home_dir + "/.aws"
         self.creds_file = self.creds_dir + "/credentials"
@@ -27,7 +27,7 @@ class AwsAuth():
         parser = RawConfigParser()
         parser.read(okta_config)
 
-        if parser.has_option(okta_profile, 'role'):
+        if parser.has_option(okta_profile, 'role') and not reset:
             self.role = parser.get(okta_profile, 'role')
             self.logger.debug("Setting AWS role to %s" % self.role)
 
@@ -38,7 +38,7 @@ class AwsAuth():
         role_info = self.__get_role_info(roles, assertion)
 
         if self.role:
-            predefined_role = self.__find_predefined_role_from(roles)
+            predefined_role = self.__find_predefined_role_from(role_info)
             if predefined_role:
                 self.logger.info("Using predefined role: %s" % self.role)
                 return predefined_role
@@ -79,41 +79,6 @@ of roles assigned to you.""" % self.role)
                                              SAMLAssertion=assertion)
         credentials = response['Credentials']
         return credentials
-
-    def check_sts_token(self, profile):
-        """ Verifies that STS credentials are valid """
-        # Don't check for creds if profile is blank
-        if not profile:
-            return False
-
-        parser = RawConfigParser()
-        parser.read(self.creds_file)
-
-        if not os.path.exists(self.creds_dir):
-            self.logger.info("AWS credentials path does not exist. Not checking.")
-            return False
-
-        elif not os.path.isfile(self.creds_file):
-            self.logger.info("AWS credentials file does not exist. Not checking.")
-            return False
-
-        elif not parser.has_section(profile):
-            self.logger.info("No existing credentials found. Requesting new credentials.")
-            return False
-
-        session = boto3.Session(profile_name=profile)
-        sts = session.client('sts')
-        try:
-            sts.get_caller_identity()
-
-        except ClientError as ex:
-            if ex.response['Error']['Code'] == 'ExpiredToken':
-                self.logger.info("Temporary credentials have expired. Requesting new credentials.")
-                return False
-
-        print("AWS credentials are still valid.")
-        self.logger.info("STS credentials are valid. Nothing to do.")
-        return True
 
     def write_sts_token(self, profile, access_key_id, secret_access_key, session_token):
         """ Writes STS auth information to credentials file """
@@ -229,7 +194,8 @@ of roles assigned to you.""" % self.role)
         return options
 
     def __find_predefined_role_from(self, roles):
-        found_roles = filter(lambda role_tuple: role_tuple.role_arn == self.role, roles)
+        # role_tuple[0] is the role arn
+        found_roles = filter(lambda role_tuple: role_tuple[0] == self.role, roles)
         if not found_roles:
             return None
         else:
