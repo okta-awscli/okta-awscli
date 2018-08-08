@@ -65,8 +65,6 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
               help='Outputs version number and exits')
 @click.option('-d', '--debug', is_flag=True, help='Enables debug mode')
 @click.option('-r', '--reset', is_flag=True, help='Resets default values in ~/.okta-aws')
-@click.option('-f', '--force', is_flag=True, help='Forces new STS credentials. \
-Skips STS credentials validation.')
 @click.option('--okta-profile', help="Name of the profile to use in .okta-aws. \
 If none is provided, then the default profile will be used.\n")
 @click.option('--profile', help="Name of the profile to store temporary \
@@ -77,7 +75,7 @@ to ~/.okta-credentials.cache\n')
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
-         debug, force, cache, awscli_args, token, reset):
+         debug, cache, awscli_args, token, reset):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -100,12 +98,7 @@ def main(okta_profile, profile, verbose, version,
     if not profile:
         profile = "default"
     aws_auth = AwsAuth(profile, okta_profile, verbose, logger, reset)
-    if force and profile:
-        logger.info("Force option selected, \
-            getting new credentials anyway.")
-    elif force:
-        logger.info("Force option selected, but no profile provided. \
-            Option has no effect.")
+    logger.info("Getting new credentials.")
     get_credentials(
         aws_auth, okta_profile, profile, verbose, logger, token, cache, reset
     )
