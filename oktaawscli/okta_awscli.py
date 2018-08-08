@@ -15,13 +15,15 @@ def get_credentials(aws_auth, okta_profile, profile,
     """ Gets credentials from Okta """
     okta_auth_config = OktaAuthConfig(logger, reset)
     use_alias = okta_auth_config.get_profile_alias(okta_profile)
+    print(use_alias)
+    print(type(use_alias))
 
     okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
 
     _, assertion = okta.get_assertion()
     role = aws_auth.choose_aws_role(assertion)
     role_arn, principal_arn, alias = role
-    if use_alias:
+    if use_alias == "True":
         profile = alias
 
     okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)

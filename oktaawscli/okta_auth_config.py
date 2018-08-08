@@ -68,8 +68,7 @@ class OktaAuthConfig():
         use_alias_as_profile = "False"
         if self._value.has_option(okta_profile, 'use-alias-profile'):
             use_alias_as_profile = self._value.get(okta_profile, 'use-alias-profile')
-        else:
-            use_alias_as_profile = self._value.get('default', 'use-alias-profile')
+
         self.logger.info("Use alias as profile: %s" % use_alias_as_profile)
         return use_alias_as_profile
 
