@@ -26,7 +26,8 @@ username = <your_okta_username>
 password = <your_okta_password> # Only save your password if you know what you are doing!
 factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
 role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
-use-alias-profile = True # Set this to True if you want to use the AWS account alias as the aws profile name. Defaults to False.
+use-alias-profile = True
+# Set the above to True if you want to use the AWS account alias as the aws profile name. Defaults to False.
 app = <your_prefered_okta_app> # ex. `Amazon Web Services` to automatically select Amazon Web Services
 ```
 
