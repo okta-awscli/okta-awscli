@@ -52,6 +52,11 @@ def get_credentials(okta_profile, profile, verbose, logger,
         logger.info("Export flag not set, will write credentials to ~/.aws/credentials.")
         aws_auth.write_sts_token(profile_name, access_key_id,
                                  secret_access_key, session_token)
+        usage_msg = "".join([
+            "\nTo start using these temporary credentials, run:\n",
+            "\n export AWS_PROFILE=%s\n" % profile_name
+        ])
+        print(usage_msg)
 
 
 def console_output(access_key_id, secret_access_key, session_token, verbose):
