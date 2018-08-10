@@ -10,27 +10,36 @@ from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
 
-def get_credentials(aws_auth, okta_profile, profile,
-                    verbose, logger, totp_token, cache, reset, export):
+def get_credentials(okta_profile, profile, verbose, logger,
+                    totp_token, cache, export, reset):
     """ Gets credentials from Okta """
     okta_auth_config = OktaAuthConfig(logger, reset)
-    use_alias = okta_auth_config.get_profile_alias(okta_profile)
-    okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
+    aws_auth = AwsAuth(profile, okta_profile, verbose, logger, reset)
+    okta = OktaAuth(okta_profile, verbose, logger,
+                    totp_token, okta_auth_config)
+
+    # @TODO if should get credentials, get credentials - otherwise return
 
     _, assertion = okta.get_assertion()
     role = aws_auth.choose_aws_role(assertion)
     role_arn, principal_arn, alias = role
-    if use_alias == "True":
-        profile = alias
 
-    okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
+    auto_write = okta_auth_config.get_auto_write_profile(okta_profile)
+    if auto_write == "True" and profile is None:
+        profile_name = "default" if alias == "unknown" else alias
+    else:
+        profile_name = profile
+
+    store_role = okta_auth_config.get_store_role(okta_profile)
+    if store_role == "True":
+        okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
 
     sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion)
     access_key_id = sts_token['AccessKeyId']
     secret_access_key = sts_token['SecretAccessKey']
     session_token = sts_token['SessionToken']
-    if export:
-        logger.info("Export flag set, will output to console.")
+    if profile_name is None or export:
+        logger.info("Either profile name not given or export flag set, will output to console.")
         exports = console_output(access_key_id, secret_access_key,
                                  session_token, verbose)
         if cache:
@@ -41,7 +50,7 @@ def get_credentials(aws_auth, okta_profile, profile,
         exit(0)
     else:
         logger.info("Export flag not set, will write credentials to ~/.aws/credentials.")
-        aws_auth.write_sts_token(profile, access_key_id,
+        aws_auth.write_sts_token(profile_name, access_key_id,
                                  secret_access_key, session_token)
 
 
@@ -65,6 +74,8 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
 @click.option('-V', '--version', is_flag=True,
               help='Outputs version number and exits')
 @click.option('-d', '--debug', is_flag=True, help='Enables debug mode')
+@click.option('-f', '--force', is_flag=True, help='Forces new STS credentials. \
+Skips STS credentials validation.')
 @click.option('-r', '--reset', is_flag=True, help='Resets default values in ~/.okta-aws')
 @click.option('-e', '--export', is_flag=True, help='Outputs credentials to console instead \
 of writing to ~/.aws/credentials')
@@ -72,13 +83,13 @@ of writing to ~/.aws/credentials')
 If none is provided, then the default profile will be used.\n")
 @click.option('--profile', help="Name of the profile to store temporary \
 credentials in ~/.aws/credentials. If profile doesn't exist, it will be \
-created.\n")
+created. If omitted, credentials will output to console.\n")
 @click.option('-c', '--cache', is_flag=True, help='Cache the default profile credentials \
 to ~/.okta-credentials.cache\n')
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
-         debug, export, cache, awscli_args, token, reset):
+         debug, force, export, cache, awscli_args, token, reset):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -98,12 +109,9 @@ def main(okta_profile, profile, verbose, version,
 
     if not okta_profile:
         okta_profile = "default"
-    if not profile:
-        profile = "default"
-    aws_auth = AwsAuth(profile, okta_profile, verbose, logger, reset)
-    logger.info("Getting new credentials.")
+
     get_credentials(
-        aws_auth, okta_profile, profile, verbose, logger, token, cache, reset, export
+        okta_profile, profile, verbose, logger, token, cache, export, reset
     )
 
     if awscli_args:

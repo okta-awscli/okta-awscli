@@ -63,14 +63,32 @@ class OktaAuthConfig():
             return app
         return None
 
-    def get_profile_alias(self, okta_profile):
-        """ Gets if should use alias as profile from config """
-        use_alias_as_profile = "False"
-        if self._value.has_option(okta_profile, 'use-alias-profile'):
-            use_alias_as_profile = self._value.get(okta_profile, 'use-alias-profile')
+    def get_check_valid_creds(self, okta_profile):
+        """ Gets if should check if AWS creds are valid from config """
+        check_valid_creds = "True"
+        if self._value.has_option(okta_profile, 'check-valid-creds'):
+            check_valid_creds = self._value.get(okta_profile, 'check-valid-creds')
 
-        self.logger.info("Use alias as profile: %s" % use_alias_as_profile)
-        return use_alias_as_profile
+        self.logger.info("Check if credentials are valid: %s" % check_valid_creds)
+        return check_valid_creds
+
+    def get_store_role(self, okta_profile):
+        """ Gets if should store role to okta-profile from config """
+        store_role = "True"
+        if self._value.has_option(okta_profile, 'store-role'):
+            store_role = self._value.get(okta_profile, 'store-role')
+
+        self.logger.info("Should store role: %s" % store_role)
+        return store_role
+
+    def get_auto_write_profile(self, okta_profile):
+        """ Gets if should auto write aws creds to ~/.aws/credentials from config """
+        auto_write_profile = "False"
+        if self._value.has_option(okta_profile, 'auto-write-profile'):
+            auto_write_profile = self._value.get(okta_profile, 'auto-write-profile')
+
+        self.logger.info("Should write profile to ~/.aws/credentials: %s" % auto_write_profile)
+        return auto_write_profile
 
     def save_chosen_role_for_profile(self, okta_profile, role_arn):
         """ Saves role to config """
@@ -79,8 +97,7 @@ class OktaAuthConfig():
 
         base_url = self.base_url_for(okta_profile)
         self._value.set(okta_profile, 'base-url', base_url)
-        if okta_profile != "default":
-            self._value.set(okta_profile, 'role', role_arn)
+        self._value.set(okta_profile, 'role', role_arn)
 
         with open(self.config_path, 'w+') as configfile:
             self._value.write(configfile)

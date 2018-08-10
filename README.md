@@ -20,15 +20,21 @@ Parsing the HTML is still required to get the SAML assertion, after authenticati
 [default]
 base-url = <your_okta_org>.okta.com
 
+## These parameters are optional flags to change the default behavior of okta-awscli
+auto-write-profile = True
+# Set the above to "True" if you want to automatically write creds to ~/.aws/credentials. Defaults to False.
+check-valid-creds = False
+# Set the above to "False" if you want new credentials everytime you run okta-awscli. Defaults to True
+store-role = False
+# Set the above to "False" if you want to be prompted for a role everytime you run okta-awscli rather than having the role selected for you. Defaults to True.
+
 ## The remaining parameters are optional.
 ## You will be prompted for them, if they're not included here.
 username = <your_okta_username>
 factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
 role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
-use-alias-profile = True
-# Set the above to True if you want to use the AWS account alias as the aws profile name. Defaults to False.
-app = <your_prefered_okta_app>
-# ex. `Amazon Web Services` to automatically select Amazon Web Services
+app = <your_prefered_okta_app> # ex. `Amazon Web Services` to automatically select Amazon Web Services
+
 ```
 
 ## Supported Features
