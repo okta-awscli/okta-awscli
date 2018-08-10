@@ -23,7 +23,7 @@ class AwsAuth():
         self.logger = logger
         self.role = ""
 
-        okta_info = home_dir + '/.okta-info.json'
+        okta_info = home_dir + '/.okta-alias-info'
         if not os.path.isfile(okta_info):
             open(okta_info, 'a').close()
 
@@ -84,6 +84,45 @@ of roles assigned to you.""" % self.role)
         credentials = response['Credentials']
         return credentials
 
+    def check_sts_token(self, profile):
+        """ Verifies that STS credentials are valid """
+        # Don't check for creds if profile is blank
+        if not profile:
+            return False
+
+        parser = RawConfigParser()
+        parser.read(self.creds_file)
+
+        if not os.path.exists(self.creds_dir):
+            self.logger.info(
+                "AWS credentials path does not exist. Not checking.")
+            return False
+
+        elif not os.path.isfile(self.creds_file):
+            self.logger.info(
+                "AWS credentials file does not exist. Not checking.")
+            return False
+
+        elif not parser.has_section(profile):
+            self.logger.info(
+                "No existing credentials found. Requesting new credentials.")
+            return False
+
+        session = boto3.Session(profile_name=profile)
+        sts = session.client('sts')
+        try:
+            sts.get_caller_identity()
+
+        except ClientError as ex:
+            if ex.response['Error']['Code'] == 'ExpiredToken':
+                self.logger.info(
+                    "Temporary credentials have expired. Requesting new credentials.")
+                return False
+
+        print("AWS credentials are valid. Nothing to do.")
+        self.logger.info("STS credentials are valid. Nothing to do.")
+        return True
+
     def write_sts_token(self, profile, access_key_id, secret_access_key, session_token):
         """ Writes STS auth information to credentials file """
         region = 'us-east-1'
@@ -124,11 +163,9 @@ of roles assigned to you.""" % self.role)
 
     def __get_role_info(self, roles, assertion):
         """ Gets role info from okta-info.json """
-        info_file_path = os.path.expanduser('~') + "/.okta-info.json"
+        info_file_path = os.path.expanduser('~') + "/.okta-alias-info"
         info_file = open(info_file_path, 'r')
         okta_info = info_file.read()
-        print(okta_info)
-        print(type(okta_info))
         okta_info = {} if okta_info is "" else json.loads(okta_info)
         info_file.close()
 
@@ -172,7 +209,7 @@ of roles assigned to you.""" % self.role)
         return role_info
 
     def __get_account_alias(self, role_arn, principal_arn, assertion):
-        """ Gets  account alias for given role """
+        """ Gets account alias for given role """
         sts = boto3.client('sts')
         saml_resp = sts.assume_role_with_saml(
             RoleArn=role_arn,
@@ -199,6 +236,7 @@ of roles assigned to you.""" % self.role)
     def __create_options_from(roles):
         options = []
         for index, role in enumerate(roles):
+            # role[0] is the role arn, role[2] is the account alias
             options.append("[%s]: %s : %s" % (str(index + 1).ljust(2), role[2].ljust(27), role[0]))
         return options
 

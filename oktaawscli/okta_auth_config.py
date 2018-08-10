@@ -3,7 +3,7 @@
 import os
 
 from configparser import RawConfigParser
-from getpass import getpass
+from getpass import getpass, getuser
 
 try:
     input = raw_input
@@ -36,7 +36,9 @@ class OktaAuthConfig():
             username = self._value.get(okta_profile, 'username')
             self.logger.info("Authenticating as: %s" % username)
         else:
-            username = input('Enter username: ')
+            username = getuser()
+            entered_username = input('Enter username [%s]: ' % username)
+            username = username if entered_username == "" else entered_username
         return username
 
     def password_for(self, okta_profile):

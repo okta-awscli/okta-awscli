@@ -57,6 +57,7 @@ def get_credentials(okta_profile, profile, verbose, logger,
             "\n export AWS_PROFILE=%s\n" % profile_name
         ])
         print(usage_msg)
+        exit(0)
 
 
 def console_output(access_key_id, secret_access_key, session_token, verbose):

@@ -72,7 +72,7 @@ If no awscli commands are provided, then okta-awscli will simply output STS cred
 Optional flags:
 - `--profile` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted, credentials will output to console.
 - `--export` Outputs credentials to console instead of writing to ~/.aws/credentials.
-- `--reset` Resets default values in ~/.okta-aws.
+- `--reset` Resets default values in ~/.okta-aws for the okta-profile being used.
 - `--verbose` More verbose output.
 - `--debug` Very verbose output. Useful for debugging.
 - `--cache` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
