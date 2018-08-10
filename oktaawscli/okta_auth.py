@@ -1,7 +1,10 @@
 """ Handles auth to Okta and returns SAML assertion """
 # pylint: disable=C0325,R0912,C1801
+import os
 import sys
 import time
+import json
+from datetime import datetime
 import requests
 
 from bs4 import BeautifulSoup as bs
@@ -28,10 +31,17 @@ class OktaAuth():
         self.factor = okta_auth_config.factor_for(okta_profile)
         self.app = okta_auth_config.app_for(okta_profile)
 
+        okta_info = os.path.expanduser('~') + '/.okta-token'
+        if not os.path.isfile(okta_info):
+            open(okta_info, 'a').close()
+
 
     def primary_auth(self):
         """ Performs primary auth against Okta """
-
+        # check if token is valid
+        session_id = self.get_cached_session_id()
+        if session_id is not None:
+            return session_id
         auth_data = {
             "username": self.username,
             "password": self.password
@@ -52,7 +62,7 @@ class OktaAuth():
             self.logger.error(resp_json)
             exit(1)
 
-        return session_token
+        return self.get_session(session_token)
 
     def verify_mfa(self, factors_list, state_token):
         """ Performs MFA auth against Okta """
@@ -158,7 +168,51 @@ class OktaAuth():
         data = {"sessionToken": session_token}
         resp = requests.post(
             self.https_base_url + '/api/v1/sessions', json=data).json()
+        self.cache_session_id(
+            resp['id'],
+            resp['expiresAt']
+        )
         return resp['id']
+
+    def cache_session_id(self, session_id, expiration_date):
+        """ Stores Okta session id in ~/.okta-token """
+        session_info = {
+            'session_id': session_id,
+            'expiration_date': expiration_date
+        }
+        session_path = os.path.expanduser('~') + "/.okta-token"
+        self.logger.info("Cacheing Okta session id to ~/.okta-token")
+        session_file = open(session_path, 'w')
+        session_file.write(
+            json.dumps(
+                session_info,
+                sort_keys=True,
+                indent=4,
+                separators=(',', ': '),
+                default=str
+            )
+        )
+        session_file.close()
+
+    def get_cached_session_id(self):
+        """ Gets Okta session id from ~/.okta-token if valid """
+        session_path = os.path.expanduser('~') + "/.okta-token"
+        session_file = open(session_path, 'r')
+        session_info = session_file.read()
+        session_file.close()
+        session_info = {} if session_info is "" else json.loads(session_info)
+
+        expiration_date = datetime.min
+        if session_info.get('expiration_date'):
+            expiration_date = datetime.strptime(
+                session_info.get('expiration_date'),
+                '%Y-%m-%dT%H:%M:%S.000Z'
+            )
+
+        current_time = datetime.now()
+        if max([current_time, expiration_date]) == expiration_date:
+            self.logger.info("Using cached Okta session id from ~/.okta-token")
+            return session_info.get('session_id')
 
     def get_apps(self, session_id):
         """ Gets apps for the user """
@@ -208,8 +262,7 @@ class OktaAuth():
 
     def get_assertion(self):
         """ Main method to get SAML assertion from Okta """
-        session_token = self.primary_auth()
-        session_id = self.get_session(session_token)
+        session_id = self.primary_auth()
         app_name, app_link = self.get_apps(session_id)
         sid = "sid=%s" % session_id
         headers = {'Cookie': sid}
