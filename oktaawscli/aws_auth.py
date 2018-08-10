@@ -166,7 +166,10 @@ of roles assigned to you.""" % self.role)
         info_file_path = os.path.expanduser('~') + "/.okta-alias-info"
         info_file = open(info_file_path, 'r')
         okta_info = info_file.read()
-        okta_info = {} if okta_info is "" else json.loads(okta_info)
+        if okta_info == "":
+            okta_info = {}
+        else:
+            okta_info = json.loads(okta_info)
         info_file.close()
 
         role_info = []

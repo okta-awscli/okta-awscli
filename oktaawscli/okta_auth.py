@@ -200,7 +200,12 @@ class OktaAuth():
         session_file = open(session_path, 'r')
         session_info = session_file.read()
         session_file.close()
-        session_info = {} if session_info is "" else json.loads(session_info)
+        print("" == session_info)
+        if session_info == "":
+             session_info = {}
+        else:
+            session_info = json.loads(session_info)
+        print(session_info)
 
         expiration_date = datetime.min
         if session_info.get('expiration_date'):
