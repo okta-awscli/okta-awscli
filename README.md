@@ -34,7 +34,7 @@ username = <your_okta_username>
 factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
 role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
 app = <your_prefered_okta_app> # ex. `Amazon Web Services` to automatically select Amazon Web Services
-
+session-duration = <seconds> # The duration for the temporary credentials in seconds. Defaults to 3600 (1 hour).
 ```
 
 ## Supported Features

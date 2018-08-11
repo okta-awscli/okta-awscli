@@ -34,10 +34,12 @@ def get_credentials(okta_profile, profile, verbose, logger,
     if store_role == "True":
         okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
 
-    sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion)
+    duration = okta_auth_config.get_session_duration(okta_profile)
+    sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion, duration)
     access_key_id = sts_token['AccessKeyId']
     secret_access_key = sts_token['SecretAccessKey']
     session_token = sts_token['SessionToken']
+    print("Credentials valid for %s hours" % round(duration/3600,1))
     if profile_name is None or export:
         logger.info("Either profile name not given or export flag set, will output to console.")
         exports = console_output(access_key_id, secret_access_key,

@@ -68,7 +68,7 @@ of roles assigned to you.""" % self.role)
                 role_choice = None
 
     @staticmethod
-    def get_sts_token(role_arn, principal_arn, assertion):
+    def get_sts_token(role_arn, principal_arn, assertion, duration):
         """ Gets a token from AWS STS """
 
         # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
@@ -80,7 +80,8 @@ of roles assigned to you.""" % self.role)
 
         response = sts.assume_role_with_saml(RoleArn=role_arn,
                                              PrincipalArn=principal_arn,
-                                             SAMLAssertion=assertion)
+                                             SAMLAssertion=assertion,
+                                             DurationSeconds=duration)
         credentials = response['Credentials']
         return credentials
 
