@@ -96,10 +96,14 @@ class OktaAuthConfig():
         """ Gets STS session duration from config as an int"""
         session_duration = 3600 # AWS docs say default duration is 1 hour (3600 seconds)
         if self._value.has_option(okta_profile, 'session-duration'):
-            session_duration = self._value.get(okta_profile, 'session-duration')
+            session_duration = int(self._value.get(okta_profile, 'session-duration'))
+
+        if session_duration > 43200 or session_duration < 3600:
+            self.logger.info("Invalid session duration specified, defaulting to 1 hour.")
+            session_duration = 3600
 
         self.logger.info("Configured session duration: %s seconds" % session_duration)
-        return int(session_duration)
+        return session_duration
 
     def save_chosen_role_for_profile(self, okta_profile, role_arn):
         """ Saves role to config """
