@@ -1,4 +1,0 @@
-[default]
-base-url = amplify.okta.com
-store-role = False
-auto-write-profile = True
