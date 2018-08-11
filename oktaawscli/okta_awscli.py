@@ -11,14 +11,17 @@ from oktaawscli.aws_auth import AwsAuth
 
 
 def get_credentials(okta_profile, profile, verbose, logger,
-                    totp_token, cache, export, reset):
+                    totp_token, cache, export, reset, force):
     """ Gets credentials from Okta """
     okta_auth_config = OktaAuthConfig(logger, reset)
     aws_auth = AwsAuth(profile, okta_profile, verbose, logger, reset)
+
+    check_creds = okta_auth_config.get_check_valid_creds(okta_profile)
+    if not force and check_creds and aws_auth.check_sts_token(profile):
+        exit(0)
+
     okta = OktaAuth(okta_profile, verbose, logger,
                     totp_token, okta_auth_config)
-
-    # @TODO if should get credentials, get credentials - otherwise return
 
     _, assertion = okta.get_assertion()
     role = aws_auth.choose_aws_role(assertion)
@@ -119,7 +122,7 @@ def main(okta_profile, profile, verbose, version,
         okta_profile = "default"
 
     get_credentials(
-        okta_profile, profile, verbose, logger, token, cache, export, reset
+        okta_profile, profile, verbose, logger, token, cache, export, reset, force
     )
 
     if awscli_args:
