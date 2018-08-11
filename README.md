@@ -54,7 +54,6 @@ session-duration = <seconds> # The duration for the temporary credentials in sec
 
 `okta-awscli --profile <aws_profile> <awscli action> <awscli arguments>`
 - Follow the prompts to enter MFA information (if required) and choose your AWS app and IAM role.
-- The default Okta profile will not store your chosen IAM role, but other profiles will.
 - Multiple Okta profiles are supported, but if none are specified, then `default` will be used.
 
 
@@ -73,6 +72,7 @@ Optional flags:
 - `--profile` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted, credentials will output to console.
 - `--export` Outputs credentials to console instead of writing to ~/.aws/credentials.
 - `--reset` Resets default values in ~/.okta-aws for the okta-profile being used.
+- `--force` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
 - `--verbose` More verbose output.
 - `--debug` Very verbose output. Useful for debugging.
 - `--cache` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
