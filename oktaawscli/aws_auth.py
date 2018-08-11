@@ -16,18 +16,18 @@ class AwsAuth():
 
     def __init__(self, profile, okta_profile, verbose, logger, reset):
         home_dir = os.path.expanduser('~')
-        self.creds_dir = home_dir + "/.aws"
-        self.creds_file = self.creds_dir + "/credentials"
+        self.creds_dir = os.path.join(home_dir, ".aws")
+        self.creds_file = os.path.join(self.creds_dir, "credentials")
         self.profile = profile
         self.verbose = verbose
         self.logger = logger
         self.role = ""
 
-        okta_info = home_dir + '/.okta-alias-info'
+        okta_info = os.path.join(home_dir, '.okta-alias-info')
         if not os.path.isfile(okta_info):
             open(okta_info, 'a').close()
 
-        okta_config = home_dir + '/.okta-aws'
+        okta_config = os.path.join(home_dir, '.okta-aws')
         parser = RawConfigParser()
         parser.read(okta_config)
 

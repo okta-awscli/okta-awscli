@@ -31,7 +31,7 @@ class OktaAuth():
         self.factor = okta_auth_config.factor_for(okta_profile)
         self.app = okta_auth_config.app_for(okta_profile)
 
-        okta_info = os.path.expanduser('~') + '/.okta-token'
+        okta_info = os.path.join(os.path.expanduser('~'), '.okta-token')
         if not os.path.isfile(okta_info):
             open(okta_info, 'a').close()
 
@@ -180,7 +180,7 @@ class OktaAuth():
             'session_id': session_id,
             'expiration_date': expiration_date
         }
-        session_path = os.path.expanduser('~') + "/.okta-token"
+        session_path = os.path.join(os.path.expanduser('~'), ".okta-token")
         self.logger.info("Cacheing Okta session id to ~/.okta-token")
         session_file = open(session_path, 'w')
         session_file.write(
@@ -196,16 +196,14 @@ class OktaAuth():
 
     def get_cached_session_id(self):
         """ Gets Okta session id from ~/.okta-token if valid """
-        session_path = os.path.expanduser('~') + "/.okta-token"
+        session_path = os.path.join(os.path.expanduser('~'), ".okta-token")
         session_file = open(session_path, 'r')
         session_info = session_file.read()
         session_file.close()
-        print("" == session_info)
         if session_info == "":
              session_info = {}
         else:
             session_info = json.loads(session_info)
-        print(session_info)
 
         expiration_date = datetime.min
         if session_info.get('expiration_date'):
