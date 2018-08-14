@@ -14,7 +14,7 @@ from botocore.exceptions import ClientError
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, okta_profile, verbose, logger, reset):
+    def __init__(self, profile, okta_profile, verbose, logger, region, reset):
         home_dir = os.path.expanduser('~')
         self.creds_dir = os.path.join(home_dir, ".aws")
         self.creds_file = os.path.join(self.creds_dir, "credentials")
@@ -22,6 +22,7 @@ class AwsAuth():
         self.verbose = verbose
         self.logger = logger
         self.role = ""
+        self.region = region
 
         okta_info = os.path.join(home_dir, '.okta-alias-info')
         if not os.path.isfile(okta_info):
@@ -67,8 +68,7 @@ of roles assigned to you.""" % self.role)
                 print("\nYou have selected an invalid role index, please try again.\n")
                 role_choice = None
 
-    @staticmethod
-    def get_sts_token(role_arn, principal_arn, assertion, duration):
+    def get_sts_token(self, role_arn, principal_arn, assertion, duration):
         """ Gets a token from AWS STS """
 
         # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
@@ -76,7 +76,7 @@ of roles assigned to you.""" % self.role)
         if arn_region == 'aws-us-gov':
             sts = boto3.client('sts', region_name='us-gov-west-1')
         else:
-            sts = boto3.client('sts')
+            sts = boto3.client('sts', region_name=self.region)
 
         response = sts.assume_role_with_saml(RoleArn=role_arn,
                                              PrincipalArn=principal_arn,
@@ -126,7 +126,7 @@ of roles assigned to you.""" % self.role)
 
     def write_sts_token(self, profile, access_key_id, secret_access_key, session_token):
         """ Writes STS auth information to credentials file """
-        region = 'us-east-1'
+        region = self.region
         output = 'json'
         if not os.path.exists(self.creds_dir):
             os.makedirs(self.creds_dir)

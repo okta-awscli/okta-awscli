@@ -65,6 +65,14 @@ class OktaAuthConfig():
             return app
         return None
 
+    def region_for(self, okta_profile):
+        """ Gets region from config """
+        if self._value.has_option(okta_profile, 'region'):
+            region = self._value.get(okta_profile, 'region')
+            self.logger.debug("Setting region to %s" % region)
+            return region
+        return 'us-east-1'
+
     def get_check_valid_creds(self, okta_profile):
         """ Gets if should check if AWS creds are valid from config """
         check_valid_creds = "True"
