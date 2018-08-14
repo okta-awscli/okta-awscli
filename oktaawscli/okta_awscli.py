@@ -16,7 +16,6 @@ def get_credentials(okta_profile, profile, verbose, logger,
     okta_auth_config = OktaAuthConfig(logger, reset)
 
     region = okta_auth_config.region_for(okta_profile)
-    print(region)
     aws_auth = AwsAuth(profile, okta_profile, verbose, logger, region, reset)
 
     check_creds = okta_auth_config.get_check_valid_creds(okta_profile)
