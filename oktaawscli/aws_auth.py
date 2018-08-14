@@ -126,7 +126,7 @@ of roles assigned to you.""" % self.role)
 
     def write_sts_token(self, profile, access_key_id, secret_access_key, session_token):
         """ Writes STS auth information to credentials file """
-        region = 'us-east-1
+        region = 'us-east-1'
         output = 'json'
         if not os.path.exists(self.creds_dir):
             os.makedirs(self.creds_dir)
