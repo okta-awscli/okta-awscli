@@ -72,7 +72,8 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
     exports = "\n".join([
         "export AWS_ACCESS_KEY_ID=%s" % access_key_id,
         "export AWS_SECRET_ACCESS_KEY=%s" % secret_access_key,
-        "export AWS_SESSION_TOKEN=%s" % session_token
+        "export AWS_SESSION_TOKEN=%s" % session_token,
+        "export AWS_SECURITY_TOKEN=%s" % session_token
     ])
     print(exports)
 
