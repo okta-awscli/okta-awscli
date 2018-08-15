@@ -20,12 +20,23 @@ Parsing the HTML is still required to get the SAML assertion, after authenticati
 [default]
 base-url = <your_okta_org>.okta.com
 
+## These parameters are optional flags to change the default behavior of okta-awscli
+auto-write-profile = True
+# Set the above to "True" if you want to automatically write creds to ~/.aws/credentials. Defaults to False.
+check-valid-creds = False
+# Set the above to "False" if you want new credentials everytime you run okta-awscli. Defaults to True
+store-role = False
+# Set the above to "False" if you want to be prompted for a role everytime you run okta-awscli rather than having the role selected for you. Defaults to True.
+
 ## The remaining parameters are optional.
 ## You will be prompted for them, if they're not included here.
 username = <your_okta_username>
-password = <your_okta_password> # Only save your password if you know what you are doing!
 factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
 role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
+app = <your_prefered_okta_app> # ex. `Amazon Web Services` to automatically select Amazon Web Services
+session-duration = <seconds> # The duration for the temporary credentials in seconds. Must be between 3600 (1 hour) and 43200 (12 hours) to be valid. If invalid or not specified, session duration defaults to 3600 (1 hour).
+region = <aws-region> # The AWS region to access resources in, e.g. `us-west-2`. Defaults to `us-east-1`.
+
 ```
 
 ## Supported Features
@@ -45,11 +56,15 @@ role = <your_preferred_okta_role> # AWS role name (match one of the options prom
 
 `okta-awscli --profile <aws_profile> <awscli action> <awscli arguments>`
 - Follow the prompts to enter MFA information (if required) and choose your AWS app and IAM role.
-- Subsequent executions will first check if the STS credentials are still valid and skip Okta authentication if so.
 - Multiple Okta profiles are supported, but if none are specified, then `default` will be used.
 
 
-### Example
+### Examples
+
+`okta-awscli --profile cfer-dev`
+
+This command will simply output STS credentials to `cfer-dev` in your credentials file.
+
 
 `okta-awscli --profile my-aws-account iam list-users`
 
@@ -57,6 +72,8 @@ If no awscli commands are provided, then okta-awscli will simply output STS cred
 
 Optional flags:
 - `--profile` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted, credentials will output to console.
+- `--export` Outputs credentials to console instead of writing to ~/.aws/credentials.
+- `--reset` Resets default values in ~/.okta-aws for the okta-profile being used.
 - `--force` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
 - `--verbose` More verbose output.
 - `--debug` Very verbose output. Useful for debugging.
