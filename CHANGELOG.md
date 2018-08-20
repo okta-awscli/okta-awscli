@@ -1,5 +1,55 @@
 # Changelog
 
+## [0.3.0] 2018-08-16
+### Added:
+- Select app specified by `app` field in config if `app` field exists
+- Graciously reprompt for role index on bad selection
+- Add export flag to print creds to console
+- Add reset flag to reset fields in `~/.okta-aws` for current okta-profile
+- Stores factor for default okta profiles
+- Add usage message when storing credentials in `/.aws/credentials`
+- Use system username if `username` not set in `~/.okta-aws` and no username given when prompted
+
+- Display account aliases when prompting for role selection
+	- create a `~/.okta-alias-info` file to store account aliases
+	- fetch account aliases to display in list of roles
+	- cache account aliases in `~/.okta-alias-info` along with time last updated
+	- refresh account alias if last updated over a week ago
+
+- Add config option `auto-write-profile` to `~/.okta-aws`
+	- if "True" and no `--profile` specified, will write aws creds to profile named for the account alias for the chosen role
+		- if account alias for the chosen role is unknown, will write to `default` aws profile
+	- modifies existing functionality if `--profile` specified - will write to the specified profile unless `--export` flag set
+	- if `--export` flag set, will not write aws creds, will only display to console
+	- defaults to "False" to maintain existing functionality if option not set
+
+- Add config option `store-role` to `~/.okta-aws`
+	- if "False", will not store role upon selection for the chosen `okta-profile`
+	- Will use `role` is already defined for the chosen `okta-profile`
+	- defaults to "True" to maintain existing functionality if option not set
+
+- Add config option `check-valid-creds` to `~/.okta-aws`
+	- if "False", will skip making sure credentials are valid and automatically get new credentials
+	- if "True", will refresh credentials only if `--profile` and `--force` are both specified
+	- Defaults to True to maintain existing behavior
+
+- Cache okta session id to avoid re-authenticating with Okta when switching token
+	- stores session id and expiration timestamp in `~/.okta-token`
+	- if session id is expired, will re-authenticate
+
+- Add config option `session-duration` to `~/.okta-aws`
+	- takes in session duration in seconds
+	- to be valid, must be between 3600 and 43200 (1 hour to 12 hours)
+	- if invalid or not specified, defaults to 3600 (1 hour)
+
+- Add config option `region` to `~/.okta-aws`
+	- specifies the region to access resources in
+	- defaults to `us-east-1`
+
+### Changed:
+- Exports `aws_security_token` variable as well in order to supportM with `boto` library calls
+- Update RESUME
+
 ## [0.2.3] 2018-07-21
 ### Added:
 - Travis CI builds to run linting tests for branches and PRs.
