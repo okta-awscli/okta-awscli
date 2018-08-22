@@ -152,4 +152,7 @@ of roles assigned to you.""" % self.role)
         if not found_roles:
             return None
         else:
-            return next(found_roles)
+            try:
+                return next(found_roles)
+            except: 
+                return None
