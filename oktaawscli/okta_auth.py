@@ -209,10 +209,10 @@ class OktaAuth():
         if session_info.get('expiration_date'):
             expiration_date = datetime.strptime(
                 session_info.get('expiration_date'),
-                '%Y-%m-%dT%H:%M:%S.000Z'
+                '%Y-%m-%dT%H:%M:%S.%fZ'
             )
 
-        current_time = datetime.now()
+        current_time = datetime.utcnow()
         if max([current_time, expiration_date]) == expiration_date:
             self.logger.info("Using cached Okta session id from ~/.okta-token")
             return session_info.get('session_id')
