@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.4] 2018-09-03
+### Fixed:
+- Casting issue with MFA factor selection. (#44)
+
 ## [0.2.3] 2018-07-21
 ### Added:
 - Travis CI builds to run linting tests for branches and PRs.
