@@ -42,8 +42,9 @@ class AwsAuth():
         """ Choose AWS role from SAML assertion """
 
         roles = self.__extract_available_roles_from(assertion)
+        if self.account:
+            roles = [elem for elem in roles if self.account in elem[1]]
         role_info = self.__get_role_info(roles, assertion)
-
         if self.role:
             predefined_role = self.__find_predefined_role_from(role_info)
             if predefined_role:
@@ -149,6 +150,43 @@ of roles assigned to you.""" % self.role)
             config.write(configfile)
         sys.stderr.write("Temporary credentials written to profile: %s\n" % profile)
         self.logger.info("Invoke using: aws --profile %s <service> <command>" % profile)
+
+    def copy_to_default(self, profile):
+        """ Reads STS auth information from credentials file """
+        if not os.path.exists(self.creds_dir):
+            os.makedirs(self.creds_dir)
+        config = RawConfigParser()
+
+        if os.path.isfile(self.creds_file):
+            config.read(self.creds_file)
+
+        if not config.has_section(profile):
+            config.add_section(profile)
+
+        if config.has_option(profile, 'output'):
+            output = config.get(profile, 'output')
+
+        if config.has_option(profile, 'region'):
+            region = config.get(profile, 'region')
+
+        if config.has_option(profile, 'aws_access_key_id'):
+            access_key_id = config.get(profile, 'aws_access_key_id')
+
+        if config.has_option(profile, 'aws_secret_access_key'):
+            secret_access_key = config.get(profile, 'aws_secret_access_key')
+
+        if config.has_option(profile, 'aws_session_token'):
+            session_token = config.get(profile, 'aws_session_token')
+
+        config.set('default', 'output', output)
+        config.set('default', 'region', region)
+        config.set('default', 'aws_access_key_id', access_key_id)
+        config.set('default', 'aws_secret_access_key', secret_access_key)
+        config.set('default', 'aws_session_token', session_token)
+        config.set('default', 'aws_security_token', session_token)
+
+        with open(self.creds_file, 'w+') as configfile:
+            config.write(configfile)
 
     @staticmethod
     def __extract_available_roles_from(assertion):

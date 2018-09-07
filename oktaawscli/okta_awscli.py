@@ -20,6 +20,9 @@ def get_credentials(okta_profile, profile, account, verbose, logger,
 
     check_creds = okta_auth_config.get_check_valid_creds(okta_profile)
     if not force and check_creds and aws_auth.check_sts_token(profile):
+        if account:
+            aws_auth.copy_to_default(profile)
+            sys.stderr.write("\nCopying account token to default\n")
         exit(0)
 
     okta = OktaAuth(okta_profile, verbose, logger,
@@ -67,7 +70,7 @@ def get_credentials(okta_profile, profile, account, verbose, logger,
                 "\nTo start using these temporary credentials, run:\n",
                 "\n export AWS_PROFILE=%s\n" % profile_name
             ])
-        sys.stderr.write(usage_msg)
+            sys.stderr.write(usage_msg)
         exit(0)
 
 def console_output(access_key_id, secret_access_key, session_token, verbose):
