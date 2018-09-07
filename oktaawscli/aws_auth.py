@@ -50,13 +50,13 @@ class AwsAuth():
             if predefined_role:
                 self.logger.info("Using predefined role: %s" % self.role)
                 return predefined_role
-            else if len(roles) == 1:
-                sys.stderr.write("\nOne role found, using role: " + roles[0][1] + "\n")
-                return role_info[0]
             else:
                 self.logger.info("""Predefined role, %s, not found in the list
 of roles assigned to you.""" % self.role)
                 self.logger.info("Please choose a role.")
+        if len(roles) == 1:
+            sys.stderr.write("\nOne role found, using role: " + roles[0][1] + "\n")
+            return role_info[0]
 
         role_options = self.__create_options_from(role_info)
         role_choice = None
