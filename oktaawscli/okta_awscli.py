@@ -4,19 +4,19 @@ import os
 from subprocess import call
 import logging
 import click
+import sys
 from oktaawscli.version import __version__
 from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
-
-def get_credentials(okta_profile, profile, verbose, logger,
+def get_credentials(okta_profile, profile, account, verbose, logger,
                     totp_token, cache, export, reset, force):
     """ Gets credentials from Okta """
     okta_auth_config = OktaAuthConfig(logger, reset)
 
     region = okta_auth_config.region_for(okta_profile)
-    aws_auth = AwsAuth(profile, okta_profile, verbose, logger, region, reset)
+    aws_auth = AwsAuth(profile, okta_profile, account, verbose, logger, region, reset)
 
     check_creds = okta_auth_config.get_check_valid_creds(okta_profile)
     if not force and check_creds and aws_auth.check_sts_token(profile):
@@ -44,7 +44,7 @@ def get_credentials(okta_profile, profile, verbose, logger,
     access_key_id = sts_token['AccessKeyId']
     secret_access_key = sts_token['SecretAccessKey']
     session_token = sts_token['SessionToken']
-    print("Credentials valid for %s hours" % round(duration/3600,1))
+    sys.stderr.write("Credentials valid for %s hours \n" % round(duration/3600,1))
     if profile_name is None or export:
         logger.info("Either profile name not given or export flag set, will output to console.")
         exports = console_output(access_key_id, secret_access_key,
@@ -59,18 +59,21 @@ def get_credentials(okta_profile, profile, verbose, logger,
         logger.info("Export flag not set, will write credentials to ~/.aws/credentials.")
         aws_auth.write_sts_token(profile_name, access_key_id,
                                  secret_access_key, session_token)
-        usage_msg = "".join([
-            "\nTo start using these temporary credentials, run:\n",
-            "\n export AWS_PROFILE=%s\n" % profile_name
-        ])
-        print(usage_msg)
+        if account:
+            aws_auth.write_sts_token('default', access_key_id,
+                                     secret_access_key, session_token)
+        else:
+            usage_msg = "".join([
+                "\nTo start using these temporary credentials, run:\n",
+                "\n export AWS_PROFILE=%s\n" % profile_name
+            ])
+        sys.stderr.write(usage_msg)
         exit(0)
-
 
 def console_output(access_key_id, secret_access_key, session_token, verbose):
     """ Outputs STS credentials to console """
     if verbose:
-        print("Use these to set your environment variables:")
+        sys.stderr.write("Use these to set your environment variables:")
     exports = "\n".join([
         "export AWS_ACCESS_KEY_ID=%s" % access_key_id,
         "export AWS_SECRET_ACCESS_KEY=%s" % secret_access_key,
@@ -80,7 +83,6 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
     print(exports)
 
     return exports
-
 
 # pylint: disable=R0913
 @click.command()
@@ -101,9 +103,11 @@ created. If omitted, credentials will output to console.\n")
 @click.option('-c', '--cache', is_flag=True, help='Cache the default profile credentials \
 to ~/.okta-credentials.cache\n')
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
+@click.option('-a', '--account', help='Target account to authenticate to. \
+Also writes AWS credentials to default profile ')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
-         debug, force, export, cache, awscli_args, token, reset):
+         debug, force, export, cache, awscli_args, token, reset, account):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -123,16 +127,17 @@ def main(okta_profile, profile, verbose, version,
 
     if not okta_profile:
         okta_profile = "default"
-
+    if account:
+        profile = account
+        okta_profile = account
     get_credentials(
-        okta_profile, profile, verbose, logger, token, cache, export, reset, force
+        okta_profile,  profile, account, verbose, logger, token, cache, export, reset, force
     )
 
     if awscli_args:
         cmdline = ['aws', '--profile', profile] + list(awscli_args)
         logger.info('Invoking: %s', ' '.join(cmdline))
         call(cmdline)
-
 
 if __name__ == "__main__":
     # pylint: disable=E1120

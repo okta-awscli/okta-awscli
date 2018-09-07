@@ -1,5 +1,6 @@
 """ AWS authentication """
 # pylint: disable=C0325
+import six
 import os
 import json
 import base64
@@ -8,17 +9,18 @@ import xml.etree.ElementTree as ET
 from collections import namedtuple
 from configparser import RawConfigParser
 import boto3
+import sys
 from botocore.exceptions import ClientError
-
 
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, okta_profile, verbose, logger, region, reset):
+    def __init__(self, profile, okta_profile, account,  verbose, logger, region, reset):
         home_dir = os.path.expanduser('~')
         self.creds_dir = os.path.join(home_dir, ".aws")
         self.creds_file = os.path.join(self.creds_dir, "credentials")
         self.profile = profile
+        self.account = account
         self.verbose = verbose
         self.logger = logger
         self.role = ""
@@ -57,15 +59,14 @@ of roles assigned to you.""" % self.role)
         while role_choice is None:
             try:
                 for option in role_options:
-                    print(option)
-
+                    sys.stderr.write(option + "\n")
                 role_choice = int(input('Please select the AWS role: ')) - 1
                 return role_info[role_choice]
             except ValueError as ex:
-                print("\nYou have selected an invalid role index, please try again.\n")
+                sys.stderr.write("\nYou have selected an invalid role index, please try again.\n")
                 role_choice = None
             except IndexError as ex:
-                print("\nYou have selected an invalid role index, please try again.\n")
+                sys.stderr.write("\nYou have selected an invalid role index, please try again.\n")
                 role_choice = None
 
     def get_sts_token(self, role_arn, principal_arn, assertion, duration):
@@ -120,7 +121,7 @@ of roles assigned to you.""" % self.role)
                     "Temporary credentials have expired. Requesting new credentials.")
                 return False
 
-        print("AWS credentials are valid. Nothing to do.")
+        sys.stderr.write("AWS credentials are valid. Nothing to do.\n")
         self.logger.info("STS credentials are valid. Nothing to do.")
         return True
 
@@ -147,7 +148,7 @@ of roles assigned to you.""" % self.role)
 
         with open(self.creds_file, 'w+') as configfile:
             config.write(configfile)
-        print("Temporary credentials written to profile: %s" % profile)
+        sys.stderr.write("Temporary credentials written to profile: %s\n" % profile)
         self.logger.info("Invoke using: aws --profile %s <service> <command>" % profile)
 
     @staticmethod
@@ -244,11 +245,12 @@ of roles assigned to you.""" % self.role)
             # role[0] is the role arn, role[2] is the account alias
             options.append("[%s]: %s : %s" % (str(index + 1).ljust(2), role[2].ljust(27), role[0]))
         return options
-
     def __find_predefined_role_from(self, roles):
         # role_tuple[0] is the role arn
         found_roles = filter(lambda role_tuple: role_tuple[0] == self.role, roles)
+        if six.PY3:
+            found_roles = list(found_roles)
         if not found_roles:
             return None
         else:
-            return next(found_roles)
+            return found_roles[0]
