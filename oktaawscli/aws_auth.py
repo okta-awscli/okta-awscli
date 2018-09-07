@@ -61,11 +61,10 @@ of roles assigned to you.""" % self.role)
                 for option in role_options:
                     sys.stderr.write(option + "\n")
                 role_choice = int(input('Please select the AWS role: ')) - 1
-                return role_info[role_choice]
-            except ValueError as ex:
-                sys.stderr.write("\nYou have selected an invalid role index, please try again.\n")
-                role_choice = None
-            except IndexError as ex:
+                if role_choice >= 0 and role_choice < len(role_info):
+                    return role_info[role_choice]
+                raise IndexError('Bad selection')
+            except (SyntaxError, NameError, ValueError, IndexError) as ex:
                 sys.stderr.write("\nYou have selected an invalid role index, please try again.\n")
                 role_choice = None
 

@@ -13,7 +13,9 @@ Parsing the HTML is still required to get the SAML assertion, after authenticati
 
 ## Installation
 
-- `pip install okta-awscli`
+For Amplify users, make sure you're using Amplify's pip mirrors. Directions to do that can be found on Answerhub.
+
+- `pip install amplify-okta-awscli`
 - Configure okta-awscli via the `~/.okta-aws` file with the following parameters:
 
 ```

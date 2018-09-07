@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2] 2018-08-31
+### Changed:
+- Fix datetime parsing of expiration date for Okta token
+
+## [0.3.1] 2018-08-23
+### Changed:
+- Better error handling for selection of roles
+
 ## [0.3.0] 2018-08-16
 ### Added:
 - Select app specified by `app` field in config if `app` field exists
