@@ -15,7 +15,7 @@ from botocore.exceptions import ClientError
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, okta_profile, account,  verbose, logger, region, reset):
+    def __init__(self, profile, okta_profile, account, verbose, logger, region, reset):
         home_dir = os.path.expanduser('~')
         self.creds_dir = os.path.join(home_dir, ".aws")
         self.creds_file = os.path.join(self.creds_dir, "credentials")
@@ -54,6 +54,7 @@ class AwsAuth():
                 self.logger.info("""Predefined role, %s, not found in the list
 of roles assigned to you.""" % self.role)
                 self.logger.info("Please choose a role.")
+
         if len(roles) == 1:
             sys.stderr.write("\nOne role found, using role: " + roles[0][1] + "\n")
             return role_info[0]
@@ -64,7 +65,8 @@ of roles assigned to you.""" % self.role)
             try:
                 for option in role_options:
                     sys.stderr.write(option + "\n")
-                role_choice = int(input('Please select the AWS role: ')) - 1
+                sys.stderr.write('Please select the AWS role: ')
+                role_choice = int(input()) - 1
                 if role_choice >= 0 and role_choice < len(role_info):
                     return role_info[role_choice]
                 raise IndexError('Bad selection')

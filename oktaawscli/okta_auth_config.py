@@ -4,12 +4,12 @@ import os
 
 from configparser import RawConfigParser
 from getpass import getpass, getuser
+import sys
 
 try:
     input = raw_input
 except NameError:
     pass
-
 
 class OktaAuthConfig():
     """ Config helper class """
@@ -37,7 +37,8 @@ class OktaAuthConfig():
             self.logger.info("Authenticating as: %s" % username)
         else:
             username = getuser()
-            entered_username = input('Enter username [%s]: ' % username)
+            sys.stderr.write("Enter username [" + username + "]: ")
+            entered_username = input()
             username = username if entered_username == "" else entered_username
         return username
 

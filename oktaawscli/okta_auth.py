@@ -105,6 +105,7 @@ class OktaAuth():
                         break
                 else:
                     sys.stderr.write("%d: %s" % (index + 1, factor_name))
+                    sys.stderr.write("\n")
             if not self.factor:
                 factor_choice = int(input('Please select the MFA factor: ')) - 1
                 self.okta_auth_config.save_chosen_factor_for_profile(self.okta_profile, supported_factors[factor_choice]['provider'])
