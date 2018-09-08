@@ -108,7 +108,9 @@ class OktaAuth():
                     sys.stderr.write("\n")
             if not self.factor:
                 factor_choice = int(input('Please select the MFA factor: ')) - 1
-                self.okta_auth_config.save_chosen_factor_for_profile(self.okta_profile, supported_factors[factor_choice]['provider'])
+                self.okta_auth_config\
+                .save_chosen_factor_for_profile(self.okta_profile,
+                                                supported_factors[factor_choice]['provider'])
             self.logger.info("Performing secondary authentication using: %s" %
                              supported_factors[factor_choice]['provider'])
             session_token = self.verify_single_factor(supported_factors[factor_choice],
@@ -200,7 +202,7 @@ class OktaAuth():
         session_info = session_file.read()
         session_file.close()
         if session_info == "":
-             session_info = {}
+            session_info = {}
         else:
             session_info = json.loads(session_info)
 
@@ -214,7 +216,8 @@ class OktaAuth():
         current_time = datetime.utcnow()
         if max([current_time, expiration_date]) == expiration_date:
             self.logger.info("Using cached Okta session id from ~/.okta-token")
-            return session_info.get('session_id')
+            return session_info.get("session_id")
+        return None
 
     def get_apps(self, session_id):
         """ Gets apps for the user """

@@ -1,6 +1,5 @@
 """ AWS authentication """
 # pylint: disable=C0325
-import six
 import os
 import json
 import base64
@@ -8,9 +7,10 @@ from datetime import datetime, date
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from configparser import RawConfigParser
-import boto3
 import sys
+import boto3
 from botocore.exceptions import ClientError
+import six
 
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
@@ -70,7 +70,7 @@ of roles assigned to you.""" % self.role)
                 if role_choice >= 0 and role_choice < len(role_info):
                     return role_info[role_choice]
                 raise IndexError('Bad selection')
-            except (SyntaxError, NameError, ValueError, IndexError) as ex:
+            except (SyntaxError, NameError, ValueError, IndexError):
                 sys.stderr.write("\nYou have selected an invalid role index, please try again.\n")
                 role_choice = None
 
@@ -243,14 +243,13 @@ of roles assigned to you.""" % self.role)
             }
 
         info_file = open(info_file_path, 'w')
-        info_file.write(
-            json.dumps(new_okta_info,
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': '),
-                default=str
-            )
-        )
+        info_file.write(json.dumps(new_okta_info,
+                                   sort_keys=True,
+                                   indent=4,
+                                   separators=(',', ': '),
+                                   default=str
+                                  )
+                       )
         info_file.close()
         role_info = sorted(role_info, key=lambda role: role[2])
 
@@ -294,5 +293,4 @@ of roles assigned to you.""" % self.role)
             found_roles = list(found_roles)
         if not found_roles:
             return None
-        else:
-            return found_roles[0]
+        return found_roles[0]
