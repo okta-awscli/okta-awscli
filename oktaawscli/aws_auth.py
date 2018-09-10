@@ -9,7 +9,7 @@ from collections import namedtuple
 from configparser import RawConfigParser
 import sys
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, NoCredentialsError
 import six
 
 class AwsAuth():
@@ -120,8 +120,12 @@ of roles assigned to you.""" % self.role)
         try:
             sts.get_caller_identity()
 
-        except ClientError as ex:
-            if ex.response['Error']['Code'] == 'ExpiredToken':
+        except (ClientError, NoCredentialsError) as ex:
+            if ex[0] == 'Unable to locate credentials':
+                self.logger.info(
+                    "No credentials have been located. Requesting new credentials.")
+                return False
+            elif ex.response['Error']['Code'] == 'ExpiredToken':
                 self.logger.info(
                     "Temporary credentials have expired. Requesting new credentials.")
                 return False
