@@ -169,26 +169,23 @@ of roles assigned to you.""" % self.role)
             config.add_section(profile)
 
         if config.has_option(profile, 'output'):
-            output = config.get(profile, 'output')
+            config.set('default', 'output', config.get(profile, 'output'))
 
         if config.has_option(profile, 'region'):
-            region = config.get(profile, 'region')
+            config.set('default', 'region', config.get(profile, 'region'))
 
         if config.has_option(profile, 'aws_access_key_id'):
-            access_key_id = config.get(profile, 'aws_access_key_id')
+            config.set('default', 'aws_access_key_id', config.get(profile, 'aws_access_key_id'))
 
         if config.has_option(profile, 'aws_secret_access_key'):
-            secret_access_key = config.get(profile, 'aws_secret_access_key')
+            config.set('default', 'aws_secret_access_key',
+                       config.get(profile, 'aws_secret_access_key'))
 
         if config.has_option(profile, 'aws_session_token'):
-            session_token = config.get(profile, 'aws_session_token')
+            config.set('default', 'aws_session_token', config.get(profile, 'aws_session_token'))
 
-        config.set('default', 'output', output)
-        config.set('default', 'region', region)
-        config.set('default', 'aws_access_key_id', access_key_id)
-        config.set('default', 'aws_secret_access_key', secret_access_key)
-        config.set('default', 'aws_session_token', session_token)
-        config.set('default', 'aws_security_token', session_token)
+        if config.has_option(profile, 'aws_security_token'):
+            config.set('default', 'aws_security_token', config.get(profile, 'aws_security_token'))
 
         with open(self.creds_file, 'w+') as configfile:
             config.write(configfile)
