@@ -9,6 +9,7 @@ from collections import namedtuple
 from configparser import SafeConfigParser
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
+import six
 
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
@@ -289,4 +290,6 @@ of roles assigned to you.""" % self.role)
         found_roles = filter(lambda role_tuple: role_tuple[0] == self.role, roles)
         if not found_roles:
             return None
+        elif six.PY2:
+            return found_roles[0]
         return next(found_roles)

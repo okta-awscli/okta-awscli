@@ -18,10 +18,10 @@ def get_credentials(okta_profile, profile, account, write_default, verbose, logg
     aws_auth = AwsAuth(profile, okta_profile, account, verbose, logger, region, reset)
 
     check_creds = okta_auth_config.get_check_valid_creds(okta_profile)
-    if not force and check_creds and aws_auth.check_sts_token(profile):
+    if not force and not export and check_creds and aws_auth.check_sts_token(profile):
         if write_default:
             aws_auth.copy_to_default(profile)
-            print("Copying account token to default")
+            print("Copying AWS profile creds to default")
         exit(0)
 
     okta = OktaAuth(okta_profile, verbose, logger,
@@ -62,6 +62,7 @@ def get_credentials(okta_profile, profile, account, write_default, verbose, logg
         aws_auth.write_sts_token(profile_name, access_key_id,
                                  secret_access_key, session_token)
         if write_default:
+            print("Writing to default AWS profile")
             aws_auth.write_sts_token('default', access_key_id,
                                      secret_access_key, session_token)
         else:
