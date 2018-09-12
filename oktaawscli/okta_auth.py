@@ -25,8 +25,6 @@ class OktaAuth():
         self.verbose = verbose
         self.okta_auth_config = okta_auth_config
         self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
-        self.username = okta_auth_config.username_for(okta_profile)
-        self.password = okta_auth_config.password_for(okta_profile)
         self.factor = okta_auth_config.factor_for(okta_profile)
         self.app = okta_auth_config.app_for(okta_profile)
 
@@ -41,8 +39,8 @@ class OktaAuth():
         if session_id is not None:
             return session_id
         auth_data = {
-            "username": self.username,
-            "password": self.password
+            "username": self.okta_auth_config.username_for(okta_profile),
+            "password": self.okta_auth_config.password_for(okta_profile)
         }
         resp = requests.post(self.https_base_url + '/api/v1/authn', json=auth_data)
         resp_json = resp.json()
