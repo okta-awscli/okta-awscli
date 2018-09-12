@@ -39,8 +39,8 @@ class OktaAuth():
         if session_id is not None:
             return session_id
         auth_data = {
-            "username": self.okta_auth_config.username_for(okta_profile),
-            "password": self.okta_auth_config.password_for(okta_profile)
+            "username": self.okta_auth_config.username_for(self.okta_profile),
+            "password": self.okta_auth_config.password_for(self.okta_profile)
         }
         resp = requests.post(self.https_base_url + '/api/v1/authn', json=auth_data)
         resp_json = resp.json()
