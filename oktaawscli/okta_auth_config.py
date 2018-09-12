@@ -1,10 +1,8 @@
 """ Config helper """
 
 import os
-
-from configparser import RawConfigParser
+from configparser import SafeConfigParser
 from getpass import getpass, getuser
-import sys
 
 try:
     input = raw_input
@@ -17,7 +15,7 @@ class OktaAuthConfig():
         self.logger = logger
         self.reset = reset
         self.config_path = os.path.expanduser('~') + '/.okta-aws'
-        self._value = RawConfigParser()
+        self._value = SafeConfigParser()
         self._value.read(self.config_path)
 
     def base_url_for(self, okta_profile):
