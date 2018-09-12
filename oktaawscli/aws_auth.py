@@ -9,7 +9,6 @@ from collections import namedtuple
 from configparser import RawConfigParser
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
-import six
 
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
@@ -69,7 +68,7 @@ of roles assigned to you.""" % self.role)
                     return role_info[role_choice]
                 raise IndexError('Bad selection')
             except (SyntaxError, NameError, ValueError, IndexError):
-                print("You have selected an invalid role index, please try again.")
+                print("\nYou have selected an invalid role index, please try again.\n")
                 role_choice = None
 
     def get_sts_token(self, role_arn, principal_arn, assertion, duration):
@@ -288,8 +287,6 @@ of roles assigned to you.""" % self.role)
     def __find_predefined_role_from(self, roles):
         # role_tuple[0] is the role arn
         found_roles = filter(lambda role_tuple: role_tuple[0] == self.role, roles)
-        if six.PY3:
-            found_roles = list(found_roles)
         if not found_roles:
             return None
-        return found_roles[0]
+        return next(found_roles)
