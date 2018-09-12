@@ -7,7 +7,6 @@ from datetime import datetime, date
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from configparser import RawConfigParser
-import sys
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 import six
@@ -56,7 +55,7 @@ of roles assigned to you.""" % self.role)
                 self.logger.info("Please choose a role.")
 
         if len(roles) == 1:
-            sys.stderr.write("\nOne role found, using role: " + roles[0][1] + "\n")
+            print("One role found, using role: %s" % roles[0][1])
             return role_info[0]
 
         role_options = self.__create_options_from(role_info)
@@ -64,14 +63,14 @@ of roles assigned to you.""" % self.role)
         while role_choice is None:
             try:
                 for option in role_options:
-                    sys.stderr.write(option + "\n")
-                sys.stderr.write('Please select the AWS role: ')
+                    print(option)
+                print('Please select the AWS role: ')
                 role_choice = int(input()) - 1
                 if role_choice >= 0 and role_choice < len(role_info):
                     return role_info[role_choice]
                 raise IndexError('Bad selection')
             except (SyntaxError, NameError, ValueError, IndexError):
-                sys.stderr.write("\nYou have selected an invalid role index, please try again.\n")
+                print("You have selected an invalid role index, please try again.")
                 role_choice = None
 
     def get_sts_token(self, role_arn, principal_arn, assertion, duration):
@@ -130,7 +129,7 @@ of roles assigned to you.""" % self.role)
                     "Temporary credentials have expired. Requesting new credentials.")
                 return False
 
-        sys.stderr.write("AWS credentials are valid. Nothing to do.\n")
+        print("AWS credentials are valid. Nothing to do.")
         self.logger.info("STS credentials are valid. Nothing to do.")
         return True
 
@@ -157,7 +156,7 @@ of roles assigned to you.""" % self.role)
 
         with open(self.creds_file, 'w+') as configfile:
             config.write(configfile)
-        sys.stderr.write("Temporary credentials written to profile: %s\n" % profile)
+        print("Temporary credentials written to profile: %s" % profile)
         self.logger.info("Invoke using: aws --profile %s <service> <command>" % profile)
 
     def copy_to_default(self, profile):

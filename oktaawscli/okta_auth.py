@@ -82,7 +82,7 @@ class OktaAuth():
                 supported_factors[0], state_token)
         elif len(supported_factors) > 0:
             if not self.factor:
-                sys.stderr.write("Registered MFA factors:\n")
+                print("Registered MFA factors:")
             for index, factor in enumerate(supported_factors):
                 factor_type = factor['factorType']
                 factor_provider = factor['provider']
@@ -104,8 +104,7 @@ class OktaAuth():
                                          from ~/.okta-aws")
                         break
                 else:
-                    sys.stderr.write("%d: %s" % (index + 1, factor_name))
-                    sys.stderr.write("\n")
+                    print("%d: %s" % (index + 1, factor_name))
             if not self.factor:
                 factor_choice = int(input('Please select the MFA factor: ')) - 1
                 self.okta_auth_config\
@@ -116,7 +115,7 @@ class OktaAuth():
             session_token = self.verify_single_factor(supported_factors[factor_choice],
                                                       state_token)
         else:
-            sys.stderr.write("MFA required, but no supported factors enrolled! Exiting.\n")
+            print("MFA required, but no supported factors enrolled! Exiting.")
             exit(1)
         return session_token
 
@@ -141,7 +140,7 @@ class OktaAuth():
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
             elif resp_json['status'] == "MFA_CHALLENGE":
-                sys.stderr.write("Waiting for push verification...\n")
+                print("Waiting for push verification...")
                 while True:
                     resp = requests.post(
                         resp_json['_links']['next']['href'], json=req_data)
@@ -149,10 +148,10 @@ class OktaAuth():
                     if resp_json['status'] == 'SUCCESS':
                         return resp_json['sessionToken']
                     elif resp_json['factorResult'] == 'TIMEOUT':
-                        sys.stderr.write("Verification timed out\n")
+                        print("Verification timed out")
                         exit(1)
                     elif resp_json['factorResult'] == 'REJECTED':
-                        sys.stderr.write("Verification was rejected\n")
+                        print("Verification was rejected")
                         exit(1)
                     else:
                         time.sleep(0.5)
@@ -241,7 +240,7 @@ class OktaAuth():
             if self.app and app['label'] == self.app:
                 app_choice = index
                 break
-            sys.stderr.write("%d: %s\n" % (index + 1, app['label']))
+            print("%d: %s" % (index + 1, app['label']))
         if app_choice is None:
             app_choice = int(input('Please select AWS app: ')) - 1
             self.okta_auth_config.save_chosen_app_for_profile(

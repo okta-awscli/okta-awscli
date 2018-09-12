@@ -3,7 +3,6 @@
 import os
 from subprocess import call
 import logging
-import sys
 import click
 from oktaawscli.version import __version__
 from oktaawscli.okta_auth import OktaAuth
@@ -22,7 +21,7 @@ def get_credentials(okta_profile, profile, account, write_default, verbose, logg
     if not force and check_creds and aws_auth.check_sts_token(profile):
         if write_default:
             aws_auth.copy_to_default(profile)
-            sys.stderr.write("\nCopying account token to default\n")
+            print("Copying account token to default")
         exit(0)
 
     okta = OktaAuth(okta_profile, verbose, logger,
@@ -47,7 +46,7 @@ def get_credentials(okta_profile, profile, account, write_default, verbose, logg
     access_key_id = sts_token['AccessKeyId']
     secret_access_key = sts_token['SecretAccessKey']
     session_token = sts_token['SessionToken']
-    sys.stderr.write("Credentials valid for %s hours \n" % round(duration/3600, 1))
+    print("Credentials valid for %s hours" % round(duration/3600, 1))
     if (profile_name is None or export) and not write_default:
         logger.info("Either profile name not given or export flag set, will output to console.")
         exports = console_output(access_key_id, secret_access_key,
@@ -70,13 +69,13 @@ def get_credentials(okta_profile, profile, account, write_default, verbose, logg
                 "\nTo start using these temporary credentials, run:\n",
                 "\n export AWS_PROFILE=%s\n" % profile_name
             ])
-            sys.stderr.write(usage_msg)
+            print(usage_msg)
         exit(0)
 
 def console_output(access_key_id, secret_access_key, session_token, verbose):
     """ Outputs STS credentials to console """
     if verbose:
-        sys.stderr.write("Use these to set your environment variables:")
+        print("Use these to set your environment variables:")
     exports = "\n".join([
         "export AWS_ACCESS_KEY_ID=%s" % access_key_id,
         "export AWS_SECRET_ACCESS_KEY=%s" % secret_access_key,

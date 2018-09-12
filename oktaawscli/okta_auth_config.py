@@ -37,8 +37,7 @@ class OktaAuthConfig():
             self.logger.info("Authenticating as: %s" % username)
         else:
             username = getuser()
-            sys.stderr.write("Enter username [" + username + "]: ")
-            entered_username = input()
+            entered_username = input('Enter username [%s]: ' % username)
             username = username if entered_username == "" else entered_username
         return username
 
