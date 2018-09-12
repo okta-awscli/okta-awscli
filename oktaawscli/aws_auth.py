@@ -64,8 +64,7 @@ of roles assigned to you.""" % self.role)
             try:
                 for option in role_options:
                     print(option)
-                print('Please select the AWS role: ')
-                role_choice = int(input()) - 1
+                role_choice = int(input('Please select the AWS role: ')) - 1
                 if role_choice >= 0 and role_choice < len(role_info):
                     return role_info[role_choice]
                 raise IndexError('Bad selection')
