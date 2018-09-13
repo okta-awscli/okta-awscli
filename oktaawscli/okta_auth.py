@@ -213,7 +213,7 @@ class OktaAuth():
         current_time = datetime.utcnow()
         if max([current_time, expiration_date]) == expiration_date:
             self.logger.info("Using cached Okta session id from ~/.okta-token")
-            return session_info.get("session_id")
+            return session_info.get('session_id')
         return None
 
     def get_apps(self, session_id):
