@@ -6,19 +6,20 @@ import base64
 from datetime import datetime, date
 import xml.etree.ElementTree as ET
 from collections import namedtuple
-from configparser import RawConfigParser
+from configparser import SafeConfigParser
 import boto3
-from botocore.exceptions import ClientError
-
+from botocore.exceptions import ClientError, NoCredentialsError
+import six
 
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, okta_profile, verbose, logger, region, reset):
+    def __init__(self, profile, okta_profile, account, verbose, logger, region, reset):
         home_dir = os.path.expanduser('~')
         self.creds_dir = os.path.join(home_dir, ".aws")
         self.creds_file = os.path.join(self.creds_dir, "credentials")
         self.profile = profile
+        self.account = account
         self.verbose = verbose
         self.logger = logger
         self.role = ""
@@ -29,7 +30,7 @@ class AwsAuth():
             open(okta_info, 'a').close()
 
         okta_config = os.path.join(home_dir, '.okta-aws')
-        parser = RawConfigParser()
+        parser = SafeConfigParser()
         parser.read(okta_config)
 
         if parser.has_option(okta_profile, 'role') and not reset:
@@ -40,8 +41,9 @@ class AwsAuth():
         """ Choose AWS role from SAML assertion """
 
         roles = self.__extract_available_roles_from(assertion)
+        if self.account:
+            roles = [elem for elem in roles if self.account in elem[1]]
         role_info = self.__get_role_info(roles, assertion)
-
         if self.role:
             predefined_role = self.__find_predefined_role_from(role_info)
             if predefined_role:
@@ -52,18 +54,21 @@ class AwsAuth():
 of roles assigned to you.""" % self.role)
                 self.logger.info("Please choose a role.")
 
+        if len(roles) == 1:
+            print("One role found, using role: %s" % roles[0][1])
+            return role_info[0]
+
         role_options = self.__create_options_from(role_info)
         role_choice = None
         while role_choice is None:
             try:
                 for option in role_options:
                     print(option)
-
                 role_choice = int(input('Please select the AWS role: ')) - 1
                 if role_choice >= 0 and role_choice < len(role_info):
                     return role_info[role_choice]
                 raise IndexError('Bad selection')
-            except (SyntaxError, NameError, ValueError, IndexError) as ex:
+            except (SyntaxError, NameError, ValueError, IndexError):
                 print("\nYou have selected an invalid role index, please try again.\n")
                 role_choice = None
 
@@ -90,7 +95,7 @@ of roles assigned to you.""" % self.role)
         if not profile:
             return False
 
-        parser = RawConfigParser()
+        parser = SafeConfigParser()
         parser.read(self.creds_file)
 
         if not os.path.exists(self.creds_dir):
@@ -113,8 +118,12 @@ of roles assigned to you.""" % self.role)
         try:
             sts.get_caller_identity()
 
-        except ClientError as ex:
-            if ex.response['Error']['Code'] == 'ExpiredToken':
+        except (ClientError, NoCredentialsError) as ex:
+            if ex[0] == 'Unable to locate credentials':
+                self.logger.info(
+                    "No credentials have been located. Requesting new credentials.")
+                return False
+            elif ex.response['Error']['Code'] == 'ExpiredToken':
                 self.logger.info(
                     "Temporary credentials have expired. Requesting new credentials.")
                 return False
@@ -129,7 +138,7 @@ of roles assigned to you.""" % self.role)
         output = 'json'
         if not os.path.exists(self.creds_dir):
             os.makedirs(self.creds_dir)
-        config = RawConfigParser()
+        config = SafeConfigParser()
 
         if os.path.isfile(self.creds_file):
             config.read(self.creds_file)
@@ -148,6 +157,40 @@ of roles assigned to you.""" % self.role)
             config.write(configfile)
         print("Temporary credentials written to profile: %s" % profile)
         self.logger.info("Invoke using: aws --profile %s <service> <command>" % profile)
+
+    def copy_to_default(self, profile):
+        """ Reads STS auth information from credentials file """
+        if not os.path.exists(self.creds_dir):
+            os.makedirs(self.creds_dir)
+        config = SafeConfigParser()
+
+        if os.path.isfile(self.creds_file):
+            config.read(self.creds_file)
+
+        if not config.has_section(profile):
+            config.add_section(profile)
+
+        if config.has_option(profile, 'output'):
+            config.set('default', 'output', config.get(profile, 'output'))
+
+        if config.has_option(profile, 'region'):
+            config.set('default', 'region', config.get(profile, 'region'))
+
+        if config.has_option(profile, 'aws_access_key_id'):
+            config.set('default', 'aws_access_key_id', config.get(profile, 'aws_access_key_id'))
+
+        if config.has_option(profile, 'aws_secret_access_key'):
+            config.set('default', 'aws_secret_access_key',
+                       config.get(profile, 'aws_secret_access_key'))
+
+        if config.has_option(profile, 'aws_session_token'):
+            config.set('default', 'aws_session_token', config.get(profile, 'aws_session_token'))
+
+        if config.has_option(profile, 'aws_security_token'):
+            config.set('default', 'aws_security_token', config.get(profile, 'aws_security_token'))
+
+        with open(self.creds_file, 'w+') as configfile:
+            config.write(configfile)
 
     @staticmethod
     def __extract_available_roles_from(assertion):
@@ -199,14 +242,13 @@ of roles assigned to you.""" % self.role)
             }
 
         info_file = open(info_file_path, 'w')
-        info_file.write(
-            json.dumps(new_okta_info,
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': '),
-                default=str
-            )
-        )
+        info_file.write(json.dumps(new_okta_info,
+                                   sort_keys=True,
+                                   indent=4,
+                                   separators=(',', ': '),
+                                   default=str
+                                  )
+                       )
         info_file.close()
         role_info = sorted(role_info, key=lambda role: role[2])
 
@@ -243,11 +285,11 @@ of roles assigned to you.""" % self.role)
             # role[0] is the role arn, role[2] is the account alias
             options.append("[%s]: %s : %s" % (str(index + 1).ljust(2), role[2].ljust(27), role[0]))
         return options
-
     def __find_predefined_role_from(self, roles):
         # role_tuple[0] is the role arn
         found_roles = filter(lambda role_tuple: role_tuple[0] == self.role, roles)
         if not found_roles:
             return None
-        else:
-            return next(found_roles)
+        elif six.PY2:
+            return found_roles[0]
+        return next(found_roles)

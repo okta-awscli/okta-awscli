@@ -14,7 +14,6 @@ try:
 except NameError:
     pass
 
-
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """
     def __init__(self, okta_profile, verbose, logger,
@@ -26,15 +25,12 @@ class OktaAuth():
         self.verbose = verbose
         self.okta_auth_config = okta_auth_config
         self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
-        self.username = okta_auth_config.username_for(okta_profile)
-        self.password = okta_auth_config.password_for(okta_profile)
         self.factor = okta_auth_config.factor_for(okta_profile)
         self.app = okta_auth_config.app_for(okta_profile)
 
         okta_info = os.path.join(os.path.expanduser('~'), '.okta-token')
         if not os.path.isfile(okta_info):
             open(okta_info, 'a').close()
-
 
     def primary_auth(self):
         """ Performs primary auth against Okta """
@@ -43,8 +39,8 @@ class OktaAuth():
         if session_id is not None:
             return session_id
         auth_data = {
-            "username": self.username,
-            "password": self.password
+            "username": self.okta_auth_config.username_for(self.okta_profile),
+            "password": self.okta_auth_config.password_for(self.okta_profile)
         }
         resp = requests.post(self.https_base_url + '/api/v1/authn', json=auth_data)
         resp_json = resp.json()
@@ -109,7 +105,9 @@ class OktaAuth():
                     print("%d: %s" % (index + 1, factor_name))
             if not self.factor:
                 factor_choice = int(input('Please select the MFA factor: ')) - 1
-                self.okta_auth_config.save_chosen_factor_for_profile(self.okta_profile, supported_factors[factor_choice]['provider'])
+                self.okta_auth_config\
+                .save_chosen_factor_for_profile(self.okta_profile,
+                                                supported_factors[factor_choice]['provider'])
             self.logger.info("Performing secondary authentication using: %s" %
                              supported_factors[factor_choice]['provider'])
             session_token = self.verify_single_factor(supported_factors[factor_choice],
@@ -201,7 +199,7 @@ class OktaAuth():
         session_info = session_file.read()
         session_file.close()
         if session_info == "":
-             session_info = {}
+            session_info = {}
         else:
             session_info = json.loads(session_info)
 
@@ -216,6 +214,7 @@ class OktaAuth():
         if max([current_time, expiration_date]) == expiration_date:
             self.logger.info("Using cached Okta session id from ~/.okta-token")
             return session_info.get('session_id')
+        return None
 
     def get_apps(self, session_id):
         """ Gets apps for the user """

@@ -22,6 +22,7 @@ setup(
         'click',
         'bs4',
         'boto3',
-        'ConfigParser'
+        'ConfigParser',
+        'six'
         ],
 )
