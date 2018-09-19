@@ -119,7 +119,7 @@ of roles assigned to you.""" % self.role)
             sts.get_caller_identity()
 
         except (ClientError, NoCredentialsError) as ex:
-            if ex.fmt == 'Unable to locate credentials':
+            if str(ex) == 'Unable to locate credentials':
                 self.logger.info(
                     "No credentials have been located. Requesting new credentials.")
                 return False
