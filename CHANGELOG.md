@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.4] 2018-09-18
+### Changed:
+- Fixed exception handling of missing credentials exception for Python 3
+
 ## [0.3.3] 2018-09-12
 ### Added:
 - Add parameter `-a, --account` to okta-awscli
