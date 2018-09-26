@@ -203,7 +203,7 @@ class OktaAuth(object):
         app_choice = None
         for index, app in enumerate(aws_apps):
             app_name = app['label']
-            self.logger.debug("Check " + app_name + " against " + self.app)
+            self.logger.debug("Check " + str(app_name) + " against " + str(self.app))
             if not self.app:
                 print("%d: %s" % (index + 1, app_name))
             if self.app and app_name == self.app:
