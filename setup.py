@@ -11,7 +11,7 @@ setup(
     license='Apache License 2.0',
     author='James Hale',
     author_email='james@jameshale.me',
-    url='https://github.com/jmhale/okta_awscli',
+    url='https://github.com/yongzhi2/okta-awscli',
     entry_points={
         'console_scripts': [
             'okta-awscli=oktaawscli.okta_awscli:main',
