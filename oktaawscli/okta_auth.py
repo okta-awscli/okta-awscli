@@ -22,6 +22,7 @@ class OktaAuth(object):
         self.logger = logger
         self.factor = ""
         self.app = None
+        self.duration = 3600
         if parser.has_option(profile, 'base-url'):
             self.base_url = "https://%s" % parser.get(profile, 'base-url')
             self.logger.info("Authenticating to: %s" % self.base_url)
@@ -45,6 +46,10 @@ class OktaAuth(object):
         if parser.has_option(profile, 'app'):
             self.app = parser.get(profile, 'app')
             self.logger.debug("Setting AWS app to %s" % self.app)
+        
+        if parser.has_option(profile, 'duration'):
+            self.duration = int(parser.get(profile, 'duration'))
+            self.logger.debug("Setting AWS token duration to %s" % self.duration)
 
         self.verbose = verbose
 
@@ -239,4 +244,4 @@ class OktaAuth(object):
         headers = {'Cookie': sid}
         resp = requests.get(app_link, headers=headers)
         assertion = self.get_saml_assertion(resp)
-        return app_name, assertion
+        return app_name, assertion, self.duration

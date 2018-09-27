@@ -2,6 +2,7 @@
 # pylint: disable=C0325
 import os
 import base64
+import datetime
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from configparser import RawConfigParser
@@ -66,7 +67,7 @@ class AwsAuth(object):
         return roles[role_choice]
 
     @staticmethod
-    def get_sts_token(role_arn, principal_arn, assertion):
+    def get_sts_token(role_arn, principal_arn, assertion, duration):
         """ Gets a token from AWS STS """
 
         # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
@@ -78,8 +79,9 @@ class AwsAuth(object):
 
         response = sts.assume_role_with_saml(RoleArn=role_arn,
                                              PrincipalArn=principal_arn,
-                                             DurationSeconds=43200,
+                                             DurationSeconds=int(duration),
                                              SAMLAssertion=assertion)
+        print("Token will expire in ", str(datetime.timedelta(seconds=int(duration))))
         credentials = response['Credentials']
         return credentials
 

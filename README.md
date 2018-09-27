@@ -1,3 +1,12 @@
+This is an fork of okta_awscli with following updates:
+* support python 3 (and only python3)
+* bug fixes
+* allow you to specify 'duration' (in seconds), 'app', 'profile' in config file
+
+python3 setup.py sdist
+twine upload --repository-url https://upload.pypi.org/legacy/ dist/okta-awscli3-0.2.8.tar.gz
+pip3 install okta-awscli3
+
 # okta_awscli - Retrieve AWS credentials from Okta
 
 Authenticates a user against Okta and then uses the resulting SAML assertion to retrieve temporary STS credentials from AWS.

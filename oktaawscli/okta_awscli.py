@@ -12,12 +12,12 @@ def get_credentials(aws_auth, okta_profile, profile,
                     verbose, logger, totp_token, cache):
     """ Gets credentials from Okta """
     okta = OktaAuth(okta_profile, verbose, logger, totp_token)
-    app_name, assertion = okta.get_assertion()
+    app_name, assertion, duration = okta.get_assertion()
     app_name = app_name.replace(" ", "")
     role = aws_auth.choose_aws_role(assertion)
     principal_arn, role_arn = role
 
-    sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion)
+    sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion, duration)
     access_key_id = sts_token['AccessKeyId']
     secret_access_key = sts_token['SecretAccessKey']
     session_token = sts_token['SessionToken']
