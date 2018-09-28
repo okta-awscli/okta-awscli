@@ -231,6 +231,8 @@ of roles assigned to you.""" % self.role)
                 self.logger.info("Refreshing cached alias for role %s" % role.role_arn)
                 alias = self.__get_account_alias(role.role_arn, role.principal_arn, assertion)
                 last_updated = current_date
+                if alias is None:
+                    continue
 
             self.logger.info("Using cached alias for role %s" % role.role_arn)
             role_info.append(
@@ -255,13 +257,29 @@ of roles assigned to you.""" % self.role)
         return role_info
 
     def __get_account_alias(self, role_arn, principal_arn, assertion):
-        """ Gets account alias for given role """
+        """
+        Gets account alias for given role
+        :param role_arn: The ARN of the role.
+        :param principal_arn: The ARN of the principle.
+        :param assertion: The SAML assertion.
+        :return: The alias of the account that this role is in. "Unknown" is returned if the role does not
+        have access to the account's alias. None is returned if the role cannot be assumed.
+        """
         sts = boto3.client('sts')
-        saml_resp = sts.assume_role_with_saml(
-            RoleArn=role_arn,
-            PrincipalArn=principal_arn,
-            SAMLAssertion=assertion
-        )
+        try:
+            saml_resp = sts.assume_role_with_saml(
+                RoleArn=role_arn,
+                PrincipalArn=principal_arn,
+                SAMLAssertion=assertion
+            )
+        except ClientError as ex:
+            self.logger.info(
+                "Unable to assume role '%s', cannot get account alias",
+                role_arn,
+                exc_info=True
+            )
+            return None
+
         iam = boto3.client(
             'iam',
             aws_access_key_id=saml_resp['Credentials']['AccessKeyId'],
@@ -275,7 +293,7 @@ of roles assigned to you.""" % self.role)
         except ClientError as ex:
             if ex.response['Error']['Code'] == 'AccessDenied':
                 self.logger.info(
-                    'Role %s not authorized to perform `list_account_aliases`.' % role_arn)
+                    'Role %s not authorized to perform `list_account_aliases`.', role_arn)
             return "unknown"
 
     @staticmethod
