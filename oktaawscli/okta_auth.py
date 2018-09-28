@@ -17,7 +17,7 @@ except NameError:
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """
     def __init__(self, okta_profile, verbose, logger,
-                 totp_token, okta_auth_config):
+                 totp_token, okta_auth_config, debug=False):
         self.okta_profile = okta_profile
         self.totp_token = totp_token
         self.logger = logger
@@ -27,6 +27,7 @@ class OktaAuth():
         self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
         self.factor = okta_auth_config.factor_for(okta_profile)
         self.app = okta_auth_config.app_for(okta_profile)
+        self.debug = debug
 
         okta_info = os.path.join(os.path.expanduser('~'), '.okta-token')
         if not os.path.isfile(okta_info):

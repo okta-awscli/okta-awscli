@@ -14,7 +14,7 @@ import six
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, okta_profile, account, verbose, logger, region, reset):
+    def __init__(self, profile, okta_profile, account, verbose, logger, region, reset, debug=False):
         home_dir = os.path.expanduser('~')
         self.creds_dir = os.path.join(home_dir, ".aws")
         self.creds_file = os.path.join(self.creds_dir, "credentials")
@@ -24,6 +24,7 @@ class AwsAuth():
         self.logger = logger
         self.role = ""
         self.region = region
+        self.debug = debug
 
         okta_info = os.path.join(home_dir, '.okta-alias-info')
         if not os.path.isfile(okta_info):
@@ -273,10 +274,10 @@ of roles assigned to you.""" % self.role)
                 SAMLAssertion=assertion
             )
         except ClientError as ex:
-            self.logger.info(
+            self.logger.warning(
                 "Unable to assume role '%s', cannot get account alias",
                 role_arn,
-                exc_info=True
+                exc_info=self.debug
             )
             return None
 
@@ -293,7 +294,10 @@ of roles assigned to you.""" % self.role)
         except ClientError as ex:
             if ex.response['Error']['Code'] == 'AccessDenied':
                 self.logger.info(
-                    'Role %s not authorized to perform `list_account_aliases`.', role_arn)
+                    'Role %s not authorized to perform `list_account_aliases`.',
+                    role_arn,
+                    exc_info=self.debug
+                )
             return "unknown"
 
     @staticmethod
