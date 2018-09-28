@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.5] 2018-09-28
+### Changed
+- Fixed exception that would break program when OKTA was configured with accounts that did not give OKTA permissions to login
+
 ## [0.3.4] 2018-09-18
 ### Changed:
 - Fixed exception handling of missing credentials exception for Python 3
