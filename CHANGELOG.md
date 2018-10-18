@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.5] 2018-10-18
+### Added:
+- Ability to store AWS App choice in `~/.okta-aws`.
+
 ## [0.2.4] 2018-09-03
 ### Fixed:
 - Casting issue with MFA factor selection. (#44)
