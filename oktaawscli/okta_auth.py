@@ -23,6 +23,8 @@ class OktaAuth():
         self.username = okta_auth_config.username_for(okta_profile)
         self.password = okta_auth_config.password_for(okta_profile)
         self.factor = okta_auth_config.factor_for(okta_profile)
+        self.app_link = okta_auth_config.app_link_for(okta_profile)
+        self.okta_auth_config = okta_auth_config
 
     def primary_auth(self):
         """ Performs primary auth against Okta """
@@ -198,7 +200,12 @@ class OktaAuth():
         """ Main method to get SAML assertion from Okta """
         session_token = self.primary_auth()
         session_id = self.get_session(session_token)
-        app_name, app_link = self.get_apps(session_id)
+        if not self.app_link:
+            app_name, app_link = self.get_apps(session_id)
+            self.okta_auth_config.save_chosen_app_link_for_profile(self.okta_profile, app_link)
+        else:
+            app_name = None
+            app_link = self.app_link
         sid = "sid=%s" % session_id
         headers = {'Cookie': sid}
         resp = requests.get(app_link, headers=headers)
