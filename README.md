@@ -26,6 +26,7 @@ username = <your_okta_username>
 password = <your_okta_password> # Only save your password if you know what you are doing!
 factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
 role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
+app-link = <app_link_from_okta> # Found in Okta's configuration for your AWS account.
 ```
 
 ## Supported Features
@@ -47,7 +48,7 @@ role = <your_preferred_okta_role> # AWS role name (match one of the options prom
 - Follow the prompts to enter MFA information (if required) and choose your AWS app and IAM role.
 - Subsequent executions will first check if the STS credentials are still valid and skip Okta authentication if so.
 - Multiple Okta profiles are supported, but if none are specified, then `default` will be used.
-
+- Selections for AWS App and AWS Role are saved to the `~/.okta-aws` file. Removing the `app-link` and `role` fields will enable the prompts for these selections.
 
 ### Example
 
