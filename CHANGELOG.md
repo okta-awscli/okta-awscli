@@ -5,7 +5,7 @@
 - Ability to store AWS App choice in `~/.okta-aws`. (#12)
 
 ### Fixed:
-- List of AWS roles returns properly now.
+- List of AWS roles returns properly now. (#45)
 
 ## [0.2.4] 2018-09-03
 ### Fixed:
