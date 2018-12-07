@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.6] 2018-12-07
+### Changed
+- Sorted role options by role name after sorting by account alias
+
 ## [0.3.5] 2018-09-28
 ### Changed
 - Fixed exception that would break program when OKTA was configured with accounts that did not give OKTA permissions to login

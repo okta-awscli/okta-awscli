@@ -253,8 +253,7 @@ of roles assigned to you.""" % self.role)
                                   )
                        )
         info_file.close()
-        role_info = sorted(role_info, key=lambda role: role[2])
-
+        role_info = sorted(role_info, key=lambda role: (role[2], role[0]))
         return role_info
 
     def __get_account_alias(self, role_arn, principal_arn, assertion):
