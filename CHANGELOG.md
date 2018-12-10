@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.0] 2018-12-10
+### Added:
+- Ability to set requested token duration. (#43).
+
 ## [0.2.5] 2018-10-18
 ### Added:
 - Ability to store AWS App choice in `~/.okta-aws`. (#12)
