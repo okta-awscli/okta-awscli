@@ -2,4 +2,4 @@ requests
 click
 bs4
 boto3
-ConfigParser
+ConfigParser==3.5.0
