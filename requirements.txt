@@ -1,5 +1,5 @@
 requests
-click
+click==7.0
 bs4
 boto3
 ConfigParser
