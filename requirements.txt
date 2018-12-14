@@ -1,5 +1,5 @@
 requests
 click
 bs4
-boto3
+boto3==1.9.65
 ConfigParser
