@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 try:
-    from u2flib_host import u2f, exc
+    from u2flib_host import u2f, exc, constants
     U2F_ALLOWED = True
 except ImportError:
     U2F_ALLOWED = False
@@ -155,6 +155,10 @@ class OktaAuth():
                         time.sleep(0.5)
 
             devices = u2f.list_devices()
+            if len(devices) == 0:
+                print("No U2F device found")
+                exit(1)
+
             challenge = dict()
             challenge['appId'] = resp_json['_embedded']['factor']['profile']['appId']
             challenge['version'] = resp_json['_embedded']['factor']['profile']['version']
