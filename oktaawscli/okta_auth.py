@@ -7,7 +7,8 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 try:
-    from u2flib_host import u2f, exc, constants as u2f_constants
+    from u2flib_host import u2f, exc
+    from u2flib_host.constants import APDU_WRONG_DATA
     U2F_ALLOWED = True
 except ImportError:
     U2F_ALLOWED = False
@@ -182,8 +183,8 @@ class OktaAuth():
                                 elif resp_json['factorResult'] == 'REJECTED':
                                     print("Verification was rejected")
                                     exit(1)
-                            except Exception as e:
-                                if e.code == u2f_constants.APDU_WRONG_DATA:
+                            except exc.APDUError as e:
+                                if e.code == APDU_WRONG_DATA:
                                     devices.remove(device)
                                 time.sleep(0.1)
 
