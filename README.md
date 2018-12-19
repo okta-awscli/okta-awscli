@@ -24,8 +24,8 @@ base-url = <your_okta_org>.okta.com
 ## You will be prompted for them, if they're not included here.
 username = <your_okta_username>
 password = <your_okta_password> # Only save your password if you know what you are doing!
-factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
-role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
+factor   = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
+role     = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
 app-link = <app_link_from_okta> # Found in Okta's configuration for your AWS account.
 ```
 
