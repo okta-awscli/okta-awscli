@@ -160,14 +160,14 @@ class OktaAuth():
             challenge['version'] = resp_json['_embedded']['factor']['profile']['version']
             challenge['keyHandle'] = resp_json['_embedded']['factor']['profile']['credentialId']
             challenge['challenge'] = resp_json['_embedded']['factor']['_embedded']['challenge']['nonce']
-            authResponse = None
+            auth_response = None
             device = devices.pop()
             with device as dev:
-                while not authResponse:
+                while not auth_response:
                     try:
-                        authResponse = u2f.authenticate(device, challenge, resp_json['_embedded']['factor']['profile']['appId'] )
-                        authResponse['stateToken'] = state_token
-                        resp = requests.post(resp_json['_links']['next']['href'], json=authResponse)
+                        auth_response = u2f.authenticate(dev, challenge, resp_json['_embedded']['factor']['profile']['appId'] )
+                        req_data.update(auth_response)
+                        resp = requests.post(resp_json['_links']['next']['href'], json=req_data)
                         resp_json = resp.json()
                         if resp_json['status'] == 'SUCCESS':
                             return resp_json['sessionToken']
