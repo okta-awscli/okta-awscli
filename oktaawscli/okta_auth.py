@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 try:
-    from u2flib_host import u2f, exc, constants
+    from u2flib_host import u2f, exc, constants as u2f_constants
     U2F_ALLOWED = True
 except ImportError:
     U2F_ALLOWED = False
@@ -165,24 +165,26 @@ class OktaAuth():
             challenge['keyHandle'] = resp_json['_embedded']['factor']['profile']['credentialId']
             challenge['challenge'] = resp_json['_embedded']['factor']['_embedded']['challenge']['nonce']
             auth_response = None
-            device = devices.pop()
-            with device as dev:
-                while not auth_response:
-                    try:
-                        auth_response = u2f.authenticate(dev, challenge, resp_json['_embedded']['factor']['profile']['appId'] )
-                        req_data.update(auth_response)
-                        resp = requests.post(resp_json['_links']['next']['href'], json=req_data)
-                        resp_json = resp.json()
-                        if resp_json['status'] == 'SUCCESS':
-                            return resp_json['sessionToken']
-                        elif resp_json['factorResult'] == 'TIMEOUT':
-                            print("Verification timed out")
-                            exit(1)
-                        elif resp_json['factorResult'] == 'REJECTED':
-                            print("Verification was rejected")
-                            exit(1)
-                    except Exception as e:
-                        time.sleep(0.1)
+            while not auth_response:
+                for device in devices:
+                    with device as dev:
+                        try:
+                            auth_response = u2f.authenticate(dev, challenge, resp_json['_embedded']['factor']['profile']['appId'] )
+                            req_data.update(auth_response)
+                            resp = requests.post(resp_json['_links']['next']['href'], json=req_data)
+                            resp_json = resp.json()
+                            if resp_json['status'] == 'SUCCESS':
+                                return resp_json['sessionToken']
+                            elif resp_json['factorResult'] == 'TIMEOUT':
+                                print("Verification timed out")
+                                exit(1)
+                            elif resp_json['factorResult'] == 'REJECTED':
+                                print("Verification was rejected")
+                                exit(1)
+                        except Exception as e:
+                            if e.code == u2f_constants.APDU_WRONG_DATA:
+                                devices.remove(device)
+                            time.sleep(0.1)
 
         elif resp.status_code != 200:
             self.logger.error(resp_json['errorSummary'])
