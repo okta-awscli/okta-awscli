@@ -7,6 +7,12 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 try:
+    from u2flib_host import u2f, exc
+    U2F_ALLOWED = True
+except ImportError:
+    U2F_ALLOWED = False
+
+try:
     input = raw_input
 except NameError:
     pass
@@ -55,6 +61,9 @@ class OktaAuth():
         """ Performs MFA auth against Okta """
 
         supported_factor_types = ["token:software:totp", "push"]
+        if U2F_ALLOWED:
+            supported_factor_types.append("u2f")
+
         supported_factors = []
         for factor in factors_list:
             if factor['factorType'] in supported_factor_types:
@@ -84,6 +93,8 @@ class OktaAuth():
                         factor_name = "Okta Verify - Push"
                     else:
                         factor_name = "Okta Verify"
+                elif factor_provider == "FIDO":
+                        factor_name = "u2f"
                 else:
                     factor_name = "Unsupported factor type: %s" % factor_provider
 
@@ -113,20 +124,20 @@ class OktaAuth():
         }
 
         self.logger.debug(factor)
-
         if factor['factorType'] == 'token:software:totp':
             if self.totp_token:
                 self.logger.debug("Using TOTP token from command line arg")
                 req_data['answer'] = self.totp_token
             else:
                 req_data['answer'] = input('Enter MFA token: ')
+
         post_url = factor['_links']['verify']['href']
         resp = requests.post(post_url, json=req_data)
         resp_json = resp.json()
         if 'status' in resp_json:
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
-            elif resp_json['status'] == "MFA_CHALLENGE":
+            elif resp_json['status'] == "MFA_CHALLENGE" and factor['factorType'] !='u2f':
                 print("Waiting for push verification...")
                 while True:
                     resp = requests.post(
@@ -142,6 +153,33 @@ class OktaAuth():
                         exit(1)
                     else:
                         time.sleep(0.5)
+
+            devices = u2f.list_devices()
+            challenge = dict()
+            challenge['appId'] = resp_json['_embedded']['factor']['profile']['appId']
+            challenge['version'] = resp_json['_embedded']['factor']['profile']['version']
+            challenge['keyHandle'] = resp_json['_embedded']['factor']['profile']['credentialId']
+            challenge['challenge'] = resp_json['_embedded']['factor']['_embedded']['challenge']['nonce']
+            authResponse = None
+            device = devices.pop()
+            with device as dev:
+                while not authResponse:
+                    try:
+                        authResponse = u2f.authenticate(device, challenge, resp_json['_embedded']['factor']['profile']['appId'] )
+                        authResponse['stateToken'] = state_token
+                        resp = requests.post(resp_json['_links']['next']['href'], json=authResponse)
+                        resp_json = resp.json()
+                        if resp_json['status'] == 'SUCCESS':
+                            return resp_json['sessionToken']
+                        elif resp_json['factorResult'] == 'TIMEOUT':
+                            print("Verification timed out")
+                            exit(1)
+                        elif resp_json['factorResult'] == 'REJECTED':
+                            print("Verification was rejected")
+                            exit(1)
+                    except Exception as e:
+                        time.sleep(0.1)
+
         elif resp.status_code != 200:
             self.logger.error(resp_json['errorSummary'])
             exit(1)
