@@ -42,6 +42,10 @@ class OktaAuth():
                 session_token = self.verify_mfa(factors_list, state_token)
             elif resp_json['status'] == 'SUCCESS':
                 session_token = resp_json['sessionToken']
+            elif resp_json['status'] == 'MFA_ENROLL':
+                self.logger.warning("""MFA not enrolled. Cannot continue.
+Please enroll a MFA factor in the Okta Web UI first!""")
+                exit(2)
         elif resp.status_code != 200:
             self.logger.error(resp_json['errorSummary'])
             exit(1)
