@@ -27,7 +27,7 @@ password = <your_okta_password> # Only save your password if you know what you a
 factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
 role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
 app-link = <app_link_from_okta> # Found in Okta's configuration for your AWS account.
-duration = 3600 # duration in seconds to request a session token for, make sure your account allows for large durations. default: 3600
+duration = 3600 # duration in seconds to request a session token for, make sure your accounts (both AWS itself and the associated okta application) allow for large durations. default: 3600
 ```
 
 ## Supported Features
