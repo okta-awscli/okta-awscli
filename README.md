@@ -14,6 +14,7 @@ Parsing the HTML is still required to get the SAML assertion, after authenticati
 ## Installation
 
 - `pip install okta-awscli`
+  - To install with U2F support (Yubikey): `pip install "okta-awscli[U2F]"`
 - Configure okta-awscli via the `~/.okta-aws` file with the following parameters:
 
 ```
@@ -24,9 +25,10 @@ base-url = <your_okta_org>.okta.com
 ## You will be prompted for them, if they're not included here.
 username = <your_okta_username>
 password = <your_okta_password> # Only save your password if you know what you are doing!
-factor = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
-role = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
+factor   = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
+role     = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
 app-link = <app_link_from_okta> # Found in Okta's configuration for your AWS account.
+duration = 3600 # duration in seconds to request a session token for, make sure your accounts (both AWS itself and the associated okta application) allow for large durations. default: 3600
 ```
 
 ## Supported Features
@@ -35,6 +37,7 @@ app-link = <app_link_from_okta> # Found in Okta's configuration for your AWS acc
 - Okta Verify [Play Store](https://play.google.com/store/apps/details?id=com.okta.android.auth) | [App Store](https://itunes.apple.com/us/app/okta-verify/id490179405)
 - Okta Verify Push Support
 - Google Authenticator [Play Store](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2) | [App Store](https://itunes.apple.com/us/app/google-authenticator/id388497605)
+- YubiKey (Requires library python-u2flib-host)  [HomePage](https://www.yubico.com/)
 
 
 ## Unsupported Features
