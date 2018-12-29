@@ -167,7 +167,7 @@ class OktaAuth():
                 challenge['keyHandle'] = resp_json['_embedded']['factor']['profile']['credentialId']
                 challenge['challenge'] = resp_json['_embedded']['factor']['_embedded']['challenge']['nonce']
 
-                print("Please touch your U2F device..")
+                print("Please touch your U2F device...")
                 auth_response = None
                 while not auth_response:
                     for device in devices:
