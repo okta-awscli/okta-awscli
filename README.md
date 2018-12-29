@@ -36,6 +36,7 @@ duration = 3600 # duration in seconds to request a session token for, make sure 
 - Okta Verify [Play Store](https://play.google.com/store/apps/details?id=com.okta.android.auth) | [App Store](https://itunes.apple.com/us/app/okta-verify/id490179405)
 - Okta Verify Push Support
 - Google Authenticator [Play Store](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2) | [App Store](https://itunes.apple.com/us/app/google-authenticator/id388497605)
+- YubiKey (Requires library python-u2flib-host)  [HomePage](https://www.yubico.com/)
 
 
 ## Unsupported Features

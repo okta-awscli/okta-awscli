@@ -22,6 +22,9 @@ setup(
         'click',
         'bs4',
         'boto3',
-        'ConfigParser'
+        'ConfigParser',
         ],
+    extra_require={
+        'U2F': ['python-u2flib-host']
+    },
 )

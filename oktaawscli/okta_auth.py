@@ -7,6 +7,13 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 try:
+    from u2flib_host import u2f, exc
+    from u2flib_host.constants import APDU_WRONG_DATA
+    U2F_ALLOWED = True
+except ImportError:
+    U2F_ALLOWED = False
+
+try:
     input = raw_input
 except NameError:
     pass
@@ -59,6 +66,9 @@ Please enroll a MFA factor in the Okta Web UI first!""")
         """ Performs MFA auth against Okta """
 
         supported_factor_types = ["token:software:totp", "push"]
+        if U2F_ALLOWED:
+            supported_factor_types.append("u2f")
+
         supported_factors = []
         for factor in factors_list:
             if factor['factorType'] in supported_factor_types:
@@ -88,6 +98,8 @@ Please enroll a MFA factor in the Okta Web UI first!""")
                         factor_name = "Okta Verify - Push"
                     else:
                         factor_name = "Okta Verify"
+                elif factor_provider == "FIDO":
+                        factor_name = "u2f"
                 else:
                     factor_name = "Unsupported factor type: %s" % factor_provider
 
@@ -117,20 +129,20 @@ Please enroll a MFA factor in the Okta Web UI first!""")
         }
 
         self.logger.debug(factor)
-
         if factor['factorType'] == 'token:software:totp':
             if self.totp_token:
                 self.logger.debug("Using TOTP token from command line arg")
                 req_data['answer'] = self.totp_token
             else:
                 req_data['answer'] = input('Enter MFA token: ')
+
         post_url = factor['_links']['verify']['href']
         resp = requests.post(post_url, json=req_data)
         resp_json = resp.json()
         if 'status' in resp_json:
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
-            elif resp_json['status'] == "MFA_CHALLENGE":
+            elif resp_json['status'] == "MFA_CHALLENGE" and factor['factorType'] !='u2f':
                 print("Waiting for push verification...")
                 while True:
                     resp = requests.post(
@@ -146,6 +158,42 @@ Please enroll a MFA factor in the Okta Web UI first!""")
                         exit(1)
                     else:
                         time.sleep(0.5)
+
+            if factor['factorType'] == 'u2f':
+                devices = u2f.list_devices()
+                if len(devices) == 0:
+                    self.logger.warning("No U2F device found")
+                    exit(1)
+
+                challenge = dict()
+                challenge['appId'] = resp_json['_embedded']['factor']['profile']['appId']
+                challenge['version'] = resp_json['_embedded']['factor']['profile']['version']
+                challenge['keyHandle'] = resp_json['_embedded']['factor']['profile']['credentialId']
+                challenge['challenge'] = resp_json['_embedded']['factor']['_embedded']['challenge']['nonce']
+
+                print("Please touch your U2F device...")
+                auth_response = None
+                while not auth_response:
+                    for device in devices:
+                        with device as dev:
+                            try:
+                                auth_response = u2f.authenticate(dev, challenge, resp_json['_embedded']['factor']['profile']['appId'] )
+                                req_data.update(auth_response)
+                                resp = requests.post(resp_json['_links']['next']['href'], json=req_data)
+                                resp_json = resp.json()
+                                if resp_json['status'] == 'SUCCESS':
+                                    return resp_json['sessionToken']
+                                elif resp_json['factorResult'] == 'TIMEOUT':
+                                    self.logger.warning("Verification timed out")
+                                    exit(1)
+                                elif resp_json['factorResult'] == 'REJECTED':
+                                    self.logger.warning("Verification was rejected")
+                                    exit(1)
+                            except exc.APDUError as e:
+                                if e.code == APDU_WRONG_DATA:
+                                    devices.remove(device)
+                                time.sleep(0.1)
+
         elif resp.status_code != 200:
             self.logger.error(resp_json['errorSummary'])
             exit(1)
