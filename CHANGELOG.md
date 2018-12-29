@@ -3,7 +3,9 @@
 ## [0.3.0] 2018-12-10
 ### Added:
 - Ability to set requested token duration. (#43).
-- FIDO U2F support. 
+  - Thanks to: [@arahayrabedian](https://github.com/arahayrabedian)
+- FIDO U2F support.
+  - Thanks to: [@guerremdq](https://github.com/guerremdq) & [@savar](https://github.com/savar)
 
 ## [0.2.5] 2018-10-18
 ### Added:
