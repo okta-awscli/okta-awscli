@@ -158,7 +158,7 @@ class OktaAuth():
             if factor['factorType'] == 'u2f':
                 devices = u2f.list_devices()
                 if len(devices) == 0:
-                    print("No U2F device found")
+                    self.logger.warning("No U2F device found")
                     exit(1)
 
                 challenge = dict()
@@ -166,6 +166,8 @@ class OktaAuth():
                 challenge['version'] = resp_json['_embedded']['factor']['profile']['version']
                 challenge['keyHandle'] = resp_json['_embedded']['factor']['profile']['credentialId']
                 challenge['challenge'] = resp_json['_embedded']['factor']['_embedded']['challenge']['nonce']
+
+                print("Please touch your U2F device..")
                 auth_response = None
                 while not auth_response:
                     for device in devices:
@@ -178,10 +180,10 @@ class OktaAuth():
                                 if resp_json['status'] == 'SUCCESS':
                                     return resp_json['sessionToken']
                                 elif resp_json['factorResult'] == 'TIMEOUT':
-                                    print("Verification timed out")
+                                    self.logger.warning("Verification timed out")
                                     exit(1)
                                 elif resp_json['factorResult'] == 'REJECTED':
-                                    print("Verification was rejected")
+                                    self.logger.warning("Verification was rejected")
                                     exit(1)
                             except exc.APDUError as e:
                                 if e.code == APDU_WRONG_DATA:
