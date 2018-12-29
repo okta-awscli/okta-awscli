@@ -52,7 +52,7 @@ of roles assigned to you.""" % self.role)
         return roles[role_choice]
 
     @staticmethod
-    def get_sts_token(role_arn, principal_arn, assertion):
+    def get_sts_token(role_arn, principal_arn, assertion, duration=None, logger=None):
         """ Gets a token from AWS STS """
 
         # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
@@ -62,9 +62,21 @@ of roles assigned to you.""" % self.role)
         else:
             sts = boto3.client('sts')
 
-        response = sts.assume_role_with_saml(RoleArn=role_arn,
-                                             PrincipalArn=principal_arn,
-                                             SAMLAssertion=assertion)
+        try:
+            response = sts.assume_role_with_saml(RoleArn=role_arn,
+                                                 PrincipalArn=principal_arn,
+                                                 SAMLAssertion=assertion,
+                                                 DurationSeconds=duration or 3600)
+        except ClientError as ex:
+            if logger:
+                logger.error(
+                    "Could not retrieve credentials: %s" % 
+                    ex.response['Error']['Message']
+                )
+                exit(-1)
+            else:
+                raise
+
         credentials = response['Credentials']
         return credentials
 

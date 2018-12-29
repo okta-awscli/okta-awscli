@@ -21,11 +21,20 @@ def get_credentials(aws_auth, okta_profile, profile,
     principal_arn, role_arn = role
 
     okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
+    duration = okta_auth_config.duration_for(okta_profile)
 
-    sts_token = aws_auth.get_sts_token(role_arn, principal_arn, assertion)
+    sts_token = aws_auth.get_sts_token(
+        role_arn,
+        principal_arn,
+        assertion,
+        duration=duration,
+        logger=logger
+    )
     access_key_id = sts_token['AccessKeyId']
     secret_access_key = sts_token['SecretAccessKey']
     session_token = sts_token['SessionToken']
+    session_token_expiry = sts_token['Expiration']
+    logger.info("Session token expires on: %s" % session_token_expiry)
     if not profile:
         exports = console_output(access_key_id, secret_access_key,
                                  session_token, verbose)

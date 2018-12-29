@@ -25,7 +25,9 @@ class OktaAuthConfig():
             self.logger.info("Authenticating to: %s" % base_url)
         else:
             base_url = self._value.get('default', 'base-url')
-            self.logger.info("Using base-url from default profile %s" % base_url)
+            self.logger.info(
+                "Using base-url from default profile %s" % base_url
+            )
         return base_url
 
     def app_link_for(self, okta_profile):
@@ -61,6 +63,22 @@ class OktaAuthConfig():
             factor = self._value.get(okta_profile, 'factor')
             self.logger.debug("Setting MFA factor to %s" % factor)
             return factor
+        return None
+
+    def duration_for(self, okta_profile):
+        """ Gets requested duration from config, ignore it on failure """
+        if self._value.has_option(okta_profile, 'duration'):
+            duration = self._value.get(okta_profile, 'duration')
+            self.logger.debug(
+                "Requesting a duration of %s seconds" % duration
+            )
+            try:
+                return int(duration)
+            except ValueError as e:
+                self.logger.warn(
+                    "Duration could not be converted to a number,"
+                    " ignoring."
+                )
         return None
 
     def save_chosen_role_for_profile(self, okta_profile, role_arn):
