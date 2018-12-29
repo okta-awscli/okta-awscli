@@ -14,6 +14,7 @@ Parsing the HTML is still required to get the SAML assertion, after authenticati
 ## Installation
 
 - `pip install okta-awscli`
+  - To install with U2F support (Yubikey): `pip install "okta-awscli[U2F]"`
 - Configure okta-awscli via the `~/.okta-aws` file with the following parameters:
 
 ```
