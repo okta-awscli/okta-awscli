@@ -2,4 +2,4 @@ requests==2.21.0
 click==7.0
 bs4==0.0.1
 boto3==1.9.71
-ConfigParser==3.5.0
+ConfigParser==3.7.1
