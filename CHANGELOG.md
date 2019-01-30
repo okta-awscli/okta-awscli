@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.1] 2019-01-30
+### Fixed:
+- Removed setting region and output format in aws credentials file. (#72)
+
 ## [0.3.0] 2018-12-10
 ### Added:
 - Ability to set requested token duration. (#43).

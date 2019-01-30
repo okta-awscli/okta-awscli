@@ -116,8 +116,6 @@ of roles assigned to you.""" % self.role)
 
     def write_sts_token(self, profile, access_key_id, secret_access_key, session_token):
         """ Writes STS auth information to credentials file """
-        region = 'us-east-1'
-        output = 'json'
         if not os.path.exists(self.creds_dir):
             os.makedirs(self.creds_dir)
         config = RawConfigParser()
@@ -128,8 +126,6 @@ of roles assigned to you.""" % self.role)
         if not config.has_section(profile):
             config.add_section(profile)
 
-        config.set(profile, 'output', output)
-        config.set(profile, 'region', region)
         config.set(profile, 'aws_access_key_id', access_key_id)
         config.set(profile, 'aws_secret_access_key', secret_access_key)
         config.set(profile, 'aws_session_token', session_token)
