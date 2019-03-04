@@ -1,5 +1,10 @@
 # Changelog
 
+## UNRELEASED [0.3.1] 2019-03-04
+### Added:
+- Skip app prompt if there's only one to choose from.
+  - Thanks to: [@mcstafford-git](https://github.com/mcstafford-git)
+
 ## [0.3.0] 2018-12-10
 ### Added:
 - Ability to set requested token duration. (#43).
