@@ -234,6 +234,7 @@ Please enroll a MFA factor in the Okta Web UI first!""")
                 print("%d: %s" % (index + 1, app_name))
 
             app_choice = int(input('Please select AWS app: ')) - 1
+        self.logger.debug("Selected app: %s" % aws_apps[app_choice]['label'])
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
     def get_saml_assertion(self, html):
