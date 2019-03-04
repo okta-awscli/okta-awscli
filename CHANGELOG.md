@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1] 2019-03-04
+### Added:
+- Skip app prompt if there's only one to choose from.
+  - Thanks to: [@mcstafford-git](https://github.com/mcstafford-git)
+### Fixed:
+- Removed setting region and output format in AWS credentials file. (#72)
+  - Thanks to: [@jrisebor](https://github.com/jrisebor)
+
 ## [0.3.0] 2018-12-10
 ### Added:
 - Ability to set requested token duration. (#43).

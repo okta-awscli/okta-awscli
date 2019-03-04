@@ -226,12 +226,15 @@ Please enroll a MFA factor in the Okta Web UI first!""")
             sys.exit(1)
 
         aws_apps = sorted(aws_apps, key=lambda app: app['sortOrder'])
-        print("Available apps:")
-        for index, app in enumerate(aws_apps):
-            app_name = app['label']
-            print("%d: %s" % (index + 1, app_name))
+        app_choice = 0 if len(aws_apps) == 1 else None
+        if app_choice is None:
+            print("Available apps:")
+            for index, app in enumerate(aws_apps):
+                app_name = app['label']
+                print("%d: %s" % (index + 1, app_name))
 
-        app_choice = int(input('Please select AWS app: ')) - 1
+            app_choice = int(input('Please select AWS app: ')) - 1
+        self.logger.debug("Selected app: %s" % aws_apps[app_choice]['label'])
         return aws_apps[app_choice]['label'], aws_apps[app_choice]['linkUrl']
 
     def get_saml_assertion(self, html):
