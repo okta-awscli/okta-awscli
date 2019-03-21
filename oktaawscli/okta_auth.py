@@ -3,6 +3,7 @@
 import sys
 import time
 import requests
+import logging
 
 from bs4 import BeautifulSoup as bs
 
@@ -17,6 +18,7 @@ try:
     input = raw_input
 except NameError:
     pass
+
 
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """
@@ -86,7 +88,7 @@ Please enroll a MFA factor in the Okta Web UI first!""")
                 supported_factors[0], state_token)
         elif len(supported_factors) > 0:
             if not self.factor:
-                print("Registered MFA factors:")
+                self.logger.info("Registered MFA factors:")
             for index, factor in enumerate(supported_factors):
                 factor_type = factor['factorType']
                 factor_provider = factor['provider']
@@ -110,7 +112,7 @@ Please enroll a MFA factor in the Okta Web UI first!""")
                                          from ~/.okta-aws")
                         break
                 else:
-                    print("%d: %s" % (index + 1, factor_name))
+                    self.logger.debug("%d: %s" % (index + 1, factor_name))
             if not self.factor:
                 factor_choice = int(input('Please select the MFA factor: ')) - 1
             self.logger.info("Performing secondary authentication using: %s" %
@@ -118,7 +120,7 @@ Please enroll a MFA factor in the Okta Web UI first!""")
             session_token = self.verify_single_factor(supported_factors[factor_choice],
                                                       state_token)
         else:
-            print("MFA required, but no supported factors enrolled! Exiting.")
+            self.logger.error("MFA required, but no supported factors enrolled! Exiting.")
             exit(1)
         return session_token
 
@@ -143,7 +145,7 @@ Please enroll a MFA factor in the Okta Web UI first!""")
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
             elif resp_json['status'] == "MFA_CHALLENGE" and factor['factorType'] !='u2f':
-                print("Waiting for push verification...")
+                self.logger.info("Waiting for push verification...")
                 while True:
                     resp = requests.post(
                         resp_json['_links']['next']['href'], json=req_data)
@@ -151,10 +153,10 @@ Please enroll a MFA factor in the Okta Web UI first!""")
                     if resp_json['status'] == 'SUCCESS':
                         return resp_json['sessionToken']
                     elif resp_json['factorResult'] == 'TIMEOUT':
-                        print("Verification timed out")
+                        self.logger.warning("Verification timed out")
                         exit(1)
                     elif resp_json['factorResult'] == 'REJECTED':
-                        print("Verification was rejected")
+                        self.logger.error("Verification was rejected")
                         exit(1)
                     else:
                         time.sleep(0.5)
@@ -171,7 +173,7 @@ Please enroll a MFA factor in the Okta Web UI first!""")
                 challenge['keyHandle'] = resp_json['_embedded']['factor']['profile']['credentialId']
                 challenge['challenge'] = resp_json['_embedded']['factor']['_embedded']['challenge']['nonce']
 
-                print("Please touch your U2F device...")
+                self.logger.info("Please touch your U2F device...")
                 auth_response = None
                 while not auth_response:
                     for device in devices:

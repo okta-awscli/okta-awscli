@@ -9,6 +9,9 @@ from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
+logger = logging.getLogger('okta-awscli')
+
+
 def get_credentials(aws_auth, okta_profile, profile,
                     verbose, logger, totp_token, cache):
     """ Gets credentials from Okta """
@@ -86,18 +89,10 @@ def main(okta_profile, profile, verbose, version,
     if version:
         print(__version__)
         exit(0)
-    # Set up logging
-    logger = logging.getLogger('okta-awscli')
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.WARN)
-    formatter = logging.Formatter('%(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    if verbose:
-        handler.setLevel(logging.INFO)
-    if debug:
-        handler.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
+
+    logging.basicConfig(
+       format='%(levelname)s - %(message)s',
+       level=(debug and logging.DEBUG or verbose and logging.INFO or logging.WARN))
 
     if not okta_profile:
         okta_profile = "default"
