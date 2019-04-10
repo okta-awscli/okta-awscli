@@ -6,6 +6,8 @@ import time
 import requests
 import re
 from codecs import decode
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup as bs
 
@@ -303,7 +305,8 @@ Please enroll an MFA factor in the Okta Web UI first!""")
         status = login_data['status']
 
         if status == 'UNAUTHENTICATED':
-            return self._login_username_password(state_token, login_data['_links']['next']['href'])
+            self.logger.error("You are not authenticated -- please try to log in again")
+            exit(2)
         elif status == 'LOCKED_OUT':
             self.logger.error("Your Okta access has been locked out due to failed login attempts.")
             exit(2)
@@ -350,7 +353,7 @@ Please enroll an MFA factor in the Okta Web UI first!""")
         self.session_token = self.primary_auth()
         self.session_id = self.get_session(self.session_token)
         if not self.app_link:
-            app_name, app_link = self.get_apps(session_id)
+            app_name, app_link = self.get_apps(self.session_id)
             self.okta_auth_config.save_chosen_app_link_for_profile(self.okta_profile, app_link)
         else:
             app_name = None
@@ -359,44 +362,6 @@ Please enroll an MFA factor in the Okta Web UI first!""")
         resp = self.session.get(app_link)
         assertion = self.get_saml_assertion(resp)
         return app_name, assertion
-
-    def _login_username_password(self, state_token, url):
-        """ login to Okta with a username and password"""
-        creds = self._get_username_password_creds()
-
-        login_json = {
-            'username': creds['username'],
-            'password': creds['password']
-        }
-
-        # If this isn't a Step-up auth flow, we won't have a stateToken
-        if state_token is not None:
-            login_json['stateToken'] = state_token
-
-        response = self.session.post(
-            url,
-            json=login_json,
-            headers=self._get_headers(),
-            verify=self._verify_ssl_certs
-        )
-
-        response_data = response.json()
-        if 'errorCode' in response_data:
-            self.logger.error("LOGIN ERROR: {} | Error Code: {}".format(response_data['errorSummary'], response_data['errorCode']))
-
-            if self.KEYRING_ENABLED:
-                try:
-                    keyring.delete_password(self.KEYRING_SERVICE, creds['username'])
-                except PasswordDeleteError:
-                    pass
-
-            exit(2)
-
-        func_result = {'apiResponse': response_data}
-        if 'stateToken' in response_data:
-            func_result['stateToken'] = response_data['stateToken']
-
-        return func_result
 
     def _login_send_sms(self, state_token, factor):
         """ Send SMS message for second factor authentication"""
