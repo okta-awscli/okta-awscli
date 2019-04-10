@@ -1,5 +1,6 @@
 """ Handles auth to Okta and returns SAML assertion """
 # pylint: disable=C0325,R0912,C1801
+# Incorporates flow auth code taken from https://github.com/Nike-Inc/gimme-aws-creds
 import sys
 import time
 import requests
