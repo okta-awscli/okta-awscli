@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0] 2019-04-14
+### Added:
+- Per-application multi-factor authentication support
+ - Thanks to: [@nonspecialist](https://github.com/nonspecialist)
+### Fixed:
+- Invalid SAML assertion when per-app MFA is used. (#36)
+
 ## [0.3.1] 2019-03-04
 ### Added:
 - Skip app prompt if there's only one to choose from.
