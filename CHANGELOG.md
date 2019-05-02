@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.0] 2019-05-02
+### Changed
+- Added region override parameter for write_sts_token method
+- Export Profile usage message will not print if using account (-a) argument
+
 ## [0.3.6] 2018-12-07
 ### Changed
 - Sorted role options by role name after sorting by account alias
