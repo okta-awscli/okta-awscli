@@ -133,9 +133,12 @@ of roles assigned to you.""" % self.role)
         self.logger.info("STS credentials are valid. Nothing to do.")
         return True
 
-    def write_sts_token(self, profile, access_key_id, secret_access_key, session_token):
+    def write_sts_token(self, profile, access_key_id, secret_access_key, session_token, region_override=None):
         """ Writes STS auth information to credentials file """
-        region = self.region
+        if region_override is not None:
+          region = region_override
+        else:
+          region = self.region
         output = 'json'
         if not os.path.exists(self.creds_dir):
             os.makedirs(self.creds_dir)

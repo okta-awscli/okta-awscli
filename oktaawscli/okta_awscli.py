@@ -58,14 +58,17 @@ def get_credentials(okta_profile, profile, account, write_default, verbose, logg
             cache.close()
         exit(0)
     else:
+        # Check okta config again for region, but now with manually chosen account alias
+        region = okta_auth_config.region_for(profile_name)
         logger.info("Export flag not set, will write credentials to ~/.aws/credentials.")
         aws_auth.write_sts_token(profile_name, access_key_id,
-                                 secret_access_key, session_token)
+                                 secret_access_key, session_token, region)
         if write_default:
             print("Writing to default AWS profile")
             aws_auth.write_sts_token('default', access_key_id,
-                                     secret_access_key, session_token)
-        else:
+                                     secret_access_key, session_token, region)
+        # Only print usage message if account argument wasn't specified
+        elif account is None:
             usage_msg = "".join([
                 "\nTo start using these temporary credentials, run:\n",
                 "\n export AWS_PROFILE=%s\n" % profile_name
