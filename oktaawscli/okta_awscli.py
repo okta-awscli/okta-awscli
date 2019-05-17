@@ -59,8 +59,6 @@ def get_credentials(okta_profile, profile, account, write_default, verbose, logg
             cache.close()
         exit(0)
     else:
-        # Check okta config again for region, but now with manually chosen account alias
-        region = okta_auth_config.region_for(profile_name)
         logger.info("Export flag not set, will write credentials to ~/.aws/credentials.")
         aws_auth.write_sts_token(
             profile=profile_name,
