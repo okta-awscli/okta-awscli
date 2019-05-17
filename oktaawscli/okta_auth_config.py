@@ -15,7 +15,7 @@ class OktaAuthConfig():
         self.logger = logger
         self.reset = reset
         self.config_path = os.path.expanduser('~') + '/.okta-aws'
-        self._value = SafeConfigParser()
+        self._value = SafeConfigParser(default_section='default')
         self._value.read(self.config_path)
 
     def base_url_for(self, okta_profile):
