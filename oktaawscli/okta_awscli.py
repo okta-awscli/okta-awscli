@@ -9,6 +9,7 @@ from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
+
 def get_credentials(okta_profile, profile, account, write_default, verbose, logger,
                     totp_token, cache, export, reset, force, debug=False):
     """ Gets credentials from Okta """
@@ -75,6 +76,7 @@ def get_credentials(okta_profile, profile, account, write_default, verbose, logg
             ])
             print(usage_msg)
         exit(0)
+
 
 def console_output(access_key_id, secret_access_key, session_token, verbose):
     """ Outputs STS credentials to console """
@@ -146,6 +148,7 @@ def main(okta_profile, profile, verbose, version, write_default,
         cmdline = ['aws', '--profile', profile] + list(awscli_args)
         logger.info('Invoking: %s', ' '.join(cmdline))
         call(cmdline)
+
 
 if __name__ == "__main__":
     # pylint: disable=E1120
