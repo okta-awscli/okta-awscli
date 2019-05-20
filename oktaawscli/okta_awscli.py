@@ -15,8 +15,16 @@ def get_credentials(okta_profile, profile, account, write_default, verbose, logg
     """ Gets credentials from Okta """
     okta_auth_config = OktaAuthConfig(logger, reset)
 
-    region = region or okta_auth_config.region_for(okta_profile)
-    aws_auth = AwsAuth(profile, okta_profile, account, verbose, logger, region, reset, debug=debug)
+    aws_auth = AwsAuth(
+        profile=profile,
+        okta_profile=okta_profile,
+        account=account,
+        verbose=verbose,
+        logger=logger,
+        region=region or okta_auth_config.region_for(okta_profile),
+        reset=reset,
+        debug=debug,
+    )
 
     check_creds = okta_auth_config.get_check_valid_creds(okta_profile)
     if not force and not export and check_creds and aws_auth.check_sts_token(profile):
@@ -59,6 +67,23 @@ def get_credentials(okta_profile, profile, account, write_default, verbose, logg
             cache.close()
         exit(0)
     else:
+        # Check okta config again for region, but now with manually chosen account alias
+        default_region = okta_auth_config.region_for('default')
+        okta_region = okta_auth_config.region_for(okta_profile, default=None)
+        account_region = okta_auth_config.region_for(profile_name, default=None)
+
+        if region:
+            logger.debug("Keeping CLI region: %s", region)
+        elif okta_region is not None and okta_region != default_region:
+            region = okta_region
+            logger.debug("Setting region=%s via okta-profile=%s", region, okta_profile)
+        elif account_region is not None and account_region != default_region:
+            region = account_region
+            logger.debug("Setting region=%s via account profile=%s", region, profile_name)
+        else:
+            region = default_region
+            logger.debug("Setting region=%s via defaults", region)
+
         logger.info("Export flag not set, will write credentials to ~/.aws/credentials.")
         aws_auth.write_sts_token(
             profile=profile_name,

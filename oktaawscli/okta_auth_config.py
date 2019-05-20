@@ -76,10 +76,10 @@ class OktaAuthConfig():
         self.logger.debug("Setting app to %s" % app)
         return app
 
-    def region_for(self, okta_profile):
+    def region_for(self, okta_profile, default="us-east-1"):
         """ Gets region from config """
-        region = self._value.get(okta_profile, 'region', fallback="us-east-1")
-        self.logger.debug("Setting region to %s" % region)
+        region = self._value.get(okta_profile, 'region', fallback=default)
+        self.logger.debug("Setting region=%s from section=%s", region, okta_profile)
         return region
 
     def get_check_valid_creds(self, okta_profile):
