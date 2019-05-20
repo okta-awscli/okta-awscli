@@ -28,7 +28,7 @@ class OktaAuthConfig():
     def username_for(self, okta_profile):
         """ Gets username from config """
         username = self._value.get(okta_profile, 'username', fallback=None)
-        if not username or self.reset:
+        if self.reset or not username:
             username = getuser()
             entered_username = input('Enter username [%s]: ' % username)
             username = entered_username or username
