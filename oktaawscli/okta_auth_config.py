@@ -107,42 +107,41 @@ class OktaAuthConfig():
 
     def save_chosen_role_for_profile(self, okta_profile, role_arn):
         """ Saves role to config """
-        if not self._value.has_section(okta_profile):
-            self._value.add_section(okta_profile)
-
-        base_url = self.base_url_for(okta_profile)
-        self._value.set(okta_profile, 'base-url', base_url)
-        self._value.set(okta_profile, 'role', role_arn)
-
-        with open(self.config_path, 'w+') as configfile:
-            self._value.write(configfile)
+        self._save_config_value(
+            section=okta_profile,
+            key='role',
+            value=role_arn,
+        )
 
     def save_chosen_factor_for_profile(self, okta_profile, factor):
         """ Saves factor to config """
-        if not self._value.has_section(okta_profile):
-            self._value.add_section(okta_profile)
-
-        self._value.set(okta_profile, 'factor', factor)
-
-        with open(self.config_path, 'w+') as configfile:
-            self._value.write(configfile)
+        self._save_config_value(
+            section=okta_profile,
+            key='factor',
+            value=factor,
+        )
 
     def save_chosen_app_for_profile(self, okta_profile, app):
         """ Saves app to config """
-        if not self._value.has_section(okta_profile):
-            self._value.add_section(okta_profile)
-
-        self._value.set(okta_profile, 'app', app)
-
-        with open(self.config_path, 'w+') as configfile:
-            self._value.write(configfile)
+        self._save_config_value(
+            section=okta_profile,
+            key='app',
+            value=app,
+        )
 
     def save_chosen_baseurl_for_profile(self, okta_profile, base_url):
         """ Saves base_url to config """
-        if not self._value.has_section(okta_profile):
-            self._value.add_section(okta_profile)
+        self._save_config_value(
+            section=okta_profile,
+            key='base-url',
+            value=base_url,
+        )
 
-        self._value.set(okta_profile, 'base-url', base_url)
+    def _save_config_value(self, section, key, value):
+        if not self._value.has_section(section):
+            self._value.add_section(section)
+
+        self._value.set(section, key, value)
 
         with open(self.config_path, 'w+') as configfile:
             self._value.write(configfile)
