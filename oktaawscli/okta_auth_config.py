@@ -9,6 +9,7 @@ try:
 except NameError:
     pass
 
+
 class OktaAuthConfig():
     """ Config helper class """
     def __init__(self, logger, reset):
