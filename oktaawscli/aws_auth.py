@@ -309,11 +309,8 @@ of roles assigned to you.""" % self.role)
             # role[0] is the role arn, role[2] is the account alias
             options.append("[%s]: %s : %s" % (str(index + 1).ljust(2), role[2].ljust(27), role[0]))
         return options
+
     def __find_predefined_role_from(self, roles):
         # role_tuple[0] is the role arn
-        found_roles = filter(lambda role_tuple: role_tuple[0] == self.role, roles)
-        if not found_roles:
-            return None
-        elif six.PY2:
-            return found_roles[0]
-        return next(found_roles)
+        found_roles = (role_tuple for role_tuple in roles if role_tuple[0] == self.role)
+        return next(found_roles, None)
