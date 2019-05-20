@@ -10,13 +10,16 @@ except NameError:
     pass
 
 
+DEFAULT_SECTION = 'default'
+
+
 class OktaAuthConfig():
     """ Config helper class """
     def __init__(self, logger, reset):
         self.logger = logger
         self.reset = reset
         self.config_path = os.path.expanduser('~') + '/.okta-aws'
-        self._value = SafeConfigParser(default_section='default')
+        self._value = SafeConfigParser(default_section=DEFAULT_SECTION)
         self._value.read(self.config_path)
 
     def base_url_for(self, okta_profile):
@@ -138,7 +141,9 @@ class OktaAuthConfig():
         )
 
     def _save_config_value(self, section, key, value):
-        if not self._value.has_section(section):
+        # has_section explicitly doesn't check for the default section, so only ask if the section exists if
+        # its not the default section
+        if section != DEFAULT_SECTION and not self._value.has_section(section):
             self._value.add_section(section)
 
         self._value.set(section, key, value)
