@@ -11,11 +11,11 @@ from oktaawscli.aws_auth import AwsAuth
 
 
 def get_credentials(okta_profile, profile, account, write_default, verbose, logger,
-                    totp_token, cache, export, reset, force, debug=False):
+                    totp_token, cache, export, reset, force, region, debug=False):
     """ Gets credentials from Okta """
     okta_auth_config = OktaAuthConfig(logger, reset)
 
-    region = okta_auth_config.region_for(okta_profile)
+    region = region or okta_auth_config.region_for(okta_profile)
     aws_auth = AwsAuth(profile, okta_profile, account, verbose, logger, region, reset, debug=debug)
 
     check_creds = okta_auth_config.get_check_valid_creds(okta_profile)
@@ -122,9 +122,10 @@ to ~/.okta-credentials.cache\n')
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
 @click.option('-a', '--account', help='Target account to authenticate to. \
 Also writes AWS credentials to default profile ')
+@click.option('-r', '--region', help='The AWS region to export credentials for')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version, write_default,
-         debug, force, export, cache, awscli_args, token, reset, account):
+         debug, force, export, cache, awscli_args, token, reset, account, region):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -147,9 +148,11 @@ def main(okta_profile, profile, verbose, version, write_default,
     if account:
         profile = account
         okta_profile = account
+    if region:
+        logger.debug("Overwriting region to be %s", region)
     get_credentials(
         okta_profile, profile, account, write_default, verbose, logger,
-        token, cache, export, reset, force, debug=debug
+        token, cache, export, reset, force, region, debug=debug
     )
 
     if awscli_args:
