@@ -33,7 +33,11 @@ class OktaAuthConfig():
                 )
             )
             base_url = entered_base_url or base_url
-            self.save_chosen_baseurl_for_profile(okta_profile=okta_profile, base_url=base_url)
+            self._save_config_value(
+                section=okta_profile,
+                key="base-url",
+                value=base_url,
+            )
         self.logger.info("Authenticating to: %s" % base_url)
         return base_url
 
@@ -130,14 +134,6 @@ class OktaAuthConfig():
             section=okta_profile,
             key='app',
             value=app,
-        )
-
-    def save_chosen_baseurl_for_profile(self, okta_profile, base_url):
-        """ Saves base_url to config """
-        self._save_config_value(
-            section=okta_profile,
-            key='base-url',
-            value=base_url,
         )
 
     def _save_config_value(self, section, key, value):
