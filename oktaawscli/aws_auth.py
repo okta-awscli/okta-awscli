@@ -35,7 +35,7 @@ class AwsAuth():
 
         roles = self.__extract_available_roles_from(assertion)
         if self.role:
-            predefined_role = self.__find_predefiend_role_from(roles)
+            predefined_role = self.__find_predefined_role_from(roles)
             if predefined_role:
                 self.logger.info("Using predefined role: %s" % self.role)
                 return predefined_role
@@ -155,6 +155,6 @@ of roles assigned to you.""" % self.role)
             options.append("%d: %s" % (index + 1, role.role_arn))
         return options
 
-    def __find_predefiend_role_from(self, roles):
+    def __find_predefined_role_from(self, roles):
         found_roles = filter(lambda role_tuple: role_tuple.role_arn == self.role, roles)
         return next(iter(found_roles), None)
