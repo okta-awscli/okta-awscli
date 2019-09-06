@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.1] 2019-09-06
+### Fixed:
+- minor typo
+
 ## [0.4.0] 2019-04-14
 ### Added:
 - Per-application multi-factor authentication support
