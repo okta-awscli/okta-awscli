@@ -8,12 +8,10 @@ Authenticates a user against Okta and then uses the resulting SAML assertion to 
 
 This project is largely inspired by https://github.com/nimbusscale/okta_aws_login, but instead uses a purely API-driven approach, instead of parsing HTML during the authentication phase.
 
-Parsing the HTML is still required to get the SAML assertion, after authentication is complete. However, since we only need to look for the SAML assertion in a single, predictable tag, `<input name="SAMLResponse"...`, the results are a lot more stable across any changes that Okta may make to their interface.
-
-
 ## Installation
 
-For Amplify users, make sure you're using Amplify's pip mirrors. Directions to do that can be found on Answerhub.
+### Note: These directions are for non-Amplify users. For Amplify users, installation directions can be found on Answerhub.
+
 
 - `pip install amplify-okta-awscli`
 - Configure okta-awscli via the `~/.okta-aws` file with the following parameters:
