@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.1] 2019-10-08
+### Fixed:
+- Handle missing default profile gracefully (#57)
+
 ## [0.4.0] 2019-04-14
 ### Added:
 - Per-application multi-factor authentication support
