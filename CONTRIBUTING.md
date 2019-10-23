@@ -17,6 +17,10 @@ It's highly recommended to use virtualenv!
 ```
 pip install .
 ```
+or
+```
+pipenv install --dev && pipenv shell
+```
 
 - Ensure that you can run pylint against your code and no errors are returned. Pull Requests with pylint errors will be rejected.
 

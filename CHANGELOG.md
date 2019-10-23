@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.1] 2019-10-23
+### Added:
+- Pipenv support
+
 ## [0.4.0] 2019-04-14
 ### Added:
 - Per-application multi-factor authentication support
