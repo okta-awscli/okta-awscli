@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.0] 2020-02-26
+### Added:
+- Allow `profile` to be set from config file in addition to command-line option.
+  - Thanks to: [@jrisebor](https://github.com/jrisebor)
+
 ## [0.4.1] 2020-02-25
 ### Added:
 - Pipenv support

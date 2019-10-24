@@ -9,7 +9,7 @@ from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
-def get_credentials(aws_auth, okta_profile, profile,
+def get_credentials(aws_auth, okta_profile,
                     verbose, logger, totp_token, cache):
     """ Gets credentials from Okta """
 
@@ -35,7 +35,7 @@ def get_credentials(aws_auth, okta_profile, profile,
     session_token = sts_token['SessionToken']
     session_token_expiry = sts_token['Expiration']
     logger.info("Session token expires on: %s" % session_token_expiry)
-    if not profile:
+    if not aws_auth.profile:
         exports = console_output(access_key_id, secret_access_key,
                                  session_token, verbose)
         if cache:
@@ -45,7 +45,7 @@ def get_credentials(aws_auth, okta_profile, profile,
             cache.close()
         exit(0)
     else:
-        aws_auth.write_sts_token(profile, access_key_id,
+        aws_auth.write_sts_token(access_key_id,
                                  secret_access_key, session_token)
 
 
@@ -102,15 +102,15 @@ def main(okta_profile, profile, verbose, version,
     if not okta_profile:
         okta_profile = "default"
     aws_auth = AwsAuth(profile, okta_profile, verbose, logger)
-    if not aws_auth.check_sts_token(profile) or force:
-        if force and profile:
+    if not aws_auth.check_sts_token() or force:
+        if force and aws_auth.profile:
             logger.info("Force option selected, \
                 getting new credentials anyway.")
         elif force:
             logger.info("Force option selected, but no profile provided. \
                 Option has no effect.")
         get_credentials(
-            aws_auth, okta_profile, profile, verbose, logger, token, cache
+            aws_auth, okta_profile, verbose, logger, token, cache
         )
 
     if awscli_args:
