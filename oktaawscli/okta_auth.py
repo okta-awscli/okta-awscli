@@ -79,7 +79,7 @@ Please enroll an MFA factor in the Okta Web UI first!""")
     def verify_mfa(self, factors_list, state_token):
         """ Performs MFA auth against Okta """
 
-        supported_factor_types = ["token:software:totp", "push"]
+        supported_factor_types = ["token:software:totp", "token:hardware", "push"]
         if U2F_ALLOWED:
             supported_factor_types.append("u2f")
 
@@ -113,7 +113,9 @@ Please enroll an MFA factor in the Okta Web UI first!""")
                     else:
                         factor_name = "Okta Verify"
                 elif factor_provider == "FIDO":
-                        factor_name = "u2f"
+                    factor_name = "u2f"
+                elif factor_provider == "YUBICO":
+                    factor_name = "YubiKey"
                 else:
                     factor_name = "Unsupported factor type: %s" % factor_provider
 
@@ -143,7 +145,7 @@ Please enroll an MFA factor in the Okta Web UI first!""")
         }
 
         self.logger.debug(factor)
-        if factor['factorType'] == 'token:software:totp':
+        if factor['factorType'] == 'token:software:totp' or factor['factorType'] == 'token:hardware':
             if self.totp_token:
                 self.logger.debug("Using TOTP token from command line arg")
                 req_data['answer'] = self.totp_token
@@ -422,7 +424,7 @@ Please enroll an MFA factor in the Okta Web UI first!""")
             return self._login_send_sms(state_token, factor)
         elif factor['factorType'] == 'call':
             return self._login_send_call(state_token, factor)
-        elif factor['factorType'] == 'token:software:totp':
+        elif factor['factorType'] == 'token:software:totp' or factor['factorType'] == 'token:hardware':
             return self._login_input_mfa_challenge(state_token, factor['_links']['verify']['href'])
         elif factor['factorType'] == 'token':
             return self._login_input_mfa_challenge(state_token, factor['_links']['verify']['href'])
@@ -505,7 +507,7 @@ Please enroll an MFA factor in the Okta Web UI first!""")
             return factor['factorType'] + ": " + factor['profile']['phoneNumber']
         elif factor['factorType'] == 'call':
             return factor['factorType'] + ": " + factor['profile']['phoneNumber']
-        elif factor['factorType'] == 'token:software:totp':
+        elif factor['factorType'] == 'token:software:totp' or factor['factorType'] == 'token:hardware':
             return factor['factorType'] + "( " + factor['provider'] + " ) : " + factor['profile']['credentialId']
         elif factor['factorType'] == 'token':
             return factor['factorType'] + ": " + factor['profile']['credentialId']
