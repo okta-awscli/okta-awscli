@@ -20,7 +20,8 @@ def get_credentials(aws_auth, okta_profile, profile,
     role = aws_auth.choose_aws_role(assertion)
     principal_arn, role_arn = role
 
-    okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
+    # disable saving role_qrn to config file
+    #okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
     duration = okta_auth_config.duration_for(okta_profile)
 
     sts_token = aws_auth.get_sts_token(
@@ -98,7 +99,8 @@ def main(okta_profile, profile, verbose, version,
     if debug:
         handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
-
+    if not profile:
+        profile = "default"
     if not okta_profile:
         okta_profile = "default"
     aws_auth = AwsAuth(profile, okta_profile, verbose, logger)

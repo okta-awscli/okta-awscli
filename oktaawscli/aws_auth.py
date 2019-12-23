@@ -140,12 +140,16 @@ of roles assigned to you.""" % self.role)
         aws_attribute_role = 'https://aws.amazon.com/SAML/Attributes/Role'
         attribute_value_urn = '{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue'
         roles = []
+        temp_roles={}
         role_tuple = namedtuple("RoleTuple", ["principal_arn", "role_arn"])
         root = ET.fromstring(base64.b64decode(assertion))
         for saml2attribute in root.iter('{urn:oasis:names:tc:SAML:2.0:assertion}Attribute'):
             if saml2attribute.get('Name') == aws_attribute_role:
                 for saml2attributevalue in saml2attribute.iter(attribute_value_urn):
-                    roles.append(role_tuple(*saml2attributevalue.text.split(',')))
+                    tmp = saml2attributevalue.text.split(',')
+                    temp_roles[tmp[1]] = tmp[0]
+        for key in sorted(temp_roles.keys()):
+            roles.append(role_tuple(temp_roles[key],key))
         return roles
 
     @staticmethod
