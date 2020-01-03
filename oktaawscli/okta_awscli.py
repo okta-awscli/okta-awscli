@@ -20,7 +20,7 @@ def get_credentials(aws_auth, okta_profile, profile,
     role = aws_auth.choose_aws_role(assertion)
     principal_arn, role_arn = role
 
-    # disable saving role_qrn to config file
+    # disable saving role_arn to config file to avoid skipping role choice
     #okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)
     duration = okta_auth_config.duration_for(okta_profile)
 
