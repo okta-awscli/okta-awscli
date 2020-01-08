@@ -87,7 +87,6 @@ of roles assigned to you.""" % self.role)
             return False
 
         parser = RawConfigParser()
-        parser.read(self.creds_file)
 
         if not os.path.exists(self.creds_dir):
             self.logger.info("AWS credentials path does not exist. Not checking.")
@@ -97,8 +96,17 @@ of roles assigned to you.""" % self.role)
             self.logger.info("AWS credentials file does not exist. Not checking.")
             return False
 
-        elif not parser.has_section(profile):
+        parser.read(self.creds_file)
+        if not parser.has_section(profile):
             self.logger.info("No existing credentials found. Requesting new credentials.")
+            return False
+
+        # check if creds are normal
+        elif not parser.has_option(self.profile,'aws_access_key_id'):
+            self.logger.info("No AWS_ACCESS_KEY_ID. Requesting new credentials.")
+            return False
+        elif not parser.has_option(self.profile,'aws_secret_access_key'):
+            self.logger.info("No AWS_SECRET_ACCESS_KEY. Requesting new credentials.")
             return False
 
         session = boto3.Session(profile_name=profile)
