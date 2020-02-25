@@ -23,11 +23,16 @@ class OktaAuthConfig():
         if self._value.has_option(okta_profile, 'base-url'):
             base_url = self._value.get(okta_profile, 'base-url')
             self.logger.info("Authenticating to: %s" % base_url)
-        else:
+        elif self._value.has_option('default', 'base-url'):
             base_url = self._value.get('default', 'base-url')
             self.logger.info(
                 "Using base-url from default profile %s" % base_url
             )
+        else:
+            self.logger.error(
+                "No profile found. Please define a default profile, or specify a named profile using `--okta-profile`"
+            )
+            exit(1)
         return base_url
 
     def app_link_for(self, okta_profile):
