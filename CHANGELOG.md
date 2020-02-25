@@ -1,6 +1,10 @@
 # Changelog
 
 ## [0.4.1] 2020-02-25
+### Added:
+- Pipenv support
+ - Thanks to: [@jrisebor](https://github.com/jrisebor)
+
 ### Fixed:
 - Minor typo
  - Thanks to: [@dx-pbuckley](https://github.com/dx-pbuckley)
