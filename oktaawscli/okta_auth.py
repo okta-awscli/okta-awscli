@@ -353,13 +353,12 @@ Please enroll an MFA factor in the Okta Web UI first!""")
         self.session_token = self.primary_auth()
         self.session_id = self.get_session(self.session_token)
         if not self.app_link:
-            app_name, app_link = self.get_apps(self.session_id)
-            self.okta_auth_config.save_chosen_app_link_for_profile(self.okta_profile, app_link)
+            app_name, self.app_link = self.get_apps(self.session_id)
+            self.okta_auth_config.save_chosen_app_link_for_profile(self.okta_profile, self.app_link)
         else:
             app_name = None
-            app_link = self.app_link
         self.session.cookies['sid'] = self.session_id
-        resp = self.session.get(app_link)
+        resp = self.session.get(self.app_link)
         assertion = self.get_saml_assertion(resp)
         return app_name, assertion
 
