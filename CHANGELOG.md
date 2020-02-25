@@ -1,8 +1,17 @@
 # Changelog
 
-## [0.4.1] 2019-10-23
+## [0.4.1] 2020-02-25
 ### Added:
 - Pipenv support
+ - Thanks to: [@jrisebor](https://github.com/jrisebor)
+
+### Fixed:
+- Minor typo
+ - Thanks to: [@dx-pbuckley](https://github.com/dx-pbuckley)
+- App link handling in MFA flow.
+ - Thanks to: [@iress-james-bowe](https://github.com/iress-james-bowe)
+- Handling of missing default profile. (#57)
+ - Thanks to: [@jrisebor](https://github.com/jrisebor)
 
 ## [0.4.0] 2019-04-14
 ### Added:
