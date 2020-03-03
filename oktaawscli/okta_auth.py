@@ -11,6 +11,8 @@ from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup as bs
 
+from oktaawscli.util import input
+
 try:
     from u2flib_host import u2f, exc
     from u2flib_host.constants import APDU_WRONG_DATA
@@ -18,10 +20,6 @@ try:
 except ImportError:
     U2F_ALLOWED = False
 
-try:
-    input = raw_input
-except NameError:
-    pass
 
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """

@@ -5,10 +5,7 @@ import os
 from configparser import RawConfigParser
 from getpass import getpass
 
-try:
-    input = raw_input
-except NameError:
-    pass
+from oktaawscli.util import input
 
 class OktaAuthConfig():
     """ Config helper class """
