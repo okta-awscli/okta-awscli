@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.1] 2020-03-11
+### Added:
+- Refresh role with force parameter
+ - Thanks to: [@saurabhjambhule](https://github.com/saurabhjambhule)
+
 ## [0.4.1] 2020-02-25
 ### Added:
 - Pipenv support
