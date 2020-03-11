@@ -17,10 +17,7 @@ def get_credentials(aws_auth, okta_profile, profile,
     okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
 
     _, assertion = okta.get_assertion()
-    print("calling...")
     role = aws_auth.choose_aws_role(assertion, refresh_role)
-    print(role)
-    print("done...")
     principal_arn, role_arn = role
 
     okta_auth_config.save_chosen_role_for_profile(okta_profile, role_arn)

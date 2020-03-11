@@ -33,10 +33,8 @@ class AwsAuth():
     def choose_aws_role(self, assertion, refresh_role):
         """ Choose AWS role from SAML assertion """
 
-        print("called...")
         roles = self.__extract_available_roles_from(assertion)
         if self.role:
-            self.logger.info("Inside.....")
             predefined_role = self.__find_predefined_role_from(roles)
             if predefined_role and not refresh_role:
                 self.logger.info("Using predefined role: %s" % self.role)
@@ -47,7 +45,6 @@ class AwsAuth():
                 self.logger.info("""Predefined role, %s, not found in the list
 of roles assigned to you.""" % self.role)
 
-        print("outside...")
         self.logger.info("Please choose a role.")
         role_options = self.__create_options_from(roles)
         for option in role_options:
