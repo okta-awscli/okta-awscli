@@ -79,9 +79,10 @@ created. If omitted, credentials will output to console.\n")
 @click.option('-c', '--cache', is_flag=True, help='Cache the default profile credentials \
 to ~/.okta-credentials.cache\n')
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
+@click.option('-l', '--lookup', is_flag=True, help='Look up AWS account names')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
-         debug, force, cache, awscli_args, token):
+         debug, force, cache, lookup, awscli_args, token):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -101,7 +102,7 @@ def main(okta_profile, profile, verbose, version,
 
     if not okta_profile:
         okta_profile = "default"
-    aws_auth = AwsAuth(profile, okta_profile, verbose, logger)
+    aws_auth = AwsAuth(profile, okta_profile, lookup, verbose, logger)
     if not aws_auth.check_sts_token(profile) or force:
         if force and profile:
             logger.info("Force option selected, \
