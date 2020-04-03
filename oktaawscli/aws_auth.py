@@ -165,11 +165,17 @@ of roles assigned to you.""" % self.role)
                                       aws_access_key_id = access_key_id,
                                       aws_secret_access_key = secret_access_key,
                                       aws_session_token = session_token)
-                alias = client.list_account_aliases()['AccountAliases'][0]
-                rolename = role.role_arn.split(':')[5]
-                options.append('{i}: {accname} - {rolename}'.format(i=index+1,
+                try:
+                    alias = client.list_account_aliases()['AccountAliases'][0]
+                    rolename = role.role_arn.split(':')[5]
+                    option = '{i}: {accname} - {rolename}'.format(i=index+1,
                                                                   accname = alias,
-                                                                  rolename = rolename))
+                                                                  rolename = rolename)
+                except Exception as e:
+                    option = '{i}: {rolearn}'.format(i=index+1,
+                                                     rolearn = role.role_arn)
+                    pass
+                options.append(option)
             else:
                 options.append("%d: %s" % (index + 1, role.role_arn))
         return options
