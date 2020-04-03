@@ -157,7 +157,11 @@ of roles assigned to you.""" % self.role)
                 access_key_id = creds['AccessKeyId']
                 secret_access_key = creds['SecretAccessKey']
                 session_token = creds['SessionToken']
+                arn_region = role.principal_arn.split(':')[1]
+                iam_region = 'us-gov-west-1' if arn_region == 'aws-us-gov' else 'us-east-1'
+
                 client = boto3.client('iam',
+                                      region_name = iam_region,
                                       aws_access_key_id = access_key_id,
                                       aws_secret_access_key = secret_access_key,
                                       aws_session_token = session_token)
