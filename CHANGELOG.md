@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.1] 2020-05-07
+### Added:
+- Url Validation of `app-link` in config
+
 ## [0.4.1] 2020-02-25
 ### Added:
 - Pipenv support

@@ -4,6 +4,8 @@ import os
 
 from configparser import RawConfigParser
 from getpass import getpass
+import validators
+
 
 try:
     input = raw_input
@@ -42,6 +44,11 @@ class OktaAuthConfig():
             app_link = self._value.get(okta_profile, 'app-link')
         elif self._value.has_option('default', 'app-link'):
             app_link = self._value.get('default', 'app-link')
+
+        if not validators.url(app_link):
+            self.logger.error("The app-link provided: %s is an invalid url" % app_link)
+            exit(-1)
+
         self.logger.info("App Link set as: %s" % app_link)
         return app_link
 
