@@ -62,3 +62,34 @@ Optional flags:
 - `--cache` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
 - `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
 - `--token` or `-t` Pass in the TOTP token from your authenticator
+
+## Run from docker container
+This process is taken from gimme-aws-creds and adapted
+
+### Build the image 
+```
+docker build -t okta-awscli .
+
+```
+### Run the image with the command
+
+```
+docker run -it --rm -v ~/.aws/credentials:/root/.aws/credentials -v ~/.okta-aws:/root/.okta-aws --profile default okta-awscli iam list-users
+```
+
+### if you want to type less you can create an alias
+
+```
+alias okta-awscli='docker run -it --rm -v ~/.aws:/root/.aws -v ~/.okta-aws:/root/.okta-aws okta-awscli'
+```
+
+and just type 
+```
+okta-awscli
+```
+
+you can add this to you .bashrc 
+```
+source <PATH TO GIT REPO>/set-alias.bash
+```
+
