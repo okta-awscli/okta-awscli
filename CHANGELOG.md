@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.2] 2020-07-10
+### Added:
+- Support provider/role returning in unexpected order in assertion.
+
 ## [0.4.1] 2020-02-25
 ### Added:
 - Pipenv support
