@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.3] TBD
+### Removed
+- Unused session cookies.
+
 ## [0.4.2] 2020-10-02
 ### Added:
 - Refresh role with force parameter
