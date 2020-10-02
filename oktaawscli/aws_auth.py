@@ -1,6 +1,7 @@
 """ AWS authentication """
 # pylint: disable=C0325
 import os
+import sys
 import base64
 import xml.etree.ElementTree as ET
 from collections import namedtuple
@@ -30,20 +31,22 @@ class AwsAuth():
             self.logger.debug("Setting AWS role to %s" % self.role)
 
 
-    def choose_aws_role(self, assertion):
+    def choose_aws_role(self, assertion, refresh_role):
         """ Choose AWS role from SAML assertion """
 
         roles = self.__extract_available_roles_from(assertion)
         if self.role:
             predefined_role = self.__find_predefined_role_from(roles)
-            if predefined_role:
+            if predefined_role and not refresh_role:
                 self.logger.info("Using predefined role: %s" % self.role)
                 return predefined_role
+            elif refresh_role:
+                self.logger.info("""Refreshing role""")
             else:
                 self.logger.info("""Predefined role, %s, not found in the list
 of roles assigned to you.""" % self.role)
-                self.logger.info("Please choose a role.")
 
+        self.logger.info("Please choose a role.")
         role_options = self.__create_options_from(roles, assertion, self.lookup)
         for option in role_options:
             print(option)
@@ -70,10 +73,10 @@ of roles assigned to you.""" % self.role)
         except ClientError as ex:
             if logger:
                 logger.error(
-                    "Could not retrieve credentials: %s" % 
+                    "Could not retrieve credentials: %s" %
                     ex.response['Error']['Message']
                 )
-                exit(-1)
+                sys.exit(-1)
             else:
                 raise
 
