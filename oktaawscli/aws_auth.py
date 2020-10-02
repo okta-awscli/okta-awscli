@@ -1,6 +1,7 @@
 """ AWS authentication """
 # pylint: disable=C0325
 import os
+import sys
 import base64
 import xml.etree.ElementTree as ET
 from collections import namedtuple
@@ -75,7 +76,7 @@ of roles assigned to you.""" % self.role)
                     "Could not retrieve credentials: %s" %
                     ex.response['Error']['Message']
                 )
-                exit(-1)
+                sys.exit(-1)
             else:
                 raise
 

@@ -1,3 +1,7 @@
+import time
+import sys
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
 from oktaawscli.version import __version__
 
 class OktaAuthMfaApp():
@@ -26,19 +30,19 @@ class OktaAuthMfaApp():
         """ decide what the next step in the login process is"""
         if 'errorCode' in login_data:
             self.logger.error("LOGIN ERROR: {} | Error Code: {}".format(login_data['errorSummary'], login_data['errorCode']))
-            exit(2)
+            sys.exit(2)
 
         status = login_data['status']
 
         if status == 'UNAUTHENTICATED':
             self.logger.error("You are not authenticated -- please try to log in again")
-            exit(2)
+            sys.exit(2)
         elif status == 'LOCKED_OUT':
             self.logger.error("Your Okta access has been locked out due to failed login attempts.")
-            exit(2)
+            sys.exit(2)
         elif status == 'MFA_ENROLL':
             self.logger.error("You must enroll in MFA before using this tool.")
-            exit(2)
+            sys.exit(2)
         elif status == 'MFA_REQUIRED':
             return self._login_multi_factor(state_token, login_data)
         elif status == 'MFA_CHALLENGE':
@@ -102,7 +106,7 @@ class OktaAuthMfaApp():
         # make sure the choice is valid
         if int(selection) > len(factors):
             self.logger.error("You made an invalid selection")
-            exit(1)
+            sys.exit(1)
 
         return factors[int(selection)]
 
@@ -121,7 +125,7 @@ class OktaAuthMfaApp():
         elif factor['factorType'] == 'token':
             return factor['factorType'] + ": " + factor['profile']['credentialId']
         else:
-            return ("Unknown MFA type: " + factor['factorType'])
+            return "Unknown MFA type: " + factor['factorType']
 
 
     def _login_send_sms(self, state_token, factor):
@@ -196,7 +200,7 @@ class OktaAuthMfaApp():
 
     def _login_input_mfa_challenge(self, state_token, next_url):
         """ Submit verification code for SMS or TOTP authentication methods"""
-        pass_code = self._mfa_code;
+        pass_code = self._mfa_code
         if pass_code is None:
             pass_code = input("Enter MFA verification code: ")
         response = self.session.post(
@@ -231,4 +235,3 @@ class OktaAuthMfaApp():
             return {'stateToken': response_data['stateToken'], 'apiResponse': response_data}
         if 'sessionToken' in response_data:
             return {'stateToken': None, 'sessionToken': response_data['sessionToken'], 'apiResponse': response_data}
-

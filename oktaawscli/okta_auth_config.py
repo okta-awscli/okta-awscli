@@ -1,7 +1,7 @@
 """ Config helper """
 
 import os
-
+import sys
 from configparser import RawConfigParser
 from getpass import getpass
 
@@ -32,7 +32,7 @@ class OktaAuthConfig():
             self.logger.error(
                 "No profile found. Please define a default profile, or specify a named profile using `--okta-profile`"
             )
-            exit(1)
+            sys.exit(1)
         return base_url
 
     def app_link_for(self, okta_profile):
@@ -79,15 +79,15 @@ class OktaAuthConfig():
             )
             try:
                 return int(duration)
-            except ValueError as e:
+            except ValueError:
                 self.logger.warn(
                     "Duration could not be converted to a number,"
                     " ignoring."
                 )
         return None
 
-    def save_chosen_role_for_profile(self, okta_profile, role_arn):
-        """ Gets role from config """
+    def write_role_to_profile(self, okta_profile, role_arn):
+        """ Saves role to profile in config """
         if not self._value.has_section(okta_profile):
             self._value.add_section(okta_profile)
 
@@ -98,8 +98,8 @@ class OktaAuthConfig():
         with open(self.config_path, 'w+') as configfile:
             self._value.write(configfile)
 
-    def save_chosen_app_link_for_profile(self, okta_profile, app_link):
-        """ Gets role from config """
+    def write_applink_to_profile(self, okta_profile, app_link):
+        """ Saves app link to profile in config """
         if not self._value.has_section(okta_profile):
             self._value.add_section(okta_profile)
 
