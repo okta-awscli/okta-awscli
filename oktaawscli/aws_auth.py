@@ -31,20 +31,22 @@ class AwsAuth():
             self.logger.debug("Setting AWS role to %s" % self.role)
 
 
-    def choose_aws_role(self, assertion):
+    def choose_aws_role(self, assertion, refresh_role):
         """ Choose AWS role from SAML assertion """
 
         roles = self.__extract_available_roles_from(assertion)
         if self.role:
             predefined_role = self.__find_predefined_role_from(roles)
-            if predefined_role:
+            if predefined_role and not refresh_role:
                 self.logger.info("Using predefined role: %s" % self.role)
                 return predefined_role
+            elif refresh_role:
+                self.logger.info("""Refreshing role""")
             else:
                 self.logger.info("""Predefined role, %s, not found in the list
 of roles assigned to you.""" % self.role)
-                self.logger.info("Please choose a role.")
 
+        self.logger.info("Please choose a role.")
         role_options = self.__create_options_from(roles)
         for option in role_options:
             print(option)

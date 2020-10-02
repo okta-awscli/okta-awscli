@@ -11,14 +11,14 @@ from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
 def get_credentials(aws_auth, okta_profile, profile,
-                    verbose, logger, totp_token, cache):
+                    verbose, logger, totp_token, cache, refresh_role):
     """ Gets credentials from Okta """
 
     okta_auth_config = OktaAuthConfig(logger)
     okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
 
     _, assertion = okta.get_assertion()
-    role = aws_auth.choose_aws_role(assertion)
+    role = aws_auth.choose_aws_role(assertion, refresh_role)
     principal_arn, role_arn = role
 
     okta_auth_config.write_role_to_profile(okta_profile, role_arn)
@@ -110,8 +110,9 @@ def main(okta_profile, profile, verbose, version,
         elif force:
             logger.info("Force option selected, but no profile provided. \
                 Option has no effect.")
+        refresh_role = True if force else False
         get_credentials(
-            aws_auth, okta_profile, profile, verbose, logger, token, cache
+            aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role
         )
 
     if awscli_args:
