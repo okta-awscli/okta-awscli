@@ -1,11 +1,19 @@
+import time
+import sys
 import requests
+try:
+    from u2flib_host import u2f, exc
+    from u2flib_host.constants import APDU_WRONG_DATA
+    U2F_ALLOWED = True
+except ImportError:
+    U2F_ALLOWED = False
 
 class OktaAuthMfaBase():
     """ Handles base org Okta MFA """
-    def __init__(self, logger, state_token, u2f_allowed, totp_token=None):
+    def __init__(self, logger, state_token, factor, totp_token=None):
         self.state_token = state_token
         self.logger = logger
-        self.u2f_allowed = u2f_allowed
+        self.factor = factor
         self.totp_token = totp_token
 
 
@@ -13,7 +21,7 @@ class OktaAuthMfaBase():
         """ Performs MFA auth against Okta """
 
         supported_factor_types = ["token:software:totp", "push"]
-        if self.u2f_allowed:
+        if U2F_ALLOWED:
             supported_factor_types.append("u2f")
 
         supported_factors = []
@@ -45,7 +53,7 @@ class OktaAuthMfaBase():
                     else:
                         factor_name = "Okta Verify"
                 elif factor_provider == "FIDO":
-                        factor_name = "u2f"
+                    factor_name = "u2f"
                 else:
                     factor_name = "Unsupported factor type: %s" % factor_provider
 
@@ -63,8 +71,8 @@ class OktaAuthMfaBase():
                              supported_factors[factor_choice]['provider'])
             session_token = self._verify_single_factor(supported_factors[factor_choice])
         else:
-            print("MFA required, but no supported factors enrolled! Exiting.")
-            exit(1)
+            print("MFA required, but no supported factors enrolled! sys.exiting.")
+            sys.exit(1)
         return session_token
 
     def _verify_single_factor(self, factor):
@@ -97,10 +105,10 @@ class OktaAuthMfaBase():
                         return resp_json['sessionToken']
                     elif resp_json['factorResult'] == 'TIMEOUT':
                         print("Verification timed out")
-                        exit(1)
+                        sys.exit(1)
                     elif resp_json['factorResult'] == 'REJECTED':
                         print("Verification was rejected")
-                        exit(1)
+                        sys.exit(1)
                     else:
                         time.sleep(0.5)
 
@@ -108,7 +116,7 @@ class OktaAuthMfaBase():
                 devices = u2f.list_devices()
                 if len(devices) == 0:
                     self.logger.warning("No U2F device found")
-                    exit(1)
+                    sys.exit(1)
 
                 challenge = dict()
                 challenge['appId'] = resp_json['_embedded']['factor']['profile']['appId']
@@ -130,19 +138,19 @@ class OktaAuthMfaBase():
                                     return resp_json['sessionToken']
                                 elif resp_json['factorResult'] == 'TIMEOUT':
                                     self.logger.warning("Verification timed out")
-                                    exit(1)
+                                    sys.exit(1)
                                 elif resp_json['factorResult'] == 'REJECTED':
                                     self.logger.warning("Verification was rejected")
-                                    exit(1)
-                            except exc.APDUError as e:
-                                if e.code == APDU_WRONG_DATA:
+                                    sys.exit(1)
+                            except exc.APDUError as ex:
+                                if ex.code == APDU_WRONG_DATA:
                                     devices.remove(device)
                                 time.sleep(0.1)
 
         elif resp.status_code != 200:
             self.logger.error(resp_json['errorSummary'])
-            exit(1)
+            sys.exit(1)
         else:
             self.logger.error(resp_json)
-            exit(1)
+            sys.exit(1)
         return None

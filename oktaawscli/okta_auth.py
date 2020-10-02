@@ -2,16 +2,12 @@
 # pylint: disable=C0325,R0912,C1801
 # Incorporates flow auth code taken from https://github.com/Nike-Inc/gimme-aws-creds
 import sys
-import time
-import requests
 import re
 from codecs import decode
-from urllib.parse import parse_qs
-from urllib.parse import urlparse
+import requests
+from bs4 import BeautifulSoup as bs
 from oktaawscli.okta_auth_mfa_base import OktaAuthMfaBase
 from oktaawscli.okta_auth_mfa_app import OktaAuthMfaApp
-
-from bs4 import BeautifulSoup as bs
 
 try:
     input = raw_input
@@ -37,12 +33,6 @@ class OktaAuth():
         self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
         self.auth_url = "%s/api/v1/authn" % self.https_base_url
 
-        try:
-            from u2flib_host import u2f, exc
-            from u2flib_host.constants import APDU_WRONG_DATA
-            self.u2f_allowed = True
-        except ImportError:
-            self.u2f_allowed = False
 
     def primary_auth(self):
         """ Performs primary auth against Okta """
@@ -59,20 +49,20 @@ class OktaAuth():
             if resp_json['status'] == 'MFA_REQUIRED':
                 factors_list = resp_json['_embedded']['factors']
                 state_token = resp_json['stateToken']
-                mfa_base = OktaAuthMfaBase(self.logger, state_token, self.u2f_allowed, self.totp_token)
+                mfa_base = OktaAuthMfaBase(self.logger, state_token, self.factor, self.totp_token)
                 session_token = mfa_base.verify_mfa(factors_list)
             elif resp_json['status'] == 'SUCCESS':
                 session_token = resp_json['sessionToken']
             elif resp_json['status'] == 'MFA_ENROLL':
                 self.logger.warning("""MFA not enrolled. Cannot continue.
 Please enroll an MFA factor in the Okta Web UI first!""")
-                exit(2)
+                sys.exit(2)
         elif resp.status_code != 200:
             self.logger.error(resp_json['errorSummary'])
-            exit(1)
+            sys.exit(1)
         else:
             self.logger.error(resp_json)
-            exit(1)
+            sys.exit(1)
 
 
         return session_token
@@ -99,7 +89,7 @@ Please enroll an MFA factor in the Okta Web UI first!""")
                 aws_apps.append(app)
         if not aws_apps:
             self.logger.error("No AWS apps are available for your user. \
-                Exiting.")
+                sys.exiting.")
             sys.exit(1)
 
         aws_apps = sorted(aws_apps, key=lambda app: app['sortOrder'])
@@ -150,7 +140,7 @@ Please enroll an MFA factor in the Okta Web UI first!""")
 
         if not assertion:
             self.logger.error("SAML assertion not valid: " + assertion)
-            exit(-1)
+            sys.exit(-1)
         return assertion
 
 
