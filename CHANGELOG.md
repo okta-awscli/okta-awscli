@@ -4,6 +4,8 @@
 ### Added:
 - Refresh role with force parameter
  - Thanks to: [@saurabhjambhule](https://github.com/saurabhjambhule)
+- Url Validation of `app-link` in config
+
 
 ## [0.4.1] 2020-02-25
 ### Added:
