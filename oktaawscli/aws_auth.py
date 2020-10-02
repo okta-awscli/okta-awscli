@@ -151,11 +151,11 @@ of roles assigned to you.""" % self.role)
                     roles.append(role_tuple(*saml2attributevalue.text.split(',')))
         return roles
 
-    @staticmethod
-    def __create_options_from(roles, assertion, lookup=False):
+    def __create_options_from(self, roles, assertion, lookup=False):
         options = []
         for index, role in enumerate(roles):
             if lookup:
+                self.logger.debug("Performing AWS account alias lookup")
                 creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900)
                 access_key_id = creds['AccessKeyId']
                 secret_access_key = creds['SecretAccessKey']
@@ -174,7 +174,8 @@ of roles assigned to you.""" % self.role)
                     option = '{i}: {accname} - {rolename}'.format(i=index+1,
                                                                   accname = alias,
                                                                   rolename = rolename)
-                except Exception as e:
+                except Exception as ex:
+                    self.logger.warning("Unable to perform alias lookup: %s" % ex)
                     option = '{i}: {rolearn}'.format(i=index+1,
                                                      rolearn = role.role_arn)
                     pass
