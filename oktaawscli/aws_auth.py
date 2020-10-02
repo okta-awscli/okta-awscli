@@ -1,6 +1,7 @@
 """ AWS authentication """
 # pylint: disable=C0325
 import os
+import sys
 import base64
 import xml.etree.ElementTree as ET
 from collections import namedtuple
@@ -8,14 +9,14 @@ from configparser import RawConfigParser
 import boto3
 from botocore.exceptions import ClientError
 
-
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
 
-    def __init__(self, profile, okta_profile, verbose, logger):
+    def __init__(self, profile, okta_profile, lookup, verbose, logger):
         home_dir = os.path.expanduser('~')
         self.creds_dir = home_dir + "/.aws"
         self.creds_file = self.creds_dir + "/credentials"
+        self.lookup = lookup
         self.profile = profile
         self.verbose = verbose
         self.logger = logger
@@ -30,21 +31,23 @@ class AwsAuth():
             self.logger.debug("Setting AWS role to %s" % self.role)
 
 
-    def choose_aws_role(self, assertion):
+    def choose_aws_role(self, assertion, refresh_role):
         """ Choose AWS role from SAML assertion """
 
         roles = self.__extract_available_roles_from(assertion)
         if self.role:
             predefined_role = self.__find_predefined_role_from(roles)
-            if predefined_role:
+            if predefined_role and not refresh_role:
                 self.logger.info("Using predefined role: %s" % self.role)
                 return predefined_role
+            elif refresh_role:
+                self.logger.info("""Refreshing role""")
             else:
                 self.logger.info("""Predefined role, %s, not found in the list
 of roles assigned to you.""" % self.role)
-                self.logger.info("Please choose a role.")
 
-        role_options = self.__create_options_from(roles)
+        self.logger.info("Please choose a role.")
+        role_options = self.__create_options_from(roles, assertion, self.lookup)
         for option in role_options:
             print(option)
 
@@ -70,10 +73,10 @@ of roles assigned to you.""" % self.role)
         except ClientError as ex:
             if logger:
                 logger.error(
-                    "Could not retrieve credentials: %s" % 
+                    "Could not retrieve credentials: %s" %
                     ex.response['Error']['Message']
                 )
-                exit(-1)
+                sys.exit(-1)
             else:
                 raise
 
@@ -148,11 +151,37 @@ of roles assigned to you.""" % self.role)
                     roles.append(role_tuple(*saml2attributevalue.text.split(',')))
         return roles
 
-    @staticmethod
-    def __create_options_from(roles):
+    def __create_options_from(self, roles, assertion, lookup=False):
         options = []
         for index, role in enumerate(roles):
-            options.append("%d: %s" % (index + 1, role.role_arn))
+            if lookup:
+                self.logger.debug("Performing AWS account alias lookup")
+                creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900)
+                access_key_id = creds['AccessKeyId']
+                secret_access_key = creds['SecretAccessKey']
+                session_token = creds['SessionToken']
+                arn_region = role.principal_arn.split(':')[1]
+                iam_region = 'us-gov-west-1' if arn_region == 'aws-us-gov' else 'us-east-1'
+
+                client = boto3.client('iam',
+                                      region_name = iam_region,
+                                      aws_access_key_id = access_key_id,
+                                      aws_secret_access_key = secret_access_key,
+                                      aws_session_token = session_token)
+                try:
+                    alias = client.list_account_aliases()['AccountAliases'][0]
+                    rolename = role.role_arn.split(':')[5]
+                    option = '{i}: {accname} - {rolename}'.format(i=index+1,
+                                                                  accname = alias,
+                                                                  rolename = rolename)
+                except Exception as ex:
+                    self.logger.warning("Unable to perform alias lookup: %s" % ex)
+                    option = '{i}: {rolearn}'.format(i=index+1,
+                                                     rolearn = role.role_arn)
+                    pass
+                options.append(option)
+            else:
+                options.append("%d: %s" % (index + 1, role.role_arn))
         return options
 
     def __find_predefined_role_from(self, roles):
