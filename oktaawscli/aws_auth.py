@@ -164,7 +164,11 @@ of roles assigned to you.""" % self.role)
         for saml2attribute in root.iter('{urn:oasis:names:tc:SAML:2.0:assertion}Attribute'):
             if saml2attribute.get('Name') == aws_attribute_role:
                 for saml2attributevalue in saml2attribute.iter(attribute_value_urn):
-                    roles.append(role_tuple(*saml2attributevalue.text.split(',')))
+                    result_set = saml2attributevalue.text.split(',')
+                    if result_set[0].split(':')[5].startswith('role/'):
+                        roles.append(role_tuple(*reversed(result_set)))
+                    else:
+                        roles.append(role_tuple(*result_set))
         return roles
 
     def __create_options_from(self, roles, assertion, lookup=False):

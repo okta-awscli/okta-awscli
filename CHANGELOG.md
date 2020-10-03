@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.4] TBD
+### Added:
+- Support provider/role returning in unexpected order in assertion.
+
 ## [0.4.3] 2020-10-03
 ### Fixed
 - Improved input handling
@@ -25,7 +29,6 @@
 - Fixed some debug logging issues.
 - General linting and other clean-up.
 - `master` branch renamed to `main`.
-
 
 ## [0.4.1] 2020-02-25
 ### Added:
