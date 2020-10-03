@@ -70,6 +70,7 @@ of roles assigned to you.""" % self.role)
 
         # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
         aws_partition = AwsAuth.__find_aws_partition_from_role_arn(principal_arn)
+        logger.debug("Getting STS token against ARN partition: %s" % aws_partition)
         if aws_partition == AwsPartition.AWS_US_GOV:
             sts = boto3.client('sts', region_name='us-gov-west-1')
         else:
@@ -114,6 +115,7 @@ of roles assigned to you.""" % self.role)
             self.logger.info("No existing credentials found. Requesting new credentials.")
             return False
 
+        self.logger.debug("Checking STS token against ARN partition: %s" % self.aws_partition)
         if self.aws_partition == AwsPartition.AWS_US_GOV:
             session = boto3.Session(profile_name=profile, region_name='us-gov-west-1')
         else:
@@ -170,7 +172,7 @@ of roles assigned to you.""" % self.role)
         for index, role in enumerate(roles):
             if lookup:
                 self.logger.debug("Performing AWS account alias lookup")
-                creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900)
+                creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900, logger=self.logger)
                 access_key_id = creds['AccessKeyId']
                 secret_access_key = creds['SecretAccessKey']
                 session_token = creds['SessionToken']
