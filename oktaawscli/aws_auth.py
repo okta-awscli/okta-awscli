@@ -6,8 +6,15 @@ import base64
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from configparser import RawConfigParser
+from enum import Enum
 import boto3
 from botocore.exceptions import ClientError
+
+
+class AwsPartition(Enum):
+    AWS = 1 
+    AWS_US_GOV = 2
+
 
 class AwsAuth():
     """ Methods to support AWS authentication using STS """
@@ -21,6 +28,7 @@ class AwsAuth():
         self.verbose = verbose
         self.logger = logger
         self.role = ""
+        self.aws_partition = AwsPartition.AWS
 
         okta_config = home_dir + '/.okta-aws'
         parser = RawConfigParser()
@@ -29,6 +37,8 @@ class AwsAuth():
         if parser.has_option(okta_profile, 'role'):
             self.role = parser.get(okta_profile, 'role')
             self.logger.debug("Setting AWS role to %s" % self.role)
+            self.aws_partition = self.__find_aws_partition_from_role_arn(self.role)
+            self.logger.debug("Setting AWS partition to %s" % self.aws_partition)
 
 
     def choose_aws_role(self, assertion, refresh_role):
@@ -59,8 +69,9 @@ of roles assigned to you.""" % self.role)
         """ Gets a token from AWS STS """
 
         # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
-        arn_region = principal_arn.split(':')[1]
-        if arn_region == 'aws-us-gov':
+        aws_partition = AwsAuth.__find_aws_partition_from_role_arn(principal_arn)
+        logger.debug("Getting STS token against ARN partition: %s" % aws_partition)
+        if aws_partition == AwsPartition.AWS_US_GOV:
             sts = boto3.client('sts', region_name='us-gov-west-1')
         else:
             sts = boto3.client('sts')
@@ -104,7 +115,12 @@ of roles assigned to you.""" % self.role)
             self.logger.info("No existing credentials found. Requesting new credentials.")
             return False
 
-        session = boto3.Session(profile_name=profile)
+        self.logger.debug("Checking STS token against ARN partition: %s" % self.aws_partition)
+        if self.aws_partition == AwsPartition.AWS_US_GOV:
+            session = boto3.Session(profile_name=profile, region_name='us-gov-west-1')
+        else:
+            session = boto3.Session(profile_name=profile)
+
         sts = session.client('sts')
         try:
             sts.get_caller_identity()
@@ -156,7 +172,7 @@ of roles assigned to you.""" % self.role)
         for index, role in enumerate(roles):
             if lookup:
                 self.logger.debug("Performing AWS account alias lookup")
-                creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900)
+                creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900, logger=self.logger)
                 access_key_id = creds['AccessKeyId']
                 secret_access_key = creds['SecretAccessKey']
                 session_token = creds['SessionToken']
@@ -183,6 +199,14 @@ of roles assigned to you.""" % self.role)
             else:
                 options.append("%d: %s" % (index + 1, role.role_arn))
         return options
+
+    @staticmethod
+    def __find_aws_partition_from_role_arn(role_arn):
+        arn_aws_partition = role_arn.split(':')[1]
+        if arn_aws_partition == 'aws-us-gov':
+            return AwsPartition.AWS_US_GOV
+        else:
+            return AwsPartition.AWS
 
     def __find_predefined_role_from(self, roles):
         found_roles = filter(lambda role_tuple: role_tuple.role_arn == self.role, roles)

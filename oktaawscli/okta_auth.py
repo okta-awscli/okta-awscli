@@ -8,11 +8,8 @@ import requests
 from bs4 import BeautifulSoup as bs
 from oktaawscli.okta_auth_mfa_base import OktaAuthMfaBase
 from oktaawscli.okta_auth_mfa_app import OktaAuthMfaApp
+from oktaawscli.util import input
 
-try:
-    input = raw_input
-except NameError:
-    pass
 
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """
@@ -123,9 +120,6 @@ Please enroll an MFA factor in the Okta Web UI first!""")
             return None
 
         self.session.cookies['oktaStateToken'] = state_token
-        self.session.cookies['mp_Account Settings__c'] = '0'
-        self.session.cookies['Okta_Verify_Autopush_2012557501'] = 'true'
-        self.session.cookies['Okta_Verify_Autopush_-610254449'] = 'true'
 
         mfa_app = OktaAuthMfaApp(self.logger, self.session, self.verify_ssl, self.auth_url)
         api_response = mfa_app.stepup_auth(self.auth_url, state_token)

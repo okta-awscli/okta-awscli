@@ -108,9 +108,6 @@ def main(okta_profile, profile, verbose, version,
         if force and profile:
             logger.info("Force option selected, \
                 getting new credentials anyway.")
-        elif force:
-            logger.info("Force option selected, but no profile provided. \
-                Option has no effect.")
         refresh_role = True if force else False
         get_credentials(
             aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role
