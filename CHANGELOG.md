@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.4.4] TBD
+## [0.4.4] 2020-10-03
 ### Added:
 - Support provider/role returning in unexpected order in assertion.
 - Allow `profile` to be set from config file in addition to command-line option.
