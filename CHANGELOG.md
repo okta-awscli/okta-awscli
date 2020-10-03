@@ -1,8 +1,13 @@
 # Changelog
 
 ## [0.4.3] TBD
+### Fixed
+- Improved input handling
+ - Thanks to: [@zaltoprofen](https://github.com/zaltoprofen)
+
 ### Removed
-- Unused session cookies.
+- Unused session cookies. (#111)
+- Extraneous logging message for `--force` option. 
 
 ## [0.4.2] 2020-10-02
 ### Added:
