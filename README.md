@@ -1,6 +1,6 @@
 # okta-awscli - Retrieve AWS credentials from Okta
 
-Master branch: [![Build Status - master](https://travis-ci.org/jmhale/okta-awscli.svg?branch=master)](https://travis-ci.org/jmhale/okta-awscli)
+Main branch: [![Build Status - main](https://travis-ci.org/jmhale/okta-awscli.svg?branch=main)](https://travis-ci.org/jmhale/okta-awscli)
 
 Develop branch: [![Build Status - develop](https://travis-ci.org/jmhale/okta-awscli.svg?branch=develop)](https://travis-ci.org/jmhale/okta-awscli)
 
@@ -62,3 +62,7 @@ Optional flags:
 - `--cache` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
 - `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
 - `--token` or `-t` Pass in the TOTP token from your authenticator
+- `--lookup` or `-l` Lookup and return the AWS Account Alias for each role, instead of returning the raw ARN. 
+  - Note that this will attempt to perform `iam:ListAccountAliases` on every account that you have access to via Okta. This is important for two reasons:
+    - All of your roles must have this permission attached to it via an IAM policy.
+    - This may be important for you, if you have compliance considerations around only accessing accounts that you're actively doing work in.
