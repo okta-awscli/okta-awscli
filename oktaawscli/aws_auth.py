@@ -98,7 +98,7 @@ of roles assigned to you.""" % self.role)
         credentials = response['Credentials']
         return credentials
 
-    def check_sts_token(self):
+    def check_sts_token(self, profile):
         """ Verifies that STS credentials are valid """
         # Don't check for creds if profile is blank
         if not self.profile:
