@@ -36,7 +36,7 @@ def get_credentials(aws_auth, okta_profile, profile,
     session_token = sts_token['SessionToken']
     session_token_expiry = sts_token['Expiration']
     logger.info("Session token expires on: %s" % session_token_expiry)
-    if not profile:
+    if not aws_auth.profile:
         exports = console_output(access_key_id, secret_access_key,
                                  session_token, verbose)
         if cache:
@@ -46,7 +46,7 @@ def get_credentials(aws_auth, okta_profile, profile,
             cache.close()
         sys.exit(0)
     else:
-        aws_auth.write_sts_token(profile, access_key_id,
+        aws_auth.write_sts_token(access_key_id,
                                  secret_access_key, session_token)
 
 
@@ -103,9 +103,11 @@ def main(okta_profile, profile, verbose, version,
 
     if not okta_profile:
         okta_profile = "default"
+
     aws_auth = AwsAuth(profile, okta_profile, lookup, verbose, logger)
     if not aws_auth.check_sts_token(profile) or force:
         if force and profile:
+
             logger.info("Force option selected, \
                 getting new credentials anyway.")
         refresh_role = True if force else False

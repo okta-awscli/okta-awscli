@@ -22,11 +22,12 @@ Parsing the HTML is still required to get the SAML assertion, after authenticati
 base-url = <your_okta_org>.okta.com
 
 ## The remaining parameters are optional.
-## You will be prompted for them, if they're not included here.
+## You may be prompted for them, if they're not included here.
 username = <your_okta_username>
 password = <your_okta_password> # Only save your password if you know what you are doing!
 factor   = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
 role     = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
+profile  = <aws_profile_to_store_credentials> # Sets your temporary credentials to a profile in `.aws/credentials`. Overridden by `--profile` command line flag
 app-link = <app_link_from_okta> # Found in Okta's configuration for your AWS account.
 duration = 3600 # duration in seconds to request a session token for, make sure your accounts (both AWS itself and the associated okta application) allow for large durations. default: 3600
 ```
@@ -55,7 +56,7 @@ duration = 3600 # duration in seconds to request a session token for, make sure 
 If no awscli commands are provided, then okta-awscli will simply output STS credentials to your credentials file, or console, depending on how `--profile` is set.
 
 Optional flags:
-- `--profile` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted, credentials will output to console.
+- `--profile` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted and not configured in `~/.okta-aws`, credentials will output to console.
 - `--force` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
 - `--verbose` More verbose output.
 - `--debug` Very verbose output. Useful for debugging.

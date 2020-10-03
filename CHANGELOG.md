@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.4] 2020-10-03
+### Added:
+- Support provider/role returning in unexpected order in assertion.
+- Allow `profile` to be set from config file in addition to command-line option.
+  - Thanks to: [@jrisebor](https://github.com/jrisebor)
+  
 ## [0.4.3] 2020-10-03
 ### Fixed
 - Improved input handling
@@ -25,7 +31,6 @@
 - Fixed some debug logging issues.
 - General linting and other clean-up.
 - `master` branch renamed to `main`.
-
 
 ## [0.4.1] 2020-02-25
 ### Added:
