@@ -1,8 +1,34 @@
 # Changelog
 
-## [0.4.2] 2020-07-10
+## [0.4.4] TBD
 ### Added:
 - Support provider/role returning in unexpected order in assertion.
+
+## [0.4.3] 2020-10-03
+### Fixed
+- Improved input handling
+ - Thanks to: [@zaltoprofen](https://github.com/zaltoprofen)
+- Handling of STS token refresh in AWS GovCloud
+ - Thanks to: [@mrbcmorris](https://github.com/mrbcmorris)
+
+### Removed
+- Unused session cookies. (#111)
+- Extraneous logging message for `--force` option. 
+
+## [0.4.2] 2020-10-02
+### Added:
+- Refresh role with force parameter
+ - Thanks to: [@saurabhjambhule](https://github.com/saurabhjambhule)
+- Url validation of `app-link` in config
+ - Thanks to: [@ngfgrant](https://github.com/ngfgrant)
+- Lookup support for AWS account aliases
+ - Thanks to: [@gczuczy](https://github.com/gczuczy)
+
+### Fixed:
+- Refactored base org and per-app MFA logic into separate classes.
+- Fixed some debug logging issues.
+- General linting and other clean-up.
+- `master` branch renamed to `main`.
 
 ## [0.4.1] 2020-02-25
 ### Added:
