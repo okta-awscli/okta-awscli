@@ -7,10 +7,7 @@ from getpass import getpass
 import validators
 
 
-try:
-    input = raw_input
-except NameError:
-    pass
+from oktaawscli.util import input
 
 class OktaAuthConfig():
     """ Config helper class """
