@@ -40,6 +40,10 @@ class AwsAuth():
             self.aws_partition = self.__find_aws_partition_from_role_arn(self.role)
             self.logger.debug("Setting AWS partition to %s" % self.aws_partition)
 
+        if parser.has_option(okta_profile, 'profile') and not profile:
+            self.profile = parser.get(okta_profile, 'profile')
+            self.logger.debug("Setting AWS profile to %s" % self.profile)
+
 
     def choose_aws_role(self, assertion, refresh_role):
         """ Choose AWS role from SAML assertion """
@@ -97,7 +101,7 @@ of roles assigned to you.""" % self.role)
     def check_sts_token(self, profile):
         """ Verifies that STS credentials are valid """
         # Don't check for creds if profile is blank
-        if not profile:
+        if not self.profile:
             return False
 
         parser = RawConfigParser()
@@ -111,7 +115,7 @@ of roles assigned to you.""" % self.role)
             self.logger.info("AWS credentials file does not exist. Not checking.")
             return False
 
-        elif not parser.has_section(profile):
+        elif not parser.has_section(self.profile):
             self.logger.info("No existing credentials found. Requesting new credentials.")
             return False
 
@@ -133,7 +137,7 @@ of roles assigned to you.""" % self.role)
         self.logger.info("STS credentials are valid. Nothing to do.")
         return True
 
-    def write_sts_token(self, profile, access_key_id, secret_access_key, session_token):
+    def write_sts_token(self, access_key_id, secret_access_key, session_token):
         """ Writes STS auth information to credentials file """
         if not os.path.exists(self.creds_dir):
             os.makedirs(self.creds_dir)
@@ -142,17 +146,17 @@ of roles assigned to you.""" % self.role)
         if os.path.isfile(self.creds_file):
             config.read(self.creds_file)
 
-        if not config.has_section(profile):
-            config.add_section(profile)
+        if not config.has_section(self.profile):
+            config.add_section(self.profile)
 
-        config.set(profile, 'aws_access_key_id', access_key_id)
-        config.set(profile, 'aws_secret_access_key', secret_access_key)
-        config.set(profile, 'aws_session_token', session_token)
+        config.set(self.profile, 'aws_access_key_id', access_key_id)
+        config.set(self.profile, 'aws_secret_access_key', secret_access_key)
+        config.set(self.profile, 'aws_session_token', session_token)
 
         with open(self.creds_file, 'w+') as configfile:
             config.write(configfile)
-        self.logger.info("Temporary credentials written to profile: %s" % profile)
-        self.logger.info("Invoke using: aws --profile %s <service> <command>" % profile)
+        self.logger.info("Temporary credentials written to profile: %s" % self.profile)
+        self.logger.info("Invoke using: aws --profile %s <service> <command>" % self.profile)
 
     @staticmethod
     def __extract_available_roles_from(assertion):
