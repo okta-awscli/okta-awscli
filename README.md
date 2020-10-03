@@ -1,6 +1,6 @@
 # okta-awscli - Retrieve AWS credentials from Okta
 
-Master branch: [![Build Status - master](https://travis-ci.org/jmhale/okta-awscli.svg?branch=master)](https://travis-ci.org/jmhale/okta-awscli)
+Main branch: [![Build Status - main](https://travis-ci.org/jmhale/okta-awscli.svg?branch=main)](https://travis-ci.org/jmhale/okta-awscli)
 
 Develop branch: [![Build Status - develop](https://travis-ci.org/jmhale/okta-awscli.svg?branch=develop)](https://travis-ci.org/jmhale/okta-awscli)
 
