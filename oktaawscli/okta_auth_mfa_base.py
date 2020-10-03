@@ -17,7 +17,7 @@ class OktaAuthMfaBase():
         self.totp_token = totp_token
 
 
-    def verify_mfa(self, factors_list):
+    def verify_mfa(self, resp_json):
         """ Performs MFA auth against Okta """
 
         supported_factor_types = ["token:software:totp", "push"]
@@ -25,6 +25,7 @@ class OktaAuthMfaBase():
             supported_factor_types.append("u2f")
 
         supported_factors = []
+        factors_list = resp_json['_embedded']['factors']
         for factor in factors_list:
             if factor['factorType'] in supported_factor_types:
                 supported_factors.append(factor)
@@ -71,7 +72,7 @@ class OktaAuthMfaBase():
                              supported_factors[factor_choice]['provider'])
             session_token = self._verify_single_factor(supported_factors[factor_choice])
         else:
-            print("MFA required, but no supported factors enrolled! sys.exiting.")
+            print("MFA required, but no supported factors enrolled!")
             sys.exit(1)
         return session_token
 
@@ -80,7 +81,7 @@ class OktaAuthMfaBase():
         req_data = {
             "stateToken": self.state_token
         }
-
+        self.logger.debug(self.state_token)
         self.logger.debug(factor)
         if factor['factorType'] == 'token:software:totp':
             if self.totp_token:

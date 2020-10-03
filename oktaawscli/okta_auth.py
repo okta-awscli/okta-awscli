@@ -25,6 +25,7 @@ class OktaAuth():
         self.app_link = okta_auth_config.app_link_for(okta_profile)
         self.okta_auth_config = okta_auth_config
         self.session = None
+        self.state_token = None
         self.session_token = ""
         self.session_id = ""
         self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
@@ -44,10 +45,9 @@ class OktaAuth():
         self.cookies = resp.cookies
         if 'status' in resp_json:
             if resp_json['status'] == 'MFA_REQUIRED':
-                factors_list = resp_json['_embedded']['factors']
-                state_token = resp_json['stateToken']
-                mfa_base = OktaAuthMfaBase(self.logger, state_token, self.factor, self.totp_token)
-                session_token = mfa_base.verify_mfa(factors_list)
+                self.state_token = resp_json['stateToken']
+                mfa_base = OktaAuthMfaBase(self.logger, self.state_token, self.factor, self.totp_token)
+                session_token = mfa_base.verify_mfa(resp_json)
             elif resp_json['status'] == 'SUCCESS':
                 session_token = resp_json['sessionToken']
             elif resp_json['status'] == 'MFA_ENROLL':
@@ -121,8 +121,8 @@ Please enroll an MFA factor in the Okta Web UI first!""")
 
         self.session.cookies['oktaStateToken'] = state_token
 
-        mfa_app = OktaAuthMfaApp(self.logger, self.session, self.verify_ssl, self.auth_url)
-        api_response = mfa_app.stepup_auth(self.auth_url, state_token)
+        mfa_app = OktaAuthMfaApp(self.logger, self.state_token, self.session, self.verify_ssl, self.auth_url)
+        mfa_app.stepup_auth()
         resp = self.session.get(self.app_link)
 
         return self.get_saml_assertion(resp)

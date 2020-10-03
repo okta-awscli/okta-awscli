@@ -6,8 +6,9 @@ from oktaawscli.version import __version__
 
 class OktaAuthMfaApp():
     """ Handles per-app Okta MFA """
-    def __init__(self, logger, session, verify_ssl, auth_url):
+    def __init__(self, logger, state_token, session, verify_ssl, auth_url):
         self.session = session
+        self.state_token = state_token
         self.logger = logger
         self._verify_ssl_certs = verify_ssl
         self._preferred_mfa_type = None
@@ -15,9 +16,9 @@ class OktaAuthMfaApp():
         self._auth_url = auth_url
 
 
-    def stepup_auth(self, embed_link, state_token=None):
+    def stepup_auth(self):
         """ Login to Okta using the Step-up authentication flow"""
-        flow_state = self._get_initial_flow_state(embed_link, state_token)
+        flow_state = self._get_initial_flow_state()
 
         while flow_state.get('apiResponse').get('status') != 'SUCCESS':
             flow_state = self._next_login_step(
@@ -54,22 +55,22 @@ class OktaAuthMfaApp():
             raise RuntimeError('Unknown login status: ' + status)
 
 
-    def _get_initial_flow_state(self, embed_link, state_token=None):
+    def _get_initial_flow_state(self):
         """ Starts the authentication flow with Okta"""
-        if state_token is None:
+        if self.state_token is None:
             response = self.session.get(
-                embed_link, allow_redirects=False)
+                self._auth_url, allow_redirects=False)
             url_parse_results = urlparse(response.headers['Location'])
-            state_token = parse_qs(url_parse_results.query)['stateToken'][0]
+            self.state_token = parse_qs(url_parse_results.query)['stateToken'][0]
 
         response = self.session.post(
             self._auth_url,
-            json={'stateToken': state_token},
+            json={'stateToken': self.state_token},
             headers=self._get_headers(),
             verify=self._verify_ssl_certs
         )
 
-        return {'stateToken': state_token, 'apiResponse': response.json()}
+        return {'stateToken': self.state_token, 'apiResponse': response.json()}
 
 
     def _get_headers(self):
