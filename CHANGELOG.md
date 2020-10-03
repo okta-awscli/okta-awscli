@@ -1,9 +1,11 @@
 # Changelog
 
-## [0.4.3] TBD
+## [0.4.3] 2020-10-03
 ### Fixed
 - Improved input handling
  - Thanks to: [@zaltoprofen](https://github.com/zaltoprofen)
+- Handling of STS token refresh in AWS GovCloud
+ - Thanks to: [@mrbcmorris](https://github.com/mrbcmorris)
 
 ### Removed
 - Unused session cookies. (#111)
