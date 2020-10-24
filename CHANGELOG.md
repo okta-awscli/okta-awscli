@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.5] 2020-10-19
+### Fixed
+- Fix SyntaxWarning on first run
+  - Thanks to: [@jrisebor](https://github.com/jrisebor)
+
 ## [0.4.4] 2020-10-03
 ### Added:
 - Support provider/role returning in unexpected order in assertion.
