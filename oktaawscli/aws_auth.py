@@ -132,7 +132,13 @@ of roles assigned to you.""" % self.role)
         except ClientError as ex:
             if ex.response['Error']['Code'] == 'ExpiredToken':
                 self.logger.info("Temporary credentials have expired. Requesting new credentials.")
-                return False
+            elif ex.response['Error']['Code'] == 'InvalidClientTokenId':
+                self.logger.info("Credential is invalid. Requesting new credentials.")
+            else:
+                # See https://docs.aws.amazon.com/STS/latest/APIReference/CommonErrors.html
+                self.logger.info("An unhandled error occurred. Requesting new credentials.")
+
+            return False
 
         self.logger.info("STS credentials are valid. Nothing to do.")
         return True
