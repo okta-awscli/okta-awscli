@@ -1,9 +1,14 @@
 # Changelog
 
 ## [0.4.5] 2020-10-19
+### Added
+- Command-line arguments for Okta username and password. (#146)
 ### Fixed
 - Fix SyntaxWarning on first run
   - Thanks to: [@jrisebor](https://github.com/jrisebor)
+- Catch `InvalidClientTokenId` AWS error when checking for STS token validity.
+  - Thanks to: [@matwhite](https://github.com/matwhite)
+- Catch `TypeError` in app-link URL. (#143)
 
 ## [0.4.4] 2020-10-03
 ### Added:
