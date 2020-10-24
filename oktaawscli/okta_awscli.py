@@ -11,11 +11,14 @@ from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
 def get_credentials(aws_auth, okta_profile, profile,
-                    verbose, logger, totp_token, cache, refresh_role):
+                    verbose, logger, totp_token, cache, refresh_role, 
+                    okta_username=None, okta_password=None):
     """ Gets credentials from Okta """
 
     okta_auth_config = OktaAuthConfig(logger)
-    okta = OktaAuth(okta_profile, verbose, logger, totp_token, okta_auth_config)
+    okta = OktaAuth(okta_profile, verbose, logger, totp_token, 
+        okta_auth_config, okta_username, okta_password)
+
 
     _, assertion = okta.get_assertion()
     role = aws_auth.choose_aws_role(assertion, refresh_role)
@@ -81,9 +84,12 @@ created. If omitted, credentials will output to console.\n")
 to ~/.okta-credentials.cache\n')
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
 @click.option('-l', '--lookup', is_flag=True, help='Look up AWS account names')
+@click.option('-U', '--username', 'okta_username', help="Okta username")
+@click.option('-P', '--password', 'okta_password', help="Okta password")
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
-         debug, force, cache, lookup, awscli_args, token):
+         debug, force, cache, lookup, awscli_args, 
+         token, okta_username, okta_password):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -112,7 +118,7 @@ def main(okta_profile, profile, verbose, version,
                 getting new credentials anyway.")
         refresh_role = True if force else False
         get_credentials(
-            aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role
+            aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role, okta_username, okta_password
         )
 
     if awscli_args:

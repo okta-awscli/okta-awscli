@@ -13,14 +13,14 @@ from oktaawscli.util import input
 
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self, okta_profile, verbose, logger, totp_token, okta_auth_config, verify_ssl=True):
+    def __init__(self, okta_profile, verbose, logger, totp_token, 
+        okta_auth_config, username, password, verify_ssl=True):
+
         self.okta_profile = okta_profile
         self.totp_token = totp_token
         self.logger = logger
         self.verbose = verbose
         self.verify_ssl = verify_ssl
-        self.username = okta_auth_config.username_for(okta_profile)
-        self.password = okta_auth_config.password_for(okta_profile)
         self.factor = okta_auth_config.factor_for(okta_profile)
         self.app_link = okta_auth_config.app_link_for(okta_profile)
         self.okta_auth_config = okta_auth_config
@@ -30,6 +30,15 @@ class OktaAuth():
         self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
         self.auth_url = "%s/api/v1/authn" % self.https_base_url
 
+        if username:
+            self.username = username
+        else:
+            self.username = okta_auth_config.username_for(okta_profile)
+
+        if password:
+            self.password = password
+        else:
+            self.password = okta_auth_config.password_for(okta_profile)
 
     def primary_auth(self):
         """ Performs primary auth against Okta """
