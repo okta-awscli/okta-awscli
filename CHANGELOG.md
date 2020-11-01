@@ -1,8 +1,12 @@
 # Changelog
 
+## [0.4.6] 2020-11-01
+### Fixed
+- Error when saving app-link to `.okta-aws` profile. ([#148](https://github.com/jmhale/okta-awscli/issues/148))
+
 ## [0.4.5] 2020-10-19
 ### Added
-- Command-line arguments for Okta username and password. (#146)
+- Command-line arguments for Okta username and password. ([#146](https://github.com/jmhale/okta-awscli/issues/146))
 ### Fixed
 - Fix SyntaxWarning on first run
   - Thanks to: [@jrisebor](https://github.com/jrisebor)

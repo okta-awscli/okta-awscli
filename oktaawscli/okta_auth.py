@@ -153,7 +153,7 @@ Please enroll an MFA factor in the Okta Web UI first!""")
         self.session_id = self.get_session(self.session_token)
         if not self.app_link:
             app_name, self.app_link = self.get_apps(self.session_id)
-            self.okta_auth_config.save_chosen_app_link_for_profile(self.okta_profile, self.app_link)
+            self.okta_auth_config.write_applink_to_profile(self.okta_profile, self.app_link)
         else:
             app_name = None
         self.session.cookies['sid'] = self.session_id
