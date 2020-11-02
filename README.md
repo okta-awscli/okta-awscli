@@ -10,11 +10,13 @@ This project is largely inspired by https://github.com/nimbusscale/okta_aws_logi
 
 Parsing the HTML is still required to get the SAML assertion, after authentication is complete. However, since we only need to look for the SAML assertion in a single, predictable tag, `<input name="SAMLResponse"...`, the results are a lot more stable across any changes that Okta may make to their interface.
 
+## Python Support
+This project is written for Python 3. Running it with Python 2 may work, but it is not supported. Since Python 2 is end-of-life (as of 2020-JAN-01), feature requests and PRs to add Python 2 support will likely not be accepted, outside of extreme circumstances.
 
 ## Installation
 
-- `pip install okta-awscli`
-  - To install with U2F support (Yubikey): `pip install "okta-awscli[U2F]"`
+- `pip3 install okta-awscli`
+  - To install with U2F support (Yubikey): `pip3 install "okta-awscli[U2F]"`
 - Configure okta-awscli via the `~/.okta-aws` file with the following parameters:
 
 ```
