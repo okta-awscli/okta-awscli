@@ -4,7 +4,7 @@
 mkdir -p ~/.pip
 cat << pipconf > ~/.pip/pip.conf
 [global]
-index-url = https://python-repo.mc.wgenhq.net/pypi/simple
+extra-index-url = https://USER:PASSWORD@amplearning.jfrog.io/amplearning/api/pypi/amplify-python-local/simple
 pipconf
 
 # Install Amplify's version of the okta-aws-cli
