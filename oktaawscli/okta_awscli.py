@@ -91,7 +91,7 @@ to ~/.okta-credentials.cache\n')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
          debug, force, cache, lookup, awscli_args, 
-         token, okta_username, okta_password):
+         token, okta_username, okta_password, noupdate):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
