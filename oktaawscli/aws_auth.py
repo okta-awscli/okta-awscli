@@ -12,15 +12,15 @@ from botocore.exceptions import ClientError
 
 
 class AwsPartition(Enum):
-    AWS = 1 
+    AWS = 1
     AWS_US_GOV = 2
 
 
-class AwsAuth():
+class AwsAuth:
     """ Methods to support AWS authentication using STS """
 
     def __init__(self, profile, okta_profile, lookup, verbose, logger):
-        home_dir = os.path.expanduser('~')
+        home_dir = os.path.expanduser("~")
         self.creds_dir = home_dir + "/.aws"
         self.creds_file = self.creds_dir + "/credentials"
         self.lookup = lookup
@@ -30,20 +30,19 @@ class AwsAuth():
         self.role = ""
         self.aws_partition = AwsPartition.AWS
 
-        okta_config = home_dir + '/.okta-aws'
+        okta_config = home_dir + "/.okta-aws"
         parser = RawConfigParser()
         parser.read(okta_config)
 
-        if parser.has_option(okta_profile, 'role'):
-            self.role = parser.get(okta_profile, 'role')
+        if parser.has_option(okta_profile, "role"):
+            self.role = parser.get(okta_profile, "role")
             self.logger.debug("Setting AWS role to %s" % self.role)
             self.aws_partition = self.__find_aws_partition_from_role_arn(self.role)
             self.logger.debug("Setting AWS partition to %s" % self.aws_partition)
 
-        if parser.has_option(okta_profile, 'profile') and not profile:
-            self.profile = parser.get(okta_profile, 'profile')
+        if parser.has_option(okta_profile, "profile") and not profile:
+            self.profile = parser.get(okta_profile, "profile")
             self.logger.debug("Setting AWS profile to %s" % self.profile)
-
 
     def choose_aws_role(self, assertion, refresh_role):
         """ Choose AWS role from SAML assertion """
@@ -57,15 +56,18 @@ class AwsAuth():
             elif refresh_role:
                 self.logger.info("""Refreshing role""")
             else:
-                self.logger.info("""Predefined role, %s, not found in the list
-of roles assigned to you.""" % self.role)
+                self.logger.info(
+                    """Predefined role, %s, not found in the list
+of roles assigned to you."""
+                    % self.role
+                )
 
         self.logger.info("Please choose a role.")
         role_options = self.__create_options_from(roles, assertion, self.lookup)
         for option in role_options:
             print(option)
 
-        role_choice = int(input('Please select the AWS role: ')) - 1
+        role_choice = int(input("Please select the AWS role: ")) - 1
         return roles[role_choice]
 
     @staticmethod
@@ -76,26 +78,28 @@ of roles assigned to you.""" % self.role)
         aws_partition = AwsAuth.__find_aws_partition_from_role_arn(principal_arn)
         logger.debug("Getting STS token against ARN partition: %s" % aws_partition)
         if aws_partition == AwsPartition.AWS_US_GOV:
-            sts = boto3.client('sts', region_name='us-gov-west-1')
+            sts = boto3.client("sts", region_name="us-gov-west-1")
         else:
-            sts = boto3.client('sts')
+            sts = boto3.client("sts")
 
         try:
-            response = sts.assume_role_with_saml(RoleArn=role_arn,
-                                                 PrincipalArn=principal_arn,
-                                                 SAMLAssertion=assertion,
-                                                 DurationSeconds=duration or 3600)
+            response = sts.assume_role_with_saml(
+                RoleArn=role_arn,
+                PrincipalArn=principal_arn,
+                SAMLAssertion=assertion,
+                DurationSeconds=duration or 3600,
+            )
         except ClientError as ex:
             if logger:
                 logger.error(
-                    "Could not retrieve credentials: %s" %
-                    ex.response['Error']['Message']
+                    "Could not retrieve credentials: %s"
+                    % ex.response["Error"]["Message"]
                 )
                 sys.exit(-1)
             else:
                 raise
 
-        credentials = response['Credentials']
+        credentials = response["Credentials"]
         return credentials
 
     def check_sts_token(self, profile):
@@ -116,27 +120,35 @@ of roles assigned to you.""" % self.role)
             return False
 
         elif not parser.has_section(self.profile):
-            self.logger.info("No existing credentials found. Requesting new credentials.")
+            self.logger.info(
+                "No existing credentials found. Requesting new credentials."
+            )
             return False
 
-        self.logger.debug("Checking STS token against ARN partition: %s" % self.aws_partition)
+        self.logger.debug(
+            "Checking STS token against ARN partition: %s" % self.aws_partition
+        )
         if self.aws_partition == AwsPartition.AWS_US_GOV:
-            session = boto3.Session(profile_name=profile, region_name='us-gov-west-1')
+            session = boto3.Session(profile_name=profile, region_name="us-gov-west-1")
         else:
             session = boto3.Session(profile_name=profile)
 
-        sts = session.client('sts')
+        sts = session.client("sts")
         try:
             sts.get_caller_identity()
 
         except ClientError as ex:
-            if ex.response['Error']['Code'] == 'ExpiredToken':
-                self.logger.info("Temporary credentials have expired. Requesting new credentials.")
-            elif ex.response['Error']['Code'] == 'InvalidClientTokenId':
+            if ex.response["Error"]["Code"] == "ExpiredToken":
+                self.logger.info(
+                    "Temporary credentials have expired. Requesting new credentials."
+                )
+            elif ex.response["Error"]["Code"] == "InvalidClientTokenId":
                 self.logger.info("Credential is invalid. Requesting new credentials.")
             else:
                 # See https://docs.aws.amazon.com/STS/latest/APIReference/CommonErrors.html
-                self.logger.info("An unhandled error occurred. Requesting new credentials.")
+                self.logger.info(
+                    "An unhandled error occurred. Requesting new credentials."
+                )
 
             return False
 
@@ -155,69 +167,103 @@ of roles assigned to you.""" % self.role)
         if not config.has_section(self.profile):
             config.add_section(self.profile)
 
-        config.set(self.profile, 'aws_access_key_id', access_key_id)
-        config.set(self.profile, 'aws_secret_access_key', secret_access_key)
-        config.set(self.profile, 'aws_session_token', session_token)
+        config.set(self.profile, "aws_access_key_id", access_key_id)
+        config.set(self.profile, "aws_secret_access_key", secret_access_key)
+        config.set(self.profile, "aws_session_token", session_token)
 
-        with open(self.creds_file, 'w+') as configfile:
+        with open(self.creds_file, "w+") as configfile:
             config.write(configfile)
         self.logger.info("Temporary credentials written to profile: %s" % self.profile)
-        self.logger.info("Invoke using: aws --profile %s <service> <command>" % self.profile)
+        self.logger.info(
+            "Invoke using: aws --profile %s <service> <command>" % self.profile
+        )
 
     @staticmethod
     def __extract_available_roles_from(assertion):
-        aws_attribute_role = 'https://aws.amazon.com/SAML/Attributes/Role'
-        attribute_value_urn = '{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue'
+        aws_attribute_role = "https://aws.amazon.com/SAML/Attributes/Role"
+        attribute_value_urn = "{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue"
         roles = []
         role_tuple = namedtuple("RoleTuple", ["principal_arn", "role_arn"])
         root = ET.fromstring(base64.b64decode(assertion))
-        for saml2attribute in root.iter('{urn:oasis:names:tc:SAML:2.0:assertion}Attribute'):
-            if saml2attribute.get('Name') == aws_attribute_role:
+        for saml2attribute in root.iter(
+            "{urn:oasis:names:tc:SAML:2.0:assertion}Attribute"
+        ):
+            if saml2attribute.get("Name") == aws_attribute_role:
                 for saml2attributevalue in saml2attribute.iter(attribute_value_urn):
-                    result_set = saml2attributevalue.text.split(',')
-                    if result_set[0].split(':')[5].startswith('role/'):
+                    result_set = saml2attributevalue.text.split(",")
+                    if result_set[0].split(":")[5].startswith("role/"):
                         roles.append(role_tuple(*reversed(result_set)))
                     else:
                         roles.append(role_tuple(*result_set))
         return roles
 
     def __create_options_from(self, roles, assertion, lookup=False):
-        options = []
-        for index, role in enumerate(roles):
-            if lookup:
-                self.logger.debug("Performing AWS account alias lookup")
-                creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900, logger=self.logger)
-                access_key_id = creds['AccessKeyId']
-                secret_access_key = creds['SecretAccessKey']
-                session_token = creds['SessionToken']
-                arn_region = role.principal_arn.split(':')[1]
-                iam_region = 'us-gov-west-1' if arn_region == 'aws-us-gov' else 'us-east-1'
+        alias_db = {}
 
-                client = boto3.client('iam',
-                                      region_name = iam_region,
-                                      aws_access_key_id = access_key_id,
-                                      aws_secret_access_key = secret_access_key,
-                                      aws_session_token = session_token)
+        # convert all account IDs to an account alias, if an account alias has been resolved do not perform an additional lookup
+        for role in roles:
+            account_id = role.role_arn.split(":")[4]
+            rolename = role.role_arn.split(":")[5]
+
+            if lookup and account_id not in alias_db:
+                self.logger.debug("Performing AWS account alias lookup")
+                creds = AwsAuth.get_sts_token(
+                    role.role_arn,
+                    role.principal_arn,
+                    assertion,
+                    duration=900,
+                    logger=self.logger,
+                )
+                access_key_id = creds["AccessKeyId"]
+                secret_access_key = creds["SecretAccessKey"]
+                session_token = creds["SessionToken"]
+
+                arn_region = role.principal_arn.split(":")[1]
+                iam_region = (
+                    "us-gov-west-1" if arn_region == "aws-us-gov" else "us-east-1"
+                )
+                client = boto3.client(
+                    "iam",
+                    region_name=iam_region,
+                    aws_access_key_id=access_key_id,
+                    aws_secret_access_key=secret_access_key,
+                    aws_session_token=session_token,
+                )
                 try:
-                    alias = client.list_account_aliases()['AccountAliases'][0]
-                    rolename = role.role_arn.split(':')[5]
-                    option = '{i}: {accname} - {rolename}'.format(i=index+1,
-                                                                  accname = alias,
-                                                                  rolename = rolename)
+                    alias = client.list_account_aliases()["AccountAliases"][0]
+                    alias_db[account_id] = alias
                 except Exception as ex:
                     self.logger.warning("Unable to perform alias lookup: %s" % ex)
-                    option = '{i}: {rolearn}'.format(i=index+1,
-                                                     rolearn = role.role_arn)
-                    pass
-                options.append(option)
-            else:
-                options.append("%d: %s" % (index + 1, role.role_arn))
-        return options
+
+        # store the roles and their aliases for sorting
+        options = []
+        for role in roles:
+            account_id = role.role_arn.split(":")[4]
+            rolename = role.role_arn.split(":")[5]
+
+            if account_id not in alias_db:
+                alias_db[account_id] = account_id
+
+            options.append({"alias": alias_db[account_id], "role": rolename})
+        options.sort(key=lambda o: o["alias"] + o["role"])
+
+        # convert the role list to a list of strings
+        option_set = []
+        option_index = 1
+        for option in options:
+            option_set.append(
+                "{ndex}: {alias} - {role}".format(
+                    ndex=option_index, alias=option["alias"], role=option["role"]
+                )
+            )
+            option_index += 1
+
+        return option_set
 
     @staticmethod
     def __find_aws_partition_from_role_arn(role_arn):
-        arn_aws_partition = role_arn.split(':')[1]
-        if arn_aws_partition == 'aws-us-gov':
+        arn_aws_partition = role_arn.split(":")[1]
+        if arn_aws_partition == "aws-us-gov":
             return AwsPartition.AWS_US_GOV
         else:
             return AwsPartition.AWS
