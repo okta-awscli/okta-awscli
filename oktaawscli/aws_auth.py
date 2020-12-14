@@ -191,7 +191,6 @@ of roles assigned to you.""" % self.role)
             rolename = role.role_arn.split(':')[5]
 
             if lookup and account_id not in alias_db:
-                print ("Looking up alias for {}".format (account_id))
                 self.logger.debug("Performing AWS account alias lookup")
                 creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900, logger=self.logger)
                 access_key_id = creds['AccessKeyId']
