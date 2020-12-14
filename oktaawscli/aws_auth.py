@@ -11,7 +11,6 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-
 class AwsPartition(Enum):
     AWS = 1
     AWS_US_GOV = 2
@@ -203,26 +202,36 @@ of roles assigned to you."""
 
         # convert all account IDs to an account alias, if an account alias has been resolved do not perform an additional lookup
         for role in roles:
-            account_id = role.role_arn.split(':')[4]
-            rolename = role.role_arn.split(':')[5]
+            account_id = role.role_arn.split(":")[4]
+            rolename = role.role_arn.split(":")[5]
 
             if lookup and account_id not in alias_db:
-                print ("Looking up alias for {}".format (account_id))
+                print("Looking up alias for {}".format(account_id))
                 self.logger.debug("Performing AWS account alias lookup")
-                creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900, logger=self.logger)
-                access_key_id = creds['AccessKeyId']
-                secret_access_key = creds['SecretAccessKey']
-                session_token = creds['SessionToken']
+                creds = AwsAuth.get_sts_token(
+                    role.role_arn,
+                    role.principal_arn,
+                    assertion,
+                    duration=900,
+                    logger=self.logger,
+                )
+                access_key_id = creds["AccessKeyId"]
+                secret_access_key = creds["SecretAccessKey"]
+                session_token = creds["SessionToken"]
 
-                arn_region = role.principal_arn.split(':')[1]
-                iam_region = 'us-gov-west-1' if arn_region == 'aws-us-gov' else 'us-east-1'
-                client = boto3.client('iam',
-                                      region_name = iam_region,
-                                      aws_access_key_id = access_key_id,
-                                      aws_secret_access_key = secret_access_key,
-                                      aws_session_token = session_token)
+                arn_region = role.principal_arn.split(":")[1]
+                iam_region = (
+                    "us-gov-west-1" if arn_region == "aws-us-gov" else "us-east-1"
+                )
+                client = boto3.client(
+                    "iam",
+                    region_name=iam_region,
+                    aws_access_key_id=access_key_id,
+                    aws_secret_access_key=secret_access_key,
+                    aws_session_token=session_token,
+                )
                 try:
-                    alias = client.list_account_aliases()['AccountAliases'][0]
+                    alias = client.list_account_aliases()["AccountAliases"][0]
                     alias_db[account_id] = alias
                 except Exception as ex:
                     self.logger.warning("Unable to perform alias lookup: %s" % ex)
@@ -230,20 +239,24 @@ of roles assigned to you."""
         # store the roles and their aliases for sorting
         options = []
         for role in roles:
-            account_id = role.role_arn.split(':')[4]
-            rolename = role.role_arn.split(':')[5]
+            account_id = role.role_arn.split(":")[4]
+            rolename = role.role_arn.split(":")[5]
 
             if account_id not in alias_db:
                 alias_db[account_id] = account_id
 
-            options.append ({'alias': alias_db[account_id], 'role': rolename})
-        options.sort (key = lambda o: o['alias']+o['role'])
+            options.append({"alias": alias_db[account_id], "role": rolename})
+        options.sort(key=lambda o: o["alias"] + o["role"])
 
         # convert the role list to a list of strings
         option_set = []
         option_index = 1
         for option in options:
-            option_set.append ('{ndex}: {alias} - {role}'.format (ndex=option_index, alias = option['alias'], role = option['role']))
+            option_set.append(
+                "{ndex}: {alias} - {role}".format(
+                    ndex=option_index, alias=option["alias"], role=option["role"]
+                )
+            )
             option_index += 1
 
         return option_set
