@@ -195,6 +195,9 @@ of roles assigned to you."""
                         roles.append(role_tuple(*reversed(result_set)))
                     else:
                         roles.append(role_tuple(*result_set))
+
+        roles.sort(key=lambda r: r.role_arn)
+
         return roles
 
     def __create_options_from(self, roles, assertion, lookup=False):
@@ -235,7 +238,7 @@ of roles assigned to you."""
                 except Exception as ex:
                     self.logger.warning("Unable to perform alias lookup: %s" % ex)
 
-        # store the roles and their aliases for sorting
+        # store the roles and their aliases 
         options = []
         for role in roles:
             account_id = role.role_arn.split(":")[4]
@@ -245,7 +248,6 @@ of roles assigned to you."""
                 alias_db[account_id] = account_id
 
             options.append({"alias": alias_db[account_id], "role": rolename})
-        options.sort(key=lambda o: o["alias"] + o["role"])
 
         # convert the role list to a list of strings
         option_set = []
