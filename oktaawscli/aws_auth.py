@@ -47,7 +47,7 @@ class AwsAuth:
     def choose_aws_role(self, assertion, refresh_role):
         """ Choose AWS role from SAML assertion """
 
-        roles = self.__extract_available_roles_from(assertion)
+        roles = self.__extract_available_roles_from(assertion, self.lookup)
         if self.role:
             predefined_role = self.__find_predefined_role_from(roles)
             if predefined_role and not refresh_role:
@@ -179,11 +179,46 @@ of roles assigned to you."""
         )
 
     @staticmethod
-    def __extract_available_roles_from(assertion):
+    def __resolve_account_alias(role_arn, principal_arn, assertion):
+        account_id = role_arn.split(':')[4]
+        alias = account_id
+
+        self.logger.debug("Performing AWS account alias lookup")
+        creds = AwsAuth.get_sts_token(
+            role_arn,
+            principal_arn,
+            assertion,
+            duration=900,
+            logger=self.logger,
+        )
+        access_key_id = creds["AccessKeyId"]
+        secret_access_key = creds["SecretAccessKey"]
+        session_token = creds["SessionToken"]
+
+        arn_region = principal_arn.split(":")[1]
+        iam_region = (
+            "us-gov-west-1" if arn_region == "aws-us-gov" else "us-east-1"
+        )
+        client = boto3.client(
+            "iam",
+            region_name=iam_region,
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=secret_access_key,
+            aws_session_token=session_token,
+        )
+        try:
+            alias = client.list_account_aliases()["AccountAliases"][0]
+        except Exception as ex:
+            self.logger.warning("Unable to perform alias lookup: %s" % ex)
+
+        return alias
+
+    @staticmethod
+    def __extract_available_roles_from(assertion, lookup=False):
         aws_attribute_role = "https://aws.amazon.com/SAML/Attributes/Role"
         attribute_value_urn = "{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue"
         roles = []
-        role_tuple = namedtuple("RoleTuple", ["principal_arn", "role_arn"])
+        role_tuple = namedtuple("RoleTuple", ["principal_arn", "role_arn", "account_alias"])
         root = ET.fromstring(base64.b64decode(assertion))
         for saml2attribute in root.iter(
             "{urn:oasis:names:tc:SAML:2.0:assertion}Attribute"
@@ -192,11 +227,17 @@ of roles assigned to you."""
                 for saml2attributevalue in saml2attribute.iter(attribute_value_urn):
                     result_set = saml2attributevalue.text.split(",")
                     if result_set[0].split(":")[5].startswith("role/"):
-                        roles.append(role_tuple(*reversed(result_set)))
+                        role_arn = result_set[0]
+                        prin_arn = result_set[1]
+                        alias = self.__resolve_account_alias(role_arn, prin_arn, assertion)
+                        roles.append(role_tuple([prin_arn,role_arn,alias]))
                     else:
-                        roles.append(role_tuple(*result_set))
+                        role_arn = result_set[1]
+                        prin_arn = result_set[0]
+                        alias = self.__resolve_account_alias(role_arn, prin_arn, assertion)
+                        roles.append(role_tuple([prin_arn,role_arn,alias]))
 
-        roles.sort(key=lambda r: r.role_arn)
+        roles.sort(key=lambda r: r.alias+r.role_arn)
 
         return roles
 
