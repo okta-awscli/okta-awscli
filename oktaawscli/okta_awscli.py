@@ -40,7 +40,7 @@ def get_credentials(
 
     _, assertion = okta.get_assertion()
     role = aws_auth.choose_aws_role(assertion, refresh_role)
-    principal_arn, role_arn = role
+    principal_arn, role_arn, account_alias = role
 
     if not noupdate:
         okta_auth_config.write_role_to_profile(okta_profile, role_arn)

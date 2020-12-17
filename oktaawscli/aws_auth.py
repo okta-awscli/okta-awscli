@@ -47,7 +47,7 @@ class AwsAuth:
     def choose_aws_role(self, assertion, refresh_role):
         """ Choose AWS role from SAML assertion """
 
-        roles = self.__extract_available_roles_from(assertion, self.lookup)
+        roles = self.__extract_available_roles_from(assertion)
         if self.role:
             predefined_role = self.__find_predefined_role_from(roles)
             if predefined_role and not refresh_role:
@@ -62,6 +62,9 @@ of roles assigned to you."""
                     % self.role
                 )
 
+        if self.lookup:
+            roles = self.__resolve_account_alias(roles, assertion)
+        roles.sort(key=lambda r: r.account_alias+r.role_arn)
         self.logger.info("Please choose a role.")
         role_options = self.__create_options_from(roles)
         for option in role_options:
@@ -179,10 +182,9 @@ of roles assigned to you."""
         )
 
     @staticmethod
-    def __extract_available_roles_from(assertion, lookup=False):
+    def __extract_available_roles_from(assertion):
         aws_attribute_role = "https://aws.amazon.com/SAML/Attributes/Role"
         attribute_value_urn = "{urn:oasis:names:tc:SAML:2.0:assertion}AttributeValue"
-        role_records = []
         roles = []
         role_tuple = namedtuple("RoleTuple", ["principal_arn", "role_arn", "account_alias"])
 
@@ -194,22 +196,27 @@ of roles assigned to you."""
                     if result_set[0].split(":")[5].startswith("role/"):
                         role_arn = result_set[0]
                         prin_arn = result_set[1]
-                        role_records.append ((prin_arn, role_arn))
+                        account_id = role_arn.split(":")[4]
+                        roles.append(role_tuple(prin_arn, role_arn, account_id))
                     else:
                         role_arn = result_set[1]
                         prin_arn = result_set[0]
-                        role_records.append ((prin_arn, role_arn))
+                        account_id = role_arn.split(":")[4]
+                        roles.append(role_tuple(prin_arn, role_arn, account_id))
 
+        return roles
+
+    def __resolve_account_alias(self, roles, assertion):
         alias_db = {}
-        for (prin_arn, role_arn) in role_records:
-            account_id = role_arn.split(":")[4]
-            rolename = role_arn.split(":")[5]
 
-            if lookup and account_id not in alias_db:
+        for role in roles:
+            account_id = role.role_arn.split(":")[4]
+
+            if account_id not in alias_db:
                 self.logger.debug("Performing AWS account alias lookup")
                 creds = AwsAuth.get_sts_token(
-                    role_arn,
-                    prin_arn,
+                    role.role_arn,
+                    role.principal_arn,
                     assertion,
                     duration=900,
                     logger=self.logger,
@@ -218,7 +225,7 @@ of roles assigned to you."""
                 secret_access_key = creds["SecretAccessKey"]
                 session_token = creds["SessionToken"]
 
-                arn_region = prin_arn.split(":")[1]
+                arn_region = role.principal_arn.split(":")[1]
                 iam_region = (
                     "us-gov-west-1" if arn_region == "aws-us-gov" else "us-east-1"
                 )
@@ -229,23 +236,23 @@ of roles assigned to you."""
                     aws_secret_access_key=secret_access_key,
                     aws_session_token=session_token,
                 )
+
                 try:
                     alias = client.list_account_aliases()["AccountAliases"][0]
                     alias_db[account_id] = alias
                 except Exception as ex:
                     self.logger.warning("Unable to perform alias lookup: %s" % ex)
 
-        for (prin_arn, role_arn) in role_records:
-            account_id = role_arn.split(":")[4]
+        resolved_roles = []
+        for role in roles:
+            account_id = role.role_arn.split(":")[4]
 
-            if account_id not in alias_db:
-                alias_db[account_id] = account_id
+            if account_id in alias_db:
+                role = role._replace (account_alias = alias_db[account_id])
 
-            roles.append (RoleTuple (prin_arn, role_arn, alias_db[account_id]))
+            resolved_roles.append (role)
 
-        roles.sort(key=lambda r: r.alias+r.role_arn)
-
-        return roles
+        return resolved_roles
 
     def __create_options_from(self, roles):
         # convert the role list to a list of strings
@@ -254,7 +261,7 @@ of roles assigned to you."""
         for role in roles:
             option_set.append(
                 "{ndex}: {alias} - {role}".format(
-                    ndex=option_index, alias=role.alias, role=role.role_arn.split(':')[5]
+                    ndex=option_index, alias=role.account_alias, role=role.role_arn.split(':')[5]
                 )
             )
             option_index += 1
