@@ -110,10 +110,14 @@ def main(okta_profile, profile, verbose, version,
     if not okta_profile:
         okta_profile = "default"
 
+    if not profile:
+        okta_auth_config = OktaAuthConfig(logger)
+        profile = okta_auth_config.profile_for(okta_profile)
+        logger.info("No aws profile to store credentials has been provided or found in %s okta profile" % okta_profile)
+    
     aws_auth = AwsAuth(profile, okta_profile, lookup, verbose, logger)
     if not aws_auth.check_sts_token(profile) or force:
         if force and profile:
-
             logger.info("Force option selected, \
                 getting new credentials anyway.")
         refresh_role = True if force else False
