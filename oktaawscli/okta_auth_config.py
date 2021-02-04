@@ -93,7 +93,7 @@ class OktaAuthConfig():
                 )
         return None
 
-    def profile_for(self, octa_profile):
+    def profile_for(self, okta_profile):
         """ Gets profile from config """
         if self._value.has_option(okta_profile, 'profile'):
             profile = self._value.get(okta_profile, 'profile')
