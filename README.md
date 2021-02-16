@@ -59,10 +59,10 @@ If no awscli commands are provided, then okta-awscli will simply output STS cred
 
 Optional flags:
 - `--profile` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted and not configured in `~/.okta-aws`, credentials will output to console.
-- `--force` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
-- `--verbose` More verbose output.
-- `--debug` Very verbose output. Useful for debugging.
-- `--cache` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
+- `--force` or `-f` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
+- `--verbose` or `-v` More verbose output.
+- `--debug` or `-d` Very verbose output. Useful for debugging.
+- `--cache` or `-c` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
 - `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
 - `--token` or `-t` Pass in the TOTP token from your authenticator
 - `--lookup` or `-l` Lookup and return the AWS Account Alias for each role, instead of returning the raw ARN. 
