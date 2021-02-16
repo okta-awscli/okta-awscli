@@ -58,17 +58,20 @@ duration = 3600 # duration in seconds to request a session token for, make sure 
 If no awscli commands are provided, then okta-awscli will simply output STS credentials to your credentials file, or console, depending on how `--profile` is set.
 
 Optional flags:
-- `--profile` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted and not configured in `~/.okta-aws`, credentials will output to console.
+- `--profile` or `-p` Sets your temporary credentials to a profile in `.aws/credentials`. If omitted and not configured in `~/.okta-aws`, credentials will output to console.
+- `--username` or `-U` Okta username.
+- `--password` or `-P` Okta password.
 - `--force` or `-f` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
 - `--verbose` or `-v` More verbose output.
 - `--debug` or `-d` Very verbose output. Useful for debugging.
 - `--cache` or `-c` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
-- `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
+- `--okta-profile` or `-o` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
 - `--token` or `-t` Pass in the TOTP token from your authenticator
 - `--lookup` or `-l` Lookup and return the AWS Account Alias for each role, instead of returning the raw ARN. 
   - Note that this will attempt to perform `iam:ListAccountAliases` on every account that you have access to via Okta. This is important for two reasons:
     - All of your roles must have this permission attached to it via an IAM policy.
     - This may be important for you, if you have compliance considerations around only accessing accounts that you're actively doing work in.
+- `--version` or `-V` Outputs version number then exits.
 
 ## Run from docker container
 This process is taken from gimme-aws-creds and adapted
