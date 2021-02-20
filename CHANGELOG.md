@@ -3,7 +3,11 @@
 ## [0.5.0] 2021-02-20
 ### Added
 - Command-line argument for refreshing AWS roles. ([#150](https://github.com/jmhale/okta-awscli/issues/150))
+- Added missing shorthand flags and updated documentation.
   - Thanks to: [@rrhodes](https://github.com/rrhodes)
+### Fixed
+- Handle expired Okta password. ([#153](https://github.com/jmhale/okta-awscli/issues/153))
+  - Thanks to: [@thenoid](https://github.com/thenoid)
 
 ## [0.4.6] 2020-11-01
 ### Fixed
@@ -24,7 +28,7 @@
 - Support provider/role returning in unexpected order in assertion.
 - Allow `profile` to be set from config file in addition to command-line option.
   - Thanks to: [@jrisebor](https://github.com/jrisebor)
-  
+
 ## [0.4.3] 2020-10-03
 ### Fixed
 - Improved input handling
@@ -34,7 +38,7 @@
 
 ### Removed
 - Unused session cookies. (#111)
-- Extraneous logging message for `--force` option. 
+- Extraneous logging message for `--force` option.
 
 ## [0.4.2] 2020-10-02
 ### Added:
