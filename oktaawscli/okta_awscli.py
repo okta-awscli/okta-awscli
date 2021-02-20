@@ -75,9 +75,9 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
 @click.option('-d', '--debug', is_flag=True, help='Enables debug mode')
 @click.option('-f', '--force', is_flag=True, help='Forces new STS credentials. \
 Skips STS credentials validation.')
-@click.option('--okta-profile', help="Name of the profile to use in .okta-aws. \
+@click.option('-o', '--okta-profile', help="Name of the profile to use in .okta-aws. \
 If none is provided, then the default profile will be used.\n")
-@click.option('--profile', help="Name of the profile to store temporary \
+@click.option('-p', '--profile', help="Name of the profile to store temporary \
 credentials in ~/.aws/credentials. If profile doesn't exist, it will be \
 created. If omitted, credentials will output to console.\n")
 @click.option('-c', '--cache', is_flag=True, help='Cache the default profile credentials \
