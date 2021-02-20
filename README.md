@@ -65,6 +65,7 @@ Optional flags:
 - `--cache` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
 - `--okta-profile` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
 - `--token` or `-t` Pass in the TOTP token from your authenticator
+- `--refresh-role` or `-r` Refresh the AWS role to be assumed. Previously incorporated in `--force`.
 - `--lookup` or `-l` Lookup and return the AWS Account Alias for each role, instead of returning the raw ARN. 
   - Note that this will attempt to perform `iam:ListAccountAliases` on every account that you have access to via Okta. This is important for two reasons:
     - All of your roles must have this permission attached to it via an IAM policy.
