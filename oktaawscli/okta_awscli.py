@@ -82,14 +82,15 @@ credentials in ~/.aws/credentials. If profile doesn't exist, it will be \
 created. If omitted, credentials will output to console.\n")
 @click.option('-c', '--cache', is_flag=True, help='Cache the default profile credentials \
 to ~/.okta-credentials.cache\n')
+@click.option('-r', '--refresh-role', is_flag=True, help='Refreshes the AWS role to be assumed')
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
 @click.option('-l', '--lookup', is_flag=True, help='Look up AWS account names')
 @click.option('-U', '--username', 'okta_username', help="Okta username")
 @click.option('-P', '--password', 'okta_password', help="Okta password")
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
-         debug, force, cache, lookup, awscli_args, 
-         token, okta_username, okta_password):
+         debug, force, cache, lookup, awscli_args,
+         refresh_role, token, okta_username, okta_password):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -116,7 +117,6 @@ def main(okta_profile, profile, verbose, version,
 
             logger.info("Force option selected, \
                 getting new credentials anyway.")
-        refresh_role = True if force else False
         get_credentials(
             aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role, okta_username, okta_password
         )
