@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.0] 2021-02-20
+### Added
+- Command-line argument for refreshing AWS roles. ([#150](https://github.com/jmhale/okta-awscli/issues/150))
+  - Thanks to: [@rrhodes](https://github.com/rrhodes)
+
 ## [0.4.6] 2020-11-01
 ### Fixed
 - Error when saving app-link to `.okta-aws` profile. ([#148](https://github.com/jmhale/okta-awscli/issues/148))

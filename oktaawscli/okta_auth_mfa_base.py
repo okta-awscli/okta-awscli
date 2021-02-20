@@ -103,6 +103,9 @@ class OktaAuthMfaBase():
                     resp_json = resp.json()
                     if resp_json['status'] == 'SUCCESS':
                         return resp_json['sessionToken']
+                    elif resp_json['status'] == 'PASSWORD_EXPIRED':
+                        print("Your Okta password is expired")
+                        sys.exit(1)
                     elif resp_json['factorResult'] == 'TIMEOUT':
                         print("Verification timed out")
                         sys.exit(1)
