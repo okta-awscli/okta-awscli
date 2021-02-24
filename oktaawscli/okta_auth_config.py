@@ -93,6 +93,14 @@ class OktaAuthConfig():
                 )
         return None
 
+    def profile_for(self, okta_profile):
+        """ Gets profile from config """
+        if self._value.has_option(okta_profile, 'profile'):
+            profile = self._value.get(okta_profile, 'profile')
+            self.logger.debug("Setting profile to %s" % profile)
+            return profile
+        return None
+
     def write_role_to_profile(self, okta_profile, role_arn):
         """ Saves role to profile in config """
         if not self._value.has_section(okta_profile):
