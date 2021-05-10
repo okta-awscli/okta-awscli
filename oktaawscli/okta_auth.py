@@ -123,7 +123,20 @@ Please enroll an MFA factor in the Okta Web UI first!""")
     def get_mfa_assertion(self, html):
         soup = bs(html.text, "html.parser")
         if hasattr(soup.title, 'string') and re.match(".* - Extra Verification$", soup.title.string):
-            state_token = decode(re.search(r"var stateToken = '(.*)';", html.text).group(1), "unicode-escape")
+            state_token = None
+            match = re.search(r"var stateToken = '(.*)';", html.text)
+            if match:
+                state_token = decode(match.group(1), "unicode-escape")
+            else:
+                match = re.search(r"var oktaData = {(.*)};", html.text)
+                if match:
+                    okta_data = decode(match.group(1), "unicode-escape")
+                    match = re.search(r',"stateToken":"(.*?)",', okta_data)
+                    if match:
+                        state_token = match.group(1)
+            if not state_token:
+                self.logger.error("No state token found for extra verification")
+                sys.exit(1)
         else:
             self.logger.error("No Extra Verification")
             return None
