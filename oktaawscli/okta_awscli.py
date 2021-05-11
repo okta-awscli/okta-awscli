@@ -86,6 +86,8 @@ to ~/.okta-credentials.cache\n')
 @click.option('-l', '--lookup', is_flag=True, help='Look up AWS account names')
 @click.option('-U', '--username', 'okta_username', help="Okta username")
 @click.option('-P', '--password', 'okta_password', help="Okta password")
+@click.option('-j', '--cookie-jar', type=click.Path(dir_okay=False, writable=True, resolve_path=True),
+              help='Keep persistent Okta cookies in FILE')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
          debug, force, cache, lookup, awscli_args,
