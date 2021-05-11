@@ -55,7 +55,7 @@ class OktaAuth():
             if resp_json['status'] == 'MFA_REQUIRED':
                 factors_list = resp_json['_embedded']['factors']
                 state_token = resp_json['stateToken']
-                mfa_base = OktaAuthMfaBase(self.logger, state_token, self.factor, self.totp_token)
+                mfa_base = OktaAuthMfaBase(self.logger, state_token, self.factor, self.totp_token, self.session)
                 session_token = mfa_base.verify_mfa(factors_list)
             elif resp_json['status'] == 'SUCCESS':
                 session_token = resp_json['sessionToken']
