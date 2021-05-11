@@ -142,7 +142,7 @@ Please enroll an MFA factor in the Okta Web UI first!""")
         assertion = self.get_simple_assertion(html) or self.get_mfa_assertion(html)
 
         if not assertion:
-            self.logger.error("SAML assertion not valid: " + assertion)
+            self.logger.error("SAML assertion not valid: %s", assertion)
             sys.exit(-1)
         return assertion
 
