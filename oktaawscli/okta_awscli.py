@@ -112,7 +112,7 @@ def main(okta_profile, profile, verbose, version,
         okta_profile = "default"
 
     aws_auth = AwsAuth(profile, okta_profile, lookup, verbose, logger)
-    if force or not aws_auth.check_sts_token(profile):
+    if force or not aws_auth.check_sts_token():
         if force and profile:
 
             logger.info("Force option selected, \
