@@ -4,8 +4,12 @@
 import sys
 import re
 from codecs import decode
+from http.cookiejar import CookieJar
+
 import requests
 from bs4 import BeautifulSoup as bs
+from requests.cookies import create_cookie
+
 from oktaawscli.okta_auth_mfa_base import OktaAuthMfaBase
 from oktaawscli.okta_auth_mfa_app import OktaAuthMfaApp
 from oktaawscli.util import input
@@ -13,8 +17,8 @@ from oktaawscli.util import input
 
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self, okta_profile, verbose, logger, totp_token, 
-        okta_auth_config, username, password, verify_ssl=True):
+    def __init__(self, okta_profile, verbose, logger, totp_token,
+        okta_auth_config, username, password, verify_ssl=True, cookie_jar=None):
 
         self.okta_profile = okta_profile
         self.totp_token = totp_token
@@ -24,11 +28,19 @@ class OktaAuth():
         self.factor = okta_auth_config.factor_for(okta_profile)
         self.app_link = okta_auth_config.app_link_for(okta_profile)
         self.okta_auth_config = okta_auth_config
-        self.session = None
+        self.session = requests.Session()
         self.session_token = ""
         self.session_id = ""
         self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
         self.auth_url = "%s/api/v1/authn" % self.https_base_url
+
+        if cookie_jar is None:
+            # Deliberately don't use RequestsCookieJar because FileCookieJar
+            # does not have the dict-like interface that RequestsCookieJar has.
+            self.cookies = CookieJar()
+        else:
+            self.cookies = cookie_jar
+        self.session.cookies = self.cookies
 
         if username:
             self.username = username
@@ -47,10 +59,8 @@ class OktaAuth():
             "username": self.username,
             "password": self.password
         }
-        self.session = requests.Session()
         resp = self.session.post(self.auth_url, json=auth_data)
         resp_json = resp.json()
-        self.cookies = resp.cookies
         if 'status' in resp_json:
             if resp_json['status'] == 'MFA_REQUIRED':
                 factors_list = resp_json['_embedded']['factors']
@@ -128,7 +138,13 @@ Please enroll an MFA factor in the Okta Web UI first!""")
             self.logger.error("No Extra Verification")
             return None
 
-        self.session.cookies['oktaStateToken'] = state_token
+        self.session.cookies.set_cookie(
+            create_cookie(
+                'oktaStateToken',
+                state_token,
+                domain=self.okta_auth_config.base_url_for(self.okta_profile)
+            )
+        )
 
         mfa_app = OktaAuthMfaApp(self.logger, self.session, self.verify_ssl, self.auth_url)
         api_response = mfa_app.stepup_auth(self.auth_url, state_token)
@@ -156,7 +172,13 @@ Please enroll an MFA factor in the Okta Web UI first!""")
             self.okta_auth_config.write_applink_to_profile(self.okta_profile, self.app_link)
         else:
             app_name = None
-        self.session.cookies['sid'] = self.session_id
+        self.session.cookies.set_cookie(
+            create_cookie(
+                'sid',
+                self.session_id,
+                domain=self.okta_auth_config.base_url_for(self.okta_profile)
+            )
+        )
         resp = self.session.get(self.app_link)
         assertion = self.get_saml_assertion(resp)
         return app_name, assertion
