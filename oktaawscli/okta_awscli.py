@@ -1,5 +1,6 @@
 """ Wrapper script for awscli which handles Okta auth """
 # pylint: disable=C0325,R0913,R0914
+from http.cookiejar import LoadError, LWPCookieJar
 import os
 import sys
 from subprocess import call
@@ -11,7 +12,7 @@ from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
 def get_credentials(aws_auth, okta_profile, profile,
-                    verbose, logger, totp_token, cache, refresh_role, 
+                    verbose, logger, totp_token, cache, refresh_role,
                     okta_username=None, okta_password=None):
     """ Gets credentials from Okta """
 
@@ -91,7 +92,8 @@ to ~/.okta-credentials.cache\n')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
          debug, force, cache, lookup, awscli_args,
-         refresh_role, token, okta_username, okta_password):
+         refresh_role, token, okta_username, okta_password,
+         cookie_jar):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -115,12 +117,26 @@ def main(okta_profile, profile, verbose, version,
     aws_auth = AwsAuth(profile, okta_profile, lookup, verbose, logger)
     if not aws_auth.check_sts_token(profile) or force:
         if force and profile:
-
             logger.info("Force option selected, \
                 getting new credentials anyway.")
+        if cookie_jar is not None:
+            cookie_jar = LWPCookieJar(cookie_jar)
+            try:
+                cookie_jar.load()
+                logger.debug('Loaded cookies from %s: %r', cookie_jar.filename, cookie_jar)
+            except LoadError as e:
+                logger.debug('Error loading cookies from %s: %s', cookie_jar.filename, e)
+            except OSError as e:
+                logger.debug('Error loading cookies from %s: %s', cookie_jar.filename, e)
         get_credentials(
             aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role, okta_username, okta_password
         )
+        if cookie_jar is not None:
+            try:
+                cookie_jar.save()
+                logger.debug('Saved cookies to %s', cookie_jar.filename)
+            except OSError as e:
+                logger.warning('Failed to save cookies to %s: %s', cookie_jar.filename, e)
 
     if awscli_args:
         cmdline = ['aws', '--profile', profile] + list(awscli_args)
