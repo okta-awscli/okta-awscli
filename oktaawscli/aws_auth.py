@@ -8,7 +8,7 @@ from collections import namedtuple
 from configparser import RawConfigParser
 from enum import Enum
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, NoCredentialsError
 
 
 class AwsPartition(Enum):
@@ -137,7 +137,10 @@ of roles assigned to you.""" % self.role)
             else:
                 # See https://docs.aws.amazon.com/STS/latest/APIReference/CommonErrors.html
                 self.logger.info("An unhandled error occurred. Requesting new credentials.")
+            return False
 
+        except NoCredentialsError:
+            self.logger.info('No credentials found. Requesting new credentials.')
             return False
 
         self.logger.info("STS credentials are valid. Nothing to do.")
