@@ -24,7 +24,7 @@ class OktaAuth():
         self.factor = okta_auth_config.factor_for(okta_profile)
         self.app_link = okta_auth_config.app_link_for(okta_profile)
         self.okta_auth_config = okta_auth_config
-        self.session = None
+        self.session = requests.Session()
         self.session_token = ""
         self.session_id = ""
         self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
@@ -47,7 +47,6 @@ class OktaAuth():
             "username": self.username,
             "password": self.password
         }
-        self.session = requests.Session()
         resp = self.session.post(self.auth_url, json=auth_data)
         resp_json = resp.json()
         self.cookies = resp.cookies
