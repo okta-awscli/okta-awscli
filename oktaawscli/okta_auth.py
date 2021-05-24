@@ -14,7 +14,7 @@ from oktaawscli.util import input
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """
     def __init__(self, okta_profile, verbose, logger, totp_token, 
-        okta_auth_config, username, password, verify_ssl=True):
+        okta_auth_config, username, password, verify_ssl=True, user_agent=None):
 
         self.okta_profile = okta_profile
         self.totp_token = totp_token
@@ -24,11 +24,15 @@ class OktaAuth():
         self.factor = okta_auth_config.factor_for(okta_profile)
         self.app_link = okta_auth_config.app_link_for(okta_profile)
         self.okta_auth_config = okta_auth_config
+        self.user_agent = user_agent
         self.session = requests.Session()
         self.session_token = ""
         self.session_id = ""
         self.https_base_url = "https://%s" % okta_auth_config.base_url_for(okta_profile)
         self.auth_url = "%s/api/v1/authn" % self.https_base_url
+
+        if self.user_agent:
+            self.session.headers.update({'User-Agent': self.user_agent})
 
         if username:
             self.username = username
