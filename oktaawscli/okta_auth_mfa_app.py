@@ -73,11 +73,13 @@ class OktaAuthMfaApp():
 
 
     def _get_headers(self):
-        return {
-            'User-Agent': "okta-awscli/%s" % __version__,
+        headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         }
+        if 'User-Agent' not in self.session.headers:
+            headers['User-Agent'] = "okta-awscli/%s" % __version__
+        return headers
 
 
     def _choose_factor(self, factors):
