@@ -125,7 +125,7 @@ def main(okta_profile, profile, verbose, version,
         if cookie_jar is not None:
             cookie_jar = LWPCookieJar(cookie_jar)
             try:
-                cookie_jar.load()
+                cookie_jar.load(ignore_discard=persistent_okta_session, ignore_expires=persistent_okta_session)
                 logger.debug('Loaded cookies from %s: %r', cookie_jar.filename, cookie_jar)
             except LoadError as e:
                 logger.debug('Error loading cookies from %s: %s', cookie_jar.filename, e)
@@ -137,7 +137,7 @@ def main(okta_profile, profile, verbose, version,
         )
         if cookie_jar is not None:
             try:
-                cookie_jar.save()
+                cookie_jar.save(ignore_discard=persistent_okta_session, ignore_expires=persistent_okta_session)
                 logger.debug('Saved cookies to %s', cookie_jar.filename)
             except OSError as e:
                 logger.warning('Failed to save cookies to %s: %s', cookie_jar.filename, e)
