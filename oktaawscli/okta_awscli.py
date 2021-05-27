@@ -90,11 +90,13 @@ to ~/.okta-credentials.cache\n')
 @click.option('-P', '--password', 'okta_password', help="Okta password")
 @click.option('-j', '--cookie-jar', type=click.Path(dir_okay=False, writable=True, resolve_path=True),
               help='Keep persistent Okta cookies in FILE')
+@click.option('-s', '--persistent-okta-session', is_flag=True,
+              help='Store and reuse the Okta session when possible')
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
          debug, force, cache, lookup, awscli_args,
          refresh_role, token, okta_username, okta_password,
-         cookie_jar):
+         cookie_jar, persistent_okta_session):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
