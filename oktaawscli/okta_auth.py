@@ -163,22 +163,43 @@ Please enroll an MFA factor in the Okta Web UI first!""")
         return assertion
 
 
-    def get_assertion(self):
+    def get_assertion(self, persistent_okta_session=False):
         """ Main method to get SAML assertion from Okta """
-        self.session_token = self.primary_auth()
-        self.session_id = self.get_session(self.session_token)
+        if not persistent_okta_session or not self.has_current_session():
+            self.session_token = self.primary_auth()
+            self.session_id = self.get_session(self.session_token)
+            self.session.cookies.set_cookie(
+                create_cookie(
+                    'sid',
+                    self.session_id,
+                    domain=self.okta_auth_config.base_url_for(self.okta_profile)
+                )
+            )
         if not self.app_link:
             app_name, self.app_link = self.get_apps(self.session_id)
             self.okta_auth_config.write_applink_to_profile(self.okta_profile, self.app_link)
         else:
             app_name = None
-        self.session.cookies.set_cookie(
-            create_cookie(
-                'sid',
-                self.session_id,
-                domain=self.okta_auth_config.base_url_for(self.okta_profile)
-            )
-        )
         resp = self.session.get(self.app_link)
         assertion = self.get_saml_assertion(resp)
         return app_name, assertion
+
+
+    def has_current_session(self):
+        """ Returns True if there is a current valid Okta session. """
+        self.logger.debug('Attempting to get the current Okta session')
+        resp = self.session.get(
+            self.https_base_url + '/api/v1/sessions/me'
+        )
+        if resp.ok:
+            okta_session = resp.json()
+            if okta_session['status'] == 'ACTIVE':
+                self.logger.debug('Found an active Okta session')
+                return True
+            else:
+                self.logger.debug('Disregarding Okta session with the status %s', okta_session['status'])
+        elif resp.status_code == 404:
+            self.logger.debug('No Okta session was found')
+        else:
+            resp.raise_for_status()
+        return False

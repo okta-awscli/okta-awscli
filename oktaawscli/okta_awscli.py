@@ -14,7 +14,7 @@ from oktaawscli.aws_auth import AwsAuth
 def get_credentials(aws_auth, okta_profile, profile,
                     verbose, logger, totp_token, cache, refresh_role,
                     okta_username=None, okta_password=None,
-                    cookie_jar=None):
+                    cookie_jar=None, persistent_okta_session=False):
     """ Gets credentials from Okta """
 
     okta_auth_config = OktaAuthConfig(logger)
@@ -22,7 +22,7 @@ def get_credentials(aws_auth, okta_profile, profile,
         okta_auth_config, okta_username, okta_password, cookie_jar=cookie_jar)
 
 
-    _, assertion = okta.get_assertion()
+    _, assertion = okta.get_assertion(persistent_okta_session)
     role = aws_auth.choose_aws_role(assertion, refresh_role)
     principal_arn, role_arn = role
 
@@ -133,7 +133,7 @@ def main(okta_profile, profile, verbose, version,
                 logger.debug('Error loading cookies from %s: %s', cookie_jar.filename, e)
         get_credentials(
             aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role, okta_username, okta_password,
-            cookie_jar
+            cookie_jar, persistent_okta_session,
         )
         if cookie_jar is not None:
             try:
