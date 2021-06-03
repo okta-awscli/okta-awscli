@@ -67,6 +67,22 @@ def console_output(access_key_id, secret_access_key, session_token, verbose):
     return exports
 
 
+class UnionParamType(click.ParamType):
+
+    def __init__(self, *click_param_types: click.ParamType):
+        self.click_param_types = click_param_types
+
+    def convert(self, value, param, ctx):
+        last_error = None
+        for t in self.click_param_types:
+            try:
+                return t.convert(value, param, ctx)
+            except click.BadParameter as e:
+                last_error = e
+                pass
+        raise last_error
+
+
 # pylint: disable=R0913
 @click.command()
 @click.option('-v', '--verbose', is_flag=True, help='Enables verbose mode')
@@ -84,7 +100,9 @@ created. If omitted, credentials will output to console.\n")
 to ~/.okta-credentials.cache\n')
 @click.option('-r', '--refresh-role', is_flag=True, help='Refreshes the AWS role to be assumed')
 @click.option('-t', '--token', help='TOTP token from your authenticator app')
-@click.option('-l', '--lookup', is_flag=True, help='Look up AWS account names')
+@click.option('-l', '--lookup', is_flag=False, flag_value=True, default=False,
+              type=UnionParamType(click.BOOL, click.Path(dir_okay=False, writable=True, resolve_path=True)),
+              help='Look up AWS account names in PATH if given or by using list account aliases if not')
 @click.option('-U', '--username', 'okta_username', help="Okta username")
 @click.option('-P', '--password', 'okta_password', help="Okta password")
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
