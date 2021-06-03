@@ -9,6 +9,7 @@ from configparser import RawConfigParser
 from enum import Enum
 import boto3
 from botocore.exceptions import ClientError
+import configparser
 
 
 class AwsPartition(Enum):
@@ -183,36 +184,57 @@ of roles assigned to you.""" % self.role)
 
     def __create_options_from(self, roles, assertion, lookup=False):
         options = []
+        account_names = {}
+        lookup_missing = bool(lookup)
+        if lookup and isinstance(lookup, str):
+            self.logger.debug('Reading the lookup INI file %s', lookup)
+            lookup_parser = configparser.ConfigParser()
+            with open(lookup) as lookup_file:
+                lookup_parser.read_file(lookup_file)
+            try:
+                account_names = lookup_parser['names']
+                lookup_missing = account_names.getboolean('list account aliases for missing names', fallback=True)
+            except KeyError:
+                self.logger.warning('There is no names section in %s', lookup)
         for index, role in enumerate(roles):
+            option = None
             if lookup:
-                self.logger.debug("Performing AWS account alias lookup")
-                creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900, logger=self.logger)
-                access_key_id = creds['AccessKeyId']
-                secret_access_key = creds['SecretAccessKey']
-                session_token = creds['SessionToken']
-                arn_region = role.principal_arn.split(':')[1]
-                iam_region = 'us-gov-west-1' if arn_region == 'aws-us-gov' else 'us-east-1'
-
-                client = boto3.client('iam',
-                                      region_name = iam_region,
-                                      aws_access_key_id = access_key_id,
-                                      aws_secret_access_key = secret_access_key,
-                                      aws_session_token = session_token)
+                [account_id, rolename] = role.role_arn.split(':')[4:6]
                 try:
-                    alias = client.list_account_aliases()['AccountAliases'][0]
-                    rolename = role.role_arn.split(':')[5]
-                    option = '{i}: {accname} - {rolename}'.format(i=index+1,
-                                                                  accname = alias,
-                                                                  rolename = rolename)
-                except Exception as ex:
-                    self.logger.warning("Unable to perform alias lookup: %s" % ex)
-                    option = '{i}: {rolearn}'.format(i=index+1,
-                                                     rolearn = role.role_arn)
-                    pass
-                options.append(option)
-            else:
-                options.append("%d: %s" % (index + 1, role.role_arn))
+                    option = f'{index + 1}: {account_names[account_id]} - {rolename}'
+                except KeyError:
+                    if lookup_missing:
+                        option = self.__list_account_aliases(assertion, index, role)
+            if not option:
+                option = f'{index + 1}: {role.role_arn}'
+            options.append(option)
         return options
+
+    def __list_account_aliases(self, assertion, index, role):
+        self.logger.debug("Performing AWS account alias lookup")
+        creds = AwsAuth.get_sts_token(role.role_arn, role.principal_arn, assertion, duration=900, logger=self.logger)
+        access_key_id = creds['AccessKeyId']
+        secret_access_key = creds['SecretAccessKey']
+        session_token = creds['SessionToken']
+        arn_region = role.principal_arn.split(':')[1]
+        iam_region = 'us-gov-west-1' if arn_region == 'aws-us-gov' else 'us-east-1'
+        client = boto3.client('iam',
+                              region_name=iam_region,
+                              aws_access_key_id=access_key_id,
+                              aws_secret_access_key=secret_access_key,
+                              aws_session_token=session_token)
+        try:
+            alias = client.list_account_aliases()['AccountAliases'][0]
+            rolename = role.role_arn.split(':')[5]
+            option = '{i}: {accname} - {rolename}'.format(i=index + 1,
+                                                          accname=alias,
+                                                          rolename=rolename)
+        except Exception as ex:
+            self.logger.warning("Unable to perform alias lookup: %s" % ex)
+            option = '{i}: {rolearn}'.format(i=index + 1,
+                                             rolearn=role.role_arn)
+            pass
+        return option
 
     @staticmethod
     def __find_aws_partition_from_role_arn(role_arn):
