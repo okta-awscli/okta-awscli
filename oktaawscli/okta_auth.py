@@ -63,6 +63,10 @@ class OktaAuth():
                 self.logger.warning("""MFA not enrolled. Cannot continue.
 Please enroll an MFA factor in the Okta Web UI first!""")
                 sys.exit(2)
+            elif resp_json['status'] == 'LOCKED_OUT':
+                self.logger.error("""Account is locked. Cannot continue.
+Please contact you administrator in order to unlock the account!""")
+                sys.exit(1)
         elif resp.status_code != 200:
             self.logger.error(resp_json['errorSummary'])
             sys.exit(1)
