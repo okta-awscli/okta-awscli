@@ -121,9 +121,9 @@ of roles assigned to you.""" % self.role)
 
         self.logger.debug("Checking STS token against ARN partition: %s" % self.aws_partition)
         if self.aws_partition == AwsPartition.AWS_US_GOV:
-            session = boto3.Session(profile_name=profile, region_name='us-gov-west-1')
+            session = boto3.Session(profile_name=self.profile, region_name='us-gov-west-1')
         else:
-            session = boto3.Session(profile_name=profile)
+            session = boto3.Session(profile_name=self.profile)
 
         sts = session.client('sts')
         try:
