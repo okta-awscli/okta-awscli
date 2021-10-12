@@ -64,6 +64,7 @@ Optional flags:
 - `--force` or `-f` Ignores result of STS credentials validation and gets new credentials from AWS. Used in conjunction with `--profile`.
 - `--verbose` or `-v` More verbose output.
 - `--debug` or `-d` Very verbose output. Useful for debugging.
+- `--silent` or `-s` Silences the output of the AWS credentials.
 - `--cache` or `-c` Cache the acquired credentials to ~/.okta-credentials.cache (only if --profile is unspecified)
 - `--okta-profile` or `-o` Use a Okta profile, other than `default` in `.okta-aws`. Useful for multiple Okta tenants.
 - `--token` or `-t` Pass in the TOTP token from your authenticator
