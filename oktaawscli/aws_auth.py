@@ -14,6 +14,7 @@ from botocore.exceptions import ClientError
 class AwsPartition(Enum):
     AWS = 1 
     AWS_US_GOV = 2
+    AWS_CN = 3
 
 
 class AwsAuth():
@@ -77,6 +78,8 @@ of roles assigned to you.""" % self.role)
         logger.debug("Getting STS token against ARN partition: %s" % aws_partition)
         if aws_partition == AwsPartition.AWS_US_GOV:
             sts = boto3.client('sts', region_name='us-gov-west-1')
+        elif aws_partition == AwsPartition.AWS_CN:
+            sts = boto3.client('sts', region_name='cn-north-1')
         else:
             sts = boto3.client('sts')
 
@@ -122,6 +125,8 @@ of roles assigned to you.""" % self.role)
         self.logger.debug("Checking STS token against ARN partition: %s" % self.aws_partition)
         if self.aws_partition == AwsPartition.AWS_US_GOV:
             session = boto3.Session(profile_name=profile, region_name='us-gov-west-1')
+        elif self.aws_partition == AwsPartition.AWS_CN:
+            session = boto3.Session(profile_name=profile, region_name='cn-north-1')
         else:
             session = boto3.Session(profile_name=profile)
 
@@ -219,6 +224,8 @@ of roles assigned to you.""" % self.role)
         arn_aws_partition = role_arn.split(':')[1]
         if arn_aws_partition == 'aws-us-gov':
             return AwsPartition.AWS_US_GOV
+        elif arn_aws_partition == 'aws-cn':
+            return AwsPartition.AWS_CN
         else:
             return AwsPartition.AWS
 
