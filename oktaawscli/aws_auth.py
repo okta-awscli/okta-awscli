@@ -9,6 +9,7 @@ from configparser import RawConfigParser
 from enum import Enum
 import boto3
 from botocore.exceptions import ClientError
+from subprocess import call
 
 
 class AwsPartition(Enum):
@@ -98,7 +99,7 @@ of roles assigned to you.""" % self.role)
         credentials = response['Credentials']
         return credentials
 
-    def check_sts_token(self, profile):
+    def check_sts_token(self):
         """ Verifies that STS credentials are valid """
         # Don't check for creds if profile is blank
         if not self.profile:
@@ -121,9 +122,9 @@ of roles assigned to you.""" % self.role)
 
         self.logger.debug("Checking STS token against ARN partition: %s" % self.aws_partition)
         if self.aws_partition == AwsPartition.AWS_US_GOV:
-            session = boto3.Session(profile_name=profile, region_name='us-gov-west-1')
+            session = boto3.Session(profile_name=self.profile, region_name='us-gov-west-1')
         else:
-            session = boto3.Session(profile_name=profile)
+            session = boto3.Session(profile_name=self.profile)
 
         sts = session.client('sts')
         try:
@@ -225,3 +226,8 @@ of roles assigned to you.""" % self.role)
     def __find_predefined_role_from(self, roles):
         found_roles = filter(lambda role_tuple: role_tuple.role_arn == self.role, roles)
         return next(iter(found_roles), None)
+
+    def execute_aws_args(self, awscli_args, logger):
+        cmdline = ['aws', '--profile', self.profile] + list(awscli_args)
+        logger.info('Invoking: %s', ' '.join(cmdline))
+        call(cmdline)

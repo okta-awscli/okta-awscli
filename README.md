@@ -17,6 +17,7 @@ This project is written for Python 3. Running it with Python 2 may work, but it 
 
 - `pip3 install okta-awscli`
   - To install with U2F support (Yubikey): `pip3 install "okta-awscli[U2F]"`
+- Execute `okta-awscli --config` and follow the steps OR
 - Configure okta-awscli via the `~/.okta-aws` file with the following parameters:
 
 ```

@@ -2,7 +2,6 @@
 # pylint: disable=C0325,R0913,R0914
 import os
 import sys
-from subprocess import call
 import logging
 import click
 from oktaawscli.version import __version__
@@ -87,10 +86,11 @@ to ~/.okta-credentials.cache\n')
 @click.option('-l', '--lookup', is_flag=True, help='Look up AWS account names')
 @click.option('-U', '--username', 'okta_username', help="Okta username")
 @click.option('-P', '--password', 'okta_password', help="Okta password")
+@click.option('--config', is_flag=True, help="Okta config initialization/addition")
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
          debug, force, cache, lookup, awscli_args,
-         refresh_role, token, okta_username, okta_password):
+         refresh_role, token, okta_username, okta_password, config):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -108,11 +108,14 @@ def main(okta_profile, profile, verbose, version,
         handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
+    if config:
+        OktaAuthConfig.configure(logger)
+
     if not okta_profile:
         okta_profile = "default"
 
     aws_auth = AwsAuth(profile, okta_profile, lookup, verbose, logger)
-    if not aws_auth.check_sts_token(profile) or force:
+    if not aws_auth.check_sts_token() or force:
         if force and profile:
 
             logger.info("Force option selected, \
@@ -122,10 +125,7 @@ def main(okta_profile, profile, verbose, version,
         )
 
     if awscli_args:
-        cmdline = ['aws', '--profile', profile] + list(awscli_args)
-        logger.info('Invoking: %s', ' '.join(cmdline))
-        call(cmdline)
-
+        aws_auth.execute_aws_args(awscli_args, logger)
 
 if __name__ == "__main__":
     # pylint: disable=E1120
