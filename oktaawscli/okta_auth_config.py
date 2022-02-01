@@ -169,3 +169,10 @@ class OktaAuthConfig():
 
         with open(self.config_path, 'w+') as configfile:
             self._value.write(configfile)
+
+    @staticmethod
+    def get_okta_profiles():
+        value = RawConfigParser()
+        config_path = os.path.expanduser('~') + '/.okta-aws'
+        value.read(config_path)
+        return value.sections()

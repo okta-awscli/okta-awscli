@@ -17,7 +17,7 @@ This project is written for Python 3. Running it with Python 2 may work, but it 
 
 - `pip3 install okta-awscli`
   - To install with U2F support (Yubikey): `pip3 install "okta-awscli[U2F]"`
-- Execute `okta-awscli --config` and follow the steps OR
+- Execute `okta-awscli --config` and follow the steps to configure your Okta profile OR
 - Configure okta-awscli via the `~/.okta-aws` file with the following parameters:
 
 ```
@@ -70,6 +70,8 @@ Optional flags:
 - `--token` or `-t` Pass in the TOTP token from your authenticator
 - `--refresh-role` or `-r` Refresh the AWS role to be assumed. Previously incorporated in `--force`.
 - `--lookup` or `-l` Lookup and return the AWS Account Alias for each role, instead of returning the raw ARN. 
+- `--config` Add/Create new Okta profile configuration.
+- `-s` or `--switch` Switch to any existing profile and update credentials.
   - Note that this will attempt to perform `iam:ListAccountAliases` on every account that you have access to via Okta. This is important for two reasons:
     - All of your roles must have this permission attached to it via an IAM policy.
     - This may be important for you, if you have compliance considerations around only accessing accounts that you're actively doing work in.
