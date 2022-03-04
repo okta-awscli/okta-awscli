@@ -11,7 +11,7 @@ from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
 def get_credentials(aws_auth, okta_profile, profile,
-                    verbose, slient, logger, totp_token, cache, refresh_role, 
+                    verbose, silent, logger, totp_token, cache, refresh_role, 
                     okta_username=None, okta_password=None):
     """ Gets credentials from Okta """
 
@@ -41,7 +41,7 @@ def get_credentials(aws_auth, okta_profile, profile,
     logger.info("Session token expires on: %s" % session_token_expiry)
     if not aws_auth.profile:
         exports = console_output(access_key_id, secret_access_key,
-                                 session_token, verbose, slient)
+                                 session_token, verbose, silent)
         if cache:
             cache = open("%s/.okta-credentials.cache" %
                          (os.path.expanduser('~'),), 'w')
@@ -53,7 +53,7 @@ def get_credentials(aws_auth, okta_profile, profile,
                                  secret_access_key, session_token)
 
 
-def console_output(access_key_id, secret_access_key, session_token, verbose, slient):
+def console_output(access_key_id, secret_access_key, session_token, verbose, silent):
     """ Outputs STS credentials to console """
     if verbose:
         print("Use these to set your environment variables:")
@@ -62,7 +62,7 @@ def console_output(access_key_id, secret_access_key, session_token, verbose, sli
         "export AWS_SECRET_ACCESS_KEY=%s" % secret_access_key,
         "export AWS_SESSION_TOKEN=%s" % session_token
     ])
-    if not slient:
+    if not silent:
         print(exports)
 
     return exports
@@ -71,7 +71,7 @@ def console_output(access_key_id, secret_access_key, session_token, verbose, sli
 # pylint: disable=R0913
 @click.command()
 @click.option('-v', '--verbose', is_flag=True, help='Enables verbose mode')
-@click.option('-s', '--slient', is_flag=True, help='Silences the output of the AWS credentials', default=False)
+@click.option('-s', '--silent', is_flag=True, help='Silences the output of the AWS credentials', default=False)
 @click.option('-V', '--version', is_flag=True,
               help='Outputs version number and sys.exits')
 @click.option('-d', '--debug', is_flag=True, help='Enables debug mode')
@@ -90,7 +90,7 @@ to ~/.okta-credentials.cache\n')
 @click.option('-U', '--username', 'okta_username', help="Okta username")
 @click.option('-P', '--password', 'okta_password', help="Okta password")
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
-def main(okta_profile, profile, verbose, slient, version,
+def main(okta_profile, profile, verbose, silent, version,
          debug, force, cache, lookup, awscli_args,
          refresh_role, token, okta_username, okta_password):
     """ Authenticate to awscli using Okta """
@@ -120,7 +120,7 @@ def main(okta_profile, profile, verbose, slient, version,
             logger.info("Force option selected, \
                 getting new credentials anyway.")
         get_credentials(
-            aws_auth, okta_profile, profile, verbose, slient, logger, token, cache, refresh_role, okta_username, okta_password
+            aws_auth, okta_profile, profile, verbose, silent, logger, token, cache, refresh_role, okta_username, okta_password
         )
 
     if awscli_args:
