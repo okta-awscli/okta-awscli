@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.5.1] 2022-03-04
+### Fixed
+- Omitting the print of AWS credentials, unless the verbose option is passed. ([#177](https://github.com/okta-awscli/okta-awscli/pull/177))
 ## [0.5.0] 2021-02-20
 ### Added
 - Command-line argument for refreshing AWS roles. ([#150](https://github.com/jmhale/okta-awscli/issues/150))
