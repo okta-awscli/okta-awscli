@@ -1,11 +1,12 @@
 # Changelog
 
-## [0.5.1] 2022-02-01
+## [0.5.1] 2022-03-04
 ### Added
 - Command-line argument for switching between configured Okta profiles.
 - Command-line argument for configuring Okta profiles (add/create).
 ### Fixed
 - Handle profile setting from configuration file. ([#180](https://github.com/jmhale/okta-awscli/issues/180))
+- Omitting the print of AWS credentials, unless the verbose option is passed. ([#177](https://github.com/okta-awscli/okta-awscli/pull/177))
 
 ## [0.5.0] 2021-02-20
 ### Added

@@ -68,14 +68,14 @@ def get_credentials(aws_auth, okta_profile, profile,
 
 def console_output(access_key_id, secret_access_key, session_token, verbose):
     """ Outputs STS credentials to console """
-    if verbose:
-        print("Use these to set your environment variables:")
     exports = "\n".join([
         "export AWS_ACCESS_KEY_ID=%s" % access_key_id,
         "export AWS_SECRET_ACCESS_KEY=%s" % secret_access_key,
         "export AWS_SESSION_TOKEN=%s" % session_token
     ])
-    print(exports)
+    if verbose:
+        print("Use these to set your environment variables:")
+        print(exports)
 
     return exports
 
