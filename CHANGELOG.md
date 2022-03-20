@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.5.2] 2022-03-19
+- No-op version bump to get past PyPI dupe file error.
+
 ## [0.5.1] 2022-03-04
 ### Added
 - Command-line argument for switching between configured Okta profiles.
