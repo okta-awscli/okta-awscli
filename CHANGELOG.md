@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.3] 2022-03-20
+- Package version bumps to address dependency security vulns
+  - Bumped `boto3` from `1.9.71` to `1.21.22`
+  - Bumped `requests` from `2.21.0` to `2.27.1`
+
 ## [0.5.2] 2022-03-19
 - No-op version bump to get past PyPI dupe file error.
 
