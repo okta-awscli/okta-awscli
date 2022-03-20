@@ -1,14 +1,12 @@
 name: Publish to PyPI
 
 on:
-  push:
-    tags:
-      - v**
+  release:
+    types: [published]
 
   workflow_dispatch:
 jobs:
   build:
-    if: github.event.base_ref=='refs/heads/main'  # run only on main
     name: Build and publish Python distribution
     runs-on: ubuntu-latest
     steps:
