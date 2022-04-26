@@ -9,6 +9,7 @@ from configparser import RawConfigParser
 from enum import Enum
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
+from subprocess import call
 
 
 class AwsPartition(Enum):
@@ -44,6 +45,14 @@ class AwsAuth():
             self.profile = parser.get(okta_profile, 'profile')
             self.logger.debug("Setting AWS profile to %s" % self.profile)
 
+    def set_default_profile(self, parser: RawConfigParser):
+        if not parser.has_section('default'):
+            parser.add_section('default')
+        for key, value in parser.items(self.profile):
+            parser.set('default', key, value)
+        self.logger.info("Setting default profile.")
+        with open(self.creds_file, 'w+') as configfile:
+            parser.write(configfile)
 
     def choose_aws_role(self, assertion, refresh_role):
         """ Choose AWS role from SAML assertion """
@@ -144,6 +153,8 @@ of roles assigned to you.""" % self.role)
             return False
 
         self.logger.info("STS credentials are valid. Nothing to do.")
+        AwsAuth.set_default_profile(self, parser)
+
         return True
 
     def write_sts_token(self, access_key_id, secret_access_key, session_token):
@@ -166,6 +177,9 @@ of roles assigned to you.""" % self.role)
             config.write(configfile)
         self.logger.info("Temporary credentials written to profile: %s" % self.profile)
         self.logger.info("Invoke using: aws --profile %s <service> <command>" % self.profile)
+        
+        if self.profile != 'default':
+            AwsAuth.set_default_profile(self, config)
 
     @staticmethod
     def __extract_available_roles_from(assertion):
@@ -228,3 +242,8 @@ of roles assigned to you.""" % self.role)
     def __find_predefined_role_from(self, roles):
         found_roles = filter(lambda role_tuple: role_tuple.role_arn == self.role, roles)
         return next(iter(found_roles), None)
+
+    def execute_aws_args(self, awscli_args, logger):
+        cmdline = ['aws', '--profile', self.profile] + list(awscli_args)
+        logger.info('Invoking: %s', ' '.join(cmdline))
+        call(cmdline)
