@@ -22,16 +22,16 @@ class OktaAuthConfig():
     def configure(logger):
         value = RawConfigParser()
         config_path = os.path.expanduser('~') + '/.okta-aws'
+        append = False
         if os.path.exists(config_path):
             value.read(config_path)
             print(f"You have preconfigured Okta profiles: {value.sections()}")
             print(f"This command will append new profile to the existing {config_path} config file")
-            confirm = input('Would you like to proceed? [y/n]: ')
             append = True
         else:
             print(f"This command will create a new {config_path} config file")
-            confirm = input('Would you like to proceed? [y/n]: ')
 
+        confirm = input('Would you like to proceed? [y/n]: ')
         if confirm == 'y':
             logger.info(f"Creating new {config_path} file")
             okta_profile = input('Enter Okta profile name: ')
