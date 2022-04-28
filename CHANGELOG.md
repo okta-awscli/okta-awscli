@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.4] 2022-04-28
+- Bugfix for check_sts function when the profile name is already defined in `~/.okta-aws`. fixes [#161](https://github.com/okta-awscli/okta-awscli/issues/161) and [#155](https://github.com/okta-awscli/okta-awscli/issues/155)
+- Bugfix [#174](https://github.com/okta-awscli/okta-awscli/issues/174) (No handler for LOCKED_OUT status)
+- Bugfix [#188](https://github.com/okta-awscli/okta-awscli/issues/188) (okta-awscli --config fails)
+- Bugfix [#170](https://github.com/okta-awscli/okta-awscli/issues/170) (3-number verification challenge)
+
 ## [0.5.3] 2022-03-20
 - Package version bumps to address dependency security vulns
   - Bumped `boto3` from `1.9.71` to `1.21.22`
