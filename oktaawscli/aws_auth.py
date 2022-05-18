@@ -157,7 +157,7 @@ of roles assigned to you.""" % self.role)
 
         return True
 
-    def write_sts_token(self, access_key_id, secret_access_key, session_token):
+    def write_sts_token(self, access_key_id, secret_access_key, session_token_expiry, session_token):
         """ Writes STS auth information to credentials file """
         if not os.path.exists(self.creds_dir):
             os.makedirs(self.creds_dir)
@@ -171,6 +171,7 @@ of roles assigned to you.""" % self.role)
 
         config.set(self.profile, 'aws_access_key_id', access_key_id)
         config.set(self.profile, 'aws_secret_access_key', secret_access_key)
+        config.set(self.profile, 'aws_session_expiration', session_token_expiry)
         config.set(self.profile, 'aws_session_token', session_token)
 
         with open(self.creds_file, 'w+') as configfile:

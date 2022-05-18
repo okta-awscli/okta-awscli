@@ -62,8 +62,8 @@ def get_credentials(aws_auth, okta_profile, profile,
             cache.close()
         sys.exit(0)
     else:
-        aws_auth.write_sts_token(access_key_id,
-                                 secret_access_key, session_token)
+        aws_auth.write_sts_token(access_key_id, secret_access_key,
+                                 session_token_expiry, session_token)
 
 
 def console_output(access_key_id, secret_access_key, session_token, verbose):
