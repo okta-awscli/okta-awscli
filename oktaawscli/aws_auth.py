@@ -77,6 +77,7 @@ of roles assigned to you.""" % self.role)
         """ Gets a token from AWS STS """
 
         try:
+            # Temporarily remove the profile envvar because it can cause first-time setup issues
             profile = os.environ.pop('AWS_PROFILE', None)
             # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
             arn_region = principal_arn.split(':')[1]
@@ -272,6 +273,7 @@ of roles assigned to you.""" % self.role)
         have access to the account's alias. None is returned if the role cannot be assumed.
         """
         try:
+            # Temporarily remove the profile envvar because it can cause first-time setup issues
             profile = os.environ.pop('AWS_PROFILE', None)
             sts = boto3.client('sts')
             if profile is not None:
