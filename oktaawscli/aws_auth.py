@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from collections import namedtuple
 from configparser import SafeConfigParser
 import boto3
-from botocore.exceptions import ClientError, NoCredentialsError
+from botocore.exceptions import ClientError, NoCredentialsError, ProfileNotFound
 import six
 
 class AwsAuth():
@@ -76,12 +76,18 @@ of roles assigned to you.""" % self.role)
     def get_sts_token(self, role_arn, principal_arn, assertion, duration):
         """ Gets a token from AWS STS """
 
-        # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
-        arn_region = principal_arn.split(':')[1]
-        if arn_region == 'aws-us-gov':
-            sts = boto3.client('sts', region_name='us-gov-west-1')
-        else:
-            sts = boto3.client('sts', region_name=self.region)
+        try:
+            profile = os.environ.pop('AWS_PROFILE', None)
+            # Connect to the GovCloud STS endpoint if a GovCloud ARN is found.
+            arn_region = principal_arn.split(':')[1]
+            if arn_region == 'aws-us-gov':
+                sts = boto3.client('sts', region_name='us-gov-west-1')
+            else:
+                sts = boto3.client('sts', region_name=self.region)
+            if profile is not None:
+                os.environ['AWS_PROFILE'] = profile
+        except ProfileNotFound:
+            self.logger.exception("Unable to handle AWS_PROFILE=%s" % os.environ['AWS_PROFILE'])
 
         response = sts.assume_role_with_saml(RoleArn=role_arn,
                                              PrincipalArn=principal_arn,
@@ -265,7 +271,13 @@ of roles assigned to you.""" % self.role)
         :return: The alias of the account that this role is in. "Unknown" is returned if the role does not
         have access to the account's alias. None is returned if the role cannot be assumed.
         """
-        sts = boto3.client('sts')
+        try:
+            profile = os.environ.pop('AWS_PROFILE', None)
+            sts = boto3.client('sts')
+            if profile is not None:
+                os.environ['AWS_PROFILE'] = profile
+        except ProfileNotFound:
+            self.logger.exception("Unable to handle AWS_PROFILE=%s" % os.environ['AWS_PROFILE'])
         try:
             saml_resp = sts.assume_role_with_saml(
                 RoleArn=role_arn,
