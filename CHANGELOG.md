@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.5.5] 2022-12-15
+- Bugfix for non-working factor provided by config and totp token given by `-t` argument if user has more than 1 factors 
+
 ## [0.5.4] 2022-04-28
 - Bugfix for check_sts function when the profile name is already defined in `~/.okta-aws`. fixes [#161](https://github.com/okta-awscli/okta-awscli/issues/161) and [#155](https://github.com/okta-awscli/okta-awscli/issues/155)
 - Bugfix [#174](https://github.com/okta-awscli/okta-awscli/issues/174) (No handler for LOCKED_OUT status)
