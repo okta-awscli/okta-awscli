@@ -6,14 +6,14 @@ from oktaawscli.version import __version__
 
 class OktaAuthMfaApp():
     """ Handles per-app Okta MFA """
-    def __init__(self, logger, session, verify_ssl, auth_url):
+    def __init__(self, logger, session, verify_ssl, auth_url, factor, totp_token):
         self.session = session
         self.logger = logger
         self._verify_ssl_certs = verify_ssl
         self._preferred_mfa_type = None
-        self._mfa_code = None
+        self._factor = factor
+        self._mfa_code = totp_token
         self._auth_url = auth_url
-
 
     def stepup_auth(self, embed_link, state_token=None):
         """ Login to Okta using the Step-up authentication flow"""
@@ -95,14 +95,24 @@ class OktaAuthMfaApp():
             self.logger.info("%s selected" % factor_name)
             selection = 0
         else:
-            print("Pick a factor:")
-            # print out the factors and let the user select
-            for i, factor in enumerate(factors):
-                factor_name = self._build_factor_name(factor)
-                if factor_name:
-                    print('[ %d ] %s' % (i, factor_name))
-            selection = input("Selection: ")
-
+            if not self._factor:
+                print("Pick a factor:")
+                # print out the factors and let the user select
+                for i, factor in enumerate(factors):
+                    factor_name = self._build_factor_name(factor)
+                    if factor_name:
+                        print('[ %d ] %s' % (i, factor_name))
+                selection = input("Selection: ")
+            else:
+                for factor in factors:
+                    if factor['provider'] == self._factor:
+                        return factor
+                self.logger.error(
+                    "You specified the wrong provider in your config: {}.\nAvailable options: GOOGLE or OKTA".format(
+                        self._factor
+                    )
+                )
+                sys.exit(1)
         # make sure the choice is valid
         if int(selection) > len(factors):
             self.logger.error("You made an invalid selection")
