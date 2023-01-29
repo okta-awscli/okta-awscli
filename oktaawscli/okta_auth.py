@@ -126,6 +126,7 @@ Please contact you administrator in order to unlock the account!""")
 
     def get_mfa_assertion(self, html):
         soup = bs(html.text, "html.parser")
+        self.logger.debug(soup.title)
         if hasattr(soup.title, 'string') and re.match(".* - Extra Verification$", soup.title.string):
             state_token = decode(re.search(r"var stateToken = '(.*)';", html.text).group(1), "unicode-escape")
         else:
