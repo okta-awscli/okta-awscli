@@ -154,6 +154,8 @@ of roles assigned to you.""" % self.role)
 
         self.logger.info("STS credentials are valid. Nothing to do.")
         AwsAuth.set_default_profile(self, parser)
+        if self.profile == 'default':
+            AwsAuth.set_default_profile(self, parser)
 
         return True
 
@@ -178,7 +180,7 @@ of roles assigned to you.""" % self.role)
         self.logger.info("Temporary credentials written to profile: %s" % self.profile)
         self.logger.info("Invoke using: aws --profile %s <service> <command>" % self.profile)
         
-        if self.profile != 'default':
+        if self.profile == 'default':
             AwsAuth.set_default_profile(self, config)
 
     @staticmethod
