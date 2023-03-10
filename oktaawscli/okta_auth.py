@@ -68,7 +68,9 @@ class OktaAuth:
                 )
                 sys.exit(1)
             else:
-                self.logger.error("Unknown authentication status")
+                self.logger.error(
+                    f"Unknown authentication status: {resp_json['status']}"
+                )
                 sys.exit(1)
         elif resp.status_code != 200:
             self.logger.error(resp_json["errorSummary"])
