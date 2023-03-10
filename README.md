@@ -10,6 +10,9 @@ This project is largely inspired by https://github.com/nimbusscale/okta_aws_logi
 
 Parsing the HTML is still required to get the SAML assertion, after authentication is complete. However, since we only need to look for the SAML assertion in a single, predictable tag, `<input name="SAMLResponse"...`, the results are a lot more stable across any changes that Okta may make to their interface.
 
+## Disclaimer
+Okta is a registered trademark of Okta, Inc. and this tool has no affiliation with or sponsorship by Okta, Inc.
+
 ## Python Support
 This project is written for Python 3. Running it with Python 2 may work, but it is not supported. Since Python 2 is end-of-life (as of 2020-JAN-01), feature requests and PRs to add Python 2 support will likely not be accepted, outside of extreme circumstances.
 
