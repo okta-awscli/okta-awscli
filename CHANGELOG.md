@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.5] 2023-03-10
+### Changed
+- Added handling of Okta authentication status for `MFA_ENROLL` and `LOCKED_OUT`
+- Added handling of unknown Okta authentication status
+- Formatted code with Python black
+
 ## [0.4.0] 2019-05-02
 ### Changed
 - Added region override parameter for write_sts_token method
