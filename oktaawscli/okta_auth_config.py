@@ -22,12 +22,10 @@ class OktaAuthConfig():
     def configure(logger):
         value = RawConfigParser()
         config_path = os.path.expanduser('~') + '/.okta-aws'
-        append = False
         if os.path.exists(config_path):
             value.read(config_path)
             print(f"You have preconfigured Okta profiles: {value.sections()}")
             print(f"This command will append new profile to the existing {config_path} config file")
-            append = True
         else:
             print(f"This command will create a new {config_path} config file")
 
@@ -53,13 +51,10 @@ class OktaAuthConfig():
                 value.set(okta_profile, 'app-link', app_link)
             value.set(okta_profile, 'duration', duration)
 
-            if append:
-                with open(config_path, 'a') as configfile:
-                    value.write(configfile)
-            else:
-                with open(config_path, 'w+') as configfile:
-                    value.write(configfile)
-            print(f"File {config_path} successfully created. Now you can authenticate to Okta")
+            with open(config_path, 'w') as configfile:
+                value.write(configfile)
+
+            print(f"Configuration {config_path} successfully updated. Now you can authenticate to Okta")
             print(f"Execute 'okta-awscli -o {okta_profile} -p {profile} sts get-caller-identity' to authenticate and retrieve credentials")
             sys.exit(0)
         else:
