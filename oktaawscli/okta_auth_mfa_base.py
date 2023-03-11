@@ -36,6 +36,11 @@ class OktaAuthMfaBase():
                                    key=lambda factor: (
                                        factor['provider'],
                                        factor['factorType']))
+
+        if self.factor and not self.factor in [factor['provider'] for factor in supported_factors]:
+            self.logger.error("Unable to locate selected factor type {}".format(self.factor))
+            sys.exit(1)
+
         if len(supported_factors) == 1:
             session_token = self._verify_single_factor(supported_factors[0])
         elif len(supported_factors) > 0:

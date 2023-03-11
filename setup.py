@@ -20,7 +20,7 @@ setup(
     install_requires=[
         'requests',
         'click',
-        'bs4',
+        'beautifulsoup4',
         'boto3',
         'ConfigParser',
         'validators',
