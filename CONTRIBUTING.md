@@ -33,4 +33,4 @@ pipenv install --dev && pipenv shell
 
 - If you're adding functionality, be sure to update the README with your improvements.
 
-- Submit a Pull Request against the `develop` branch.
+- Submit a Pull Request against the `main` branch.
