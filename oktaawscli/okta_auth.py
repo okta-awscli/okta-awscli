@@ -13,7 +13,7 @@ from oktaawscli.util import input
 
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """
-    def __init__(self, okta_profile, verbose, logger, totp_token, 
+    def __init__(self, okta_profile, verbose, logger, totp_token,
         okta_auth_config, username, password, verify_ssl=True):
 
         self.okta_profile = okta_profile
@@ -134,7 +134,14 @@ Please contact you administrator in order to unlock the account!""")
 
         self.session.cookies['oktaStateToken'] = state_token
 
-        mfa_app = OktaAuthMfaApp(self.logger, self.session, self.verify_ssl, self.auth_url)
+        mfa_app = OktaAuthMfaApp(
+            self.logger,
+            self.session,
+            self.verify_ssl,
+            self.auth_url,
+            self.factor,
+            self.totp_token
+        )
         api_response = mfa_app.stepup_auth(self.auth_url, state_token)
         resp = self.session.get(self.app_link)
 
