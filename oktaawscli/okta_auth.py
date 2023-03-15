@@ -129,7 +129,7 @@ Please contact you administrator in order to unlock the account!""")
         if hasattr(soup.title, 'string') and re.match(".* - Extra Verification$", soup.title.string):
             state_token = decode(re.search(r"var stateToken = '(.*)';", html.text).group(1), "unicode-escape")
         else:
-            self.logger.error(f'No Extra Verification. Title was {soup.title}')
+            self.logger.error(f"No Extra Verification. Title was {soup.title}")
             return None
 
         self.session.cookies['oktaStateToken'] = state_token
