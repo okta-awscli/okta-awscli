@@ -40,6 +40,11 @@ class OktaAuth():
         else:
             self.password = okta_auth_config.password_for(okta_profile)
 
+        if totp_token:
+            self.totp_token = totp_token
+        else:
+            self.totp_token = okta_auth_config.totp_token_for(okta_profile)
+            
     def primary_auth(self):
         """ Performs primary auth against Okta """
 
