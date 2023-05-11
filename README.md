@@ -119,17 +119,17 @@ example config file:
 [my_role]
 base-url = my-company.okta.com
 profile = my_role
-password = {{ OKTA_password }}
-username = {{ OKTA_username }}
+password = $(OKTA_password)
+username = $(OKTA_username)
 duration = 24000
 app-link = https://my-company.okta.com/home/amazon_aws/0kladsjfj13478990/123
-role = arn:aws:iam::12345678910123:role/{{ OKTA_my_role_name }}
-totp_token = {{ OKTA_totp }}
+role = arn:aws:iam::12345678910123:role/$(OKTA_my_role_name)
+totp_token = $(OKTA_totp)
 ```
 
 It would then be possible to specify the variables when okta-awscli is invoked, or to specify them via an .env file
 ```
-OKTA_password=supersecret OKTA_username=fname.lname@email.com OKTA_totp=123456 okta-awscli -o my_role
+OKTA_password=supersecret OKTA_username=fname.lname@email.com OKTA_totp=123456 OKTA_my_role_name=myawsrole okta-awscli -o my_role
 ```
 or, from a directly where an `.env` file is defined.
 ```

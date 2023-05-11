@@ -5,7 +5,7 @@
 - Support python 3.11
 - Bumped `click` from `7.0` to `8.1.3`
 - Bumped `validators` from `0.11.2` to `0.20.0`
-- Added jinja2 as a dependency for interpolating environment variables into config values.
+
 ## [0.5.5rc] 2023-03-11
 - Bugfix [#199](https://github.com/okta-awscli/okta-awscli/issues/199) duplicates of data inside config file
 - Bump certifi from 2021.10.8 to 2022.12.7

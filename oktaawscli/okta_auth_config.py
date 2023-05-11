@@ -2,41 +2,25 @@
 
 from errno import ESTALE
 import os
-import re
 import sys
-from configparser import RawConfigParser, _UNSET
+from configparser import ConfigParser
 from getpass import getpass
-from jinja2 import Template, StrictUndefined
-from jinja2.exceptions import UndefinedError
 import validators
 
 
 from oktaawscli.util import input
-
-class UndefinedEnvironmentVariable(Exception):
-    pass
-class JinjaConfigParser(RawConfigParser):
-    def get(self, section, option, *, raw=False, vars=None, fallback=_UNSET):
-        _value = super().get(section, option, raw=raw, vars=vars, fallback=fallback)
-        try:
-            value = Template(_value, undefined=StrictUndefined).render(os.environ)
-            return value
-        except UndefinedError as e:
-            raise UndefinedEnvironmentVariable(
-                f'Environment Variable {e.message} for `{section}.{option}`. Source string: {_value}'
-                )
 
 class OktaAuthConfig():
     """ Config helper class """
     def __init__(self, logger):
         self.logger = logger
         self.config_path = os.path.expanduser('~') + '/.okta-aws'
-        self._value = JinjaConfigParser()
+        self._value = ConfigParser(os.environ)
         self._value.read(self.config_path)
     
     @staticmethod
     def configure(logger):
-        value = JinjaConfigParser()
+        value = ConfigParser(os.environ)
         config_path = os.path.expanduser('~') + '/.okta-aws'
         config_exists = os.path.exists(config_path)
         if config_exists:
@@ -192,7 +176,7 @@ class OktaAuthConfig():
 
     @staticmethod
     def get_okta_profiles():
-        value = RawConfigParser()
+        value = ConfigParser(os.environ)
         config_path = os.path.expanduser('~') + '/.okta-aws'
         value.read(config_path)
         return value.sections()
