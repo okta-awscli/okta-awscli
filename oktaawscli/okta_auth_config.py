@@ -4,41 +4,39 @@ from errno import ESTALE
 import os
 import re
 import sys
-from configparser import RawConfigParser
+from configparser import RawConfigParser, _UNSET
 from getpass import getpass
+from jinja2 import Template, StrictUndefined
+from jinja2.exceptions import UndefinedError
 import validators
-from validators.utils import validator
 
 
 from oktaawscli.util import input
 
-def get_maybe_env_var(input):
-    """ return value from environment if set. """
-    if env_var(input):
-        return os.environ.get(input.strip()[2:-1])
-    return input
-
-@validator
-def env_var(input):
-    """ validate input is can be an $-enclosed environment variable, e.g. `${ENV_VAR}` """
-    _input = input.strip()
-    return all([
-        _input[:2] == '${', 
-        _input[-1] == '}',
-        re.match(r'[a-zA-Z_]+[a-zA-Z0-9_]*', _input[2:-1])
-    ])
+class UndefinedEnvironmentVariable(Exception):
+    pass
+class JinjaConfigParser(RawConfigParser):
+    def get(self, section, option, *, raw=False, vars=None, fallback=_UNSET):
+        _value = super().get(section, option, raw=raw, vars=vars, fallback=fallback)
+        try:
+            value = Template(_value, undefined=StrictUndefined).render(os.environ)
+            return value
+        except UndefinedError as e:
+            raise UndefinedEnvironmentVariable(
+                f'Environment Variable {e.message} for `{section}.{option}`. Source string: {_value}'
+                )
 
 class OktaAuthConfig():
     """ Config helper class """
     def __init__(self, logger):
         self.logger = logger
         self.config_path = os.path.expanduser('~') + '/.okta-aws'
-        self._value = RawConfigParser()
+        self._value = JinjaConfigParser()
         self._value.read(self.config_path)
     
     @staticmethod
     def configure(logger):
-        value = RawConfigParser()
+        value = JinjaConfigParser()
         config_path = os.path.expanduser('~') + '/.okta-aws'
         config_exists = os.path.exists(config_path)
         if config_exists:
@@ -52,7 +50,7 @@ class OktaAuthConfig():
         confirm = input('Would you like to proceed? [y/n]: ')
         if confirm == 'y':
             logger.info(f"{'Appending config to' if config_exists else 'Creating new'} {config_path} file")
-            print("to specify an environment variable enter the variable name as `${ENV_VARIABLE_NAME}`")
+            print("to specify an environment variable enter the variable name as `{{ ENV_VARIABLE_NAME }}`")
             okta_profile = input('Enter Okta profile name: ')
             if not okta_profile:
                 okta_profile = 'default'
@@ -106,7 +104,6 @@ class OktaAuthConfig():
         elif self._value.has_option('default', 'app-link'):
             app_link = self._value.get('default', 'app-link')
         
-        app_link = get_maybe_env_var(app_link)
         if app_link:
             try:
                 if not validators.url(app_link):
@@ -123,8 +120,7 @@ class OktaAuthConfig():
     def totp_token_for(self, okta_profile):
         """ Reads the totp token from the env var """
         if self._value.has_option(okta_profile, 'totp_token'):
-            token_var = self._value.get(okta_profile, 'totp_token')
-            token = get_maybe_env_var(token_var)
+            token = self._value.get(okta_profile, 'totp_token')
         else:
             token = input('Enter token: ')
         return token
@@ -133,7 +129,6 @@ class OktaAuthConfig():
         """ Gets username from config """
         if self._value.has_option(okta_profile, 'username'):
             username = self._value.get(okta_profile, 'username')
-            username = get_maybe_env_var(username)
             self.logger.info("Authenticating as: %s" % username)
         else:
             username = input('Enter username: ')
@@ -143,7 +138,6 @@ class OktaAuthConfig():
         """ Gets password from config """
         if self._value.has_option(okta_profile, 'password'):
             password = self._value.get(okta_profile, 'password')
-            password = get_maybe_env_var(password)
         else:
             password = getpass('Enter password: ')
         return password
@@ -160,7 +154,6 @@ class OktaAuthConfig():
         """ Gets requested duration from config, ignore it on failure """
         if self._value.has_option(okta_profile, 'duration'):
             duration = self._value.get(okta_profile, 'duration')
-            duration = get_maybe_env_var(duration)
             self.logger.debug(
                 "Requesting a duration of %s seconds" % duration
             )

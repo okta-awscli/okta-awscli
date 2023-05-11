@@ -29,12 +29,12 @@ base-url = <your_okta_org>.okta.com
 
 ## The remaining parameters are optional.
 ## You may be prompted for them, if they're not included here.
-username = <your_okta_username>
-password = <your_okta_password> # Only save your password if you know what you are doing!
-factor   = <your_preferred_mfa_factor> # Current choices are: GOOGLE or OKTA
-role     = <your_preferred_okta_role> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
-profile  = <aws_profile_to_store_credentials> # Sets your temporary credentials to a profile in `.aws/credentials`. Overridden by `--profile` command line flag
-app-link = <app_link_from_okta> # Found in Okta's configuration for your AWS account.
+username = <your_okta_username or env_var>
+password = <your_okta_password or env_var> # Only save your password if you know what you are doing!
+factor   = <your_preferred_mfa_factor or env_var> # Current choices are: GOOGLE or OKTA
+role     = <your_preferred_okta_role or env_var> # AWS role name (match one of the options prompted for by "Please select the AWS role" when this parameter is not specified
+profile  = <aws_profile_to_store_credentials or env_var> # Sets your temporary credentials to a profile in `.aws/credentials`. Overridden by `--profile` command line flag
+app-link = <app_link_from_okta or env_var> # Found in Okta's configuration for your AWS account.
 duration = 3600 # duration in seconds to request a session token for, make sure your accounts (both AWS itself and the associated okta application) allow for large durations. default: 3600
 ```
 
@@ -108,4 +108,30 @@ okta-awscli
 you can add this to you .bashrc 
 ```
 source <PATH TO GIT REPO>/set-alias.bash
+```
+
+## Using Environment Variables in the config file ~/.okta-aws
+
+Since version 0.6.0rc1, it is possible to load configuration parameters from the environment.
+
+example config file:
+```
+[my_role]
+base-url = my-company.okta.com
+profile = my_role
+password = {{ OKTA_password }}
+username = {{ OKTA_username }}
+duration = 24000
+app-link = https://my-company.okta.com/home/amazon_aws/0kladsjfj13478990/123
+role = arn:aws:iam::12345678910123:role/{{ OKTA_my_role_name }}
+totp_token = {{ OKTA_totp }}
+```
+
+It would then be possible to specify the variables when okta-awscli is invoked, or to specify them via an .env file
+```
+OKTA_password=supersecret OKTA_username=fname.lname@email.com OKTA_totp=123456 okta-awscli -o my_role
+```
+or, from a directly where an `.env` file is defined.
+```
+dotenv run -- okta-awsli -o my_role
 ```

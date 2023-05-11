@@ -4,3 +4,4 @@ beautifulsoup4==4.11.1
 boto3==1.21.22
 ConfigParser==3.5.0
 validators==0.20.0
+jinja2
