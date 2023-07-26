@@ -227,6 +227,17 @@ class OktaAuthMfaBase():
 
                 user_verification = UserVerificationRequirement.DISCOURAGED
                 devices = list(CtapHidDevice.list_devices())
+                # Support for 'Touch ID' on macOS
+                if sys.platform == "darwin":
+                    from ctap_keyring_device.ctap_keyring_device import CtapKeyringDevice
+                    from ctap_keyring_device.ctap_strucs import CtapOptions
+                    # devices = devices + CtapKeyringDevice.list_devices()  # this is too noisy!
+                    # Dirty hack to detect that 'Touch ID' is being requested
+                    print("[DEBUG]", factor)
+                    if (factor["profile"]["authenticatorName"] is None) and ("yubi" not in ("%s" % factor["profile"]["authenticatorName"]).lower()):
+                        print("[DEBUG] - Invoking CtapKeyringDevice.list_devices() stuff...")
+                        devices = CtapKeyringDevice.list_devices()  # only try the 'Touch ID'
+                        print("[DEBUG]", devices)
                 if len(devices) == 0:
                     self.logger.warning("No U2F device found. Exiting...")
                     exit(1)
