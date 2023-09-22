@@ -4,6 +4,7 @@
 - Bump certifi from 2021.10.8 to 2022.12.7
 - Bugfix/feature [#141](https://github.com/okta-awscli/okta-awscli/issues/141) require beautifulsoup4 instead of dummy package bs4
 - Bugfix for non-working factor provided by config and totp token given by `-t` argument if user has more than 1 factors 
+- Respect AWS_SHARED_CREDENTIALS_FILE environment variable when set
 
 ## [0.5.4] 2022-04-28
 - Bugfix for check_sts function when the profile name is already defined in `~/.okta-aws`. fixes [#161](https://github.com/okta-awscli/okta-awscli/issues/161) and [#155](https://github.com/okta-awscli/okta-awscli/issues/155)
