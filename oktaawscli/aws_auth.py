@@ -22,8 +22,13 @@ class AwsAuth():
 
     def __init__(self, profile, okta_profile, lookup, verbose, logger):
         home_dir = os.path.expanduser('~')
-        self.creds_dir = home_dir + "/.aws"
-        self.creds_file = self.creds_dir + "/credentials"
+        shared_credentials_file = os.getenv("AWS_SHARED_CREDENTIALS_FILE")
+        if shared_credentials_file:
+            self.creds_dir = os.path.dirname(shared_credentials_file)
+            self.creds_file = shared_credentials_file
+        else:
+            self.creds_dir = home_dir + "/.aws"
+            self.creds_file = self.creds_dir + "/credentials"
         self.lookup = lookup
         self.profile = profile
         self.verbose = verbose
