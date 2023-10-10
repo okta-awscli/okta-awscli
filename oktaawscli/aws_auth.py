@@ -6,7 +6,7 @@ import base64
 from datetime import datetime, date
 import xml.etree.ElementTree as ET
 from collections import namedtuple
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError, ProfileNotFound
 import six
@@ -42,7 +42,7 @@ class AwsAuth:
             open(okta_info, "a").close()
 
         okta_config = os.path.join(home_dir, ".okta-aws")
-        parser = SafeConfigParser()
+        parser = ConfigParser()
         parser.read(okta_config)
 
         if parser.has_option(okta_profile, "role") and not reset:
@@ -121,7 +121,7 @@ of roles assigned to you."""
         if not profile:
             return False
 
-        parser = SafeConfigParser()
+        parser = ConfigParser()
         parser.read(self.creds_file)
 
         if not os.path.exists(self.creds_dir):
@@ -167,7 +167,7 @@ of roles assigned to you."""
         output = "json"
         if not os.path.exists(self.creds_dir):
             os.makedirs(self.creds_dir)
-        config = SafeConfigParser()
+        config = ConfigParser()
 
         if os.path.isfile(self.creds_file):
             config.read(self.creds_file)
@@ -191,7 +191,7 @@ of roles assigned to you."""
         """Reads STS auth information from credentials file"""
         if not os.path.exists(self.creds_dir):
             os.makedirs(self.creds_dir)
-        config = SafeConfigParser()
+        config = ConfigParser()
 
         if os.path.isfile(self.creds_file):
             config.read(self.creds_file)
