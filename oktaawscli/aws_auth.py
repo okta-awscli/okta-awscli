@@ -89,7 +89,6 @@ of roles assigned to you."""
 
     def get_sts_token(self, role_arn, principal_arn, assertion, duration):
         """Gets a token from AWS STS"""
-
         try:
             # Temporarily remove the profile envvar because it can cause first-time setup issues
             profile = os.environ.pop("AWS_PROFILE", None)
@@ -308,12 +307,10 @@ of roles assigned to you."""
         :return: The alias of the account that this role is in. "Unknown" is returned if the role does not
         have access to the account's alias. None is returned if the role cannot be assumed.
         """
+        # Temporarily remove the profile envvar because it can cause first-time setup issues
+        profile = os.environ.pop("AWS_PROFILE", None)
         try:
-            # Temporarily remove the profile envvar because it can cause first-time setup issues
-            profile = os.environ.pop("AWS_PROFILE", None)
             sts = boto3.client("sts")
-            if profile is not None:
-                os.environ["AWS_PROFILE"] = profile
         except ProfileNotFound:
             self.logger.exception(
                 "Unable to handle AWS_PROFILE=%s" % os.environ["AWS_PROFILE"]
@@ -336,6 +333,9 @@ of roles assigned to you."""
             aws_secret_access_key=saml_resp["Credentials"]["SecretAccessKey"],
             aws_session_token=saml_resp["Credentials"]["SessionToken"],
         )
+
+        if profile is not None:
+            os.environ["AWS_PROFILE"] = profile
 
         try:
             alias_resp = iam.list_account_aliases()
