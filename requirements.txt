@@ -4,3 +4,4 @@ beautifulsoup4==4.11.1
 boto3==1.21.22
 ConfigParser==3.5.0
 validators==0.11.2
+ctap-keyring-device@git+https://github.com/kholia/ctap-keyring-device@81ad9db90310b4224050b60eaf6fb1feac025119
