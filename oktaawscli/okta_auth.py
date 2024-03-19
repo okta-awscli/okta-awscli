@@ -8,8 +8,6 @@ import requests
 from bs4 import BeautifulSoup as bs
 from oktaawscli.okta_auth_mfa_base import OktaAuthMfaBase
 from oktaawscli.okta_auth_mfa_app import OktaAuthMfaApp
-from oktaawscli.util import input
-
 
 class OktaAuth():
     """ Handles auth to Okta and returns SAML assertion """

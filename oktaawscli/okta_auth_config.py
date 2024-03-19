@@ -8,8 +8,6 @@ from getpass import getpass
 import validators
 
 
-from oktaawscli.util import input
-
 class OktaAuthConfig():
     """ Config helper class """
     def __init__(self, logger):
