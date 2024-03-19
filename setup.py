@@ -19,6 +19,7 @@ setup(
     author_email='james@hale.dev',
     url='https://github.com/okta-awscli/okta-awscli',
     python_requires='>=3.8',
+    readme = "README.md",
     entry_points={
         'console_scripts': [
             'okta-awscli=oktaawscli.okta_awscli:main',
