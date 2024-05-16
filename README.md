@@ -74,6 +74,7 @@ Optional flags:
 - `--refresh-role` or `-r` Refresh the AWS role to be assumed. Previously incorporated in `--force`.
 - `--lookup` or `-l` Lookup and return the AWS Account Alias for each role, instead of returning the raw ARN. 
 - `--config` Add/Create new Okta profile configuration.
+- `--config-file` Specify a path to a file containing Okta profile configurations. Defaults to `~/.okta-aws`.
 - `-s` or `--switch` Switch to any existing profile and update credentials.
   - Note that this will attempt to perform `iam:ListAccountAliases` on every account that you have access to via Okta. This is important for two reasons:
     - All of your roles must have this permission attached to it via an IAM policy.
