@@ -1,0 +1,24 @@
+<!--
+    The Duo SDK will automatically bind to this iFrame and populate it for us.
+    See https://www.duosecurity.com/docs/duoweb for more info.
+ -->
+<iframe id="duo_iframe" width="620" height="330" frameborder="0"></iframe>
+<!--
+    The Duo SDK will automatically bind to this form and submit it for us.
+    See https://www.duosecurity.com/docs/duoweb for more info.
+ -->
+<form method="POST" id="duo_form">
+    <!-- The state token is required here (in order to bind anonymous request back into Auth API) -->
+    <input type="hidden" name="stateToken" value='{{ stateToken }}' />
+</form>
+
+<script src="{{ script }}"></script>
+
+<!-- The host, sig_request, and post_action values will be given via the Auth API -->
+<script>
+    Duo.init({
+        'host': '{{ host }}',
+        'sig_request': '{{ signature }}',
+        'post_action': '{{ callback }}'
+    });
+</script>
