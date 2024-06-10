@@ -4,6 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 import threading
 import sys
+from random import randrange
 
 ## create Flask app
 app = Flask(__name__)
@@ -46,9 +47,9 @@ class server_thread_wrapper(threading.Thread):
     def kill(self): 
         self.killed = True
 
-def start_server():
+def start_server(port):
     global server
-    server = server_thread_wrapper(target=app.run, kwargs={"port": 8081})
+    server = server_thread_wrapper(target=app.run, kwargs={"port": port})
     server.start()
     return server
 
@@ -93,5 +94,6 @@ def open_duo_web(stateToken, script, host, signature, callback):
         </script>
     """)
     contents = template.substitute(stateToken=stateToken, script=script, host=host, signature=signature, callback=callback)
-    start_server()
-    webbrowser.open_new("http://localhost:8081")
+    port = randrange(8080, 8099)
+    start_server(port)
+    webbrowser.open_new("http://localhost:" + str(port))
