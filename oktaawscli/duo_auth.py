@@ -58,6 +58,11 @@ def kill_server():
     server.kill()
     server.join()
 
+def try_kill_duo_server():
+    global server
+    if server is not None:
+        kill_server()
+
 def open_duo_web(stateToken, script, host, signature, callback):
     global contents
     template = Template("""
