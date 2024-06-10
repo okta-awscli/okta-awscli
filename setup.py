@@ -46,7 +46,8 @@ setup(
         'beautifulsoup4',
         'boto3',
         'ConfigParser',
-        'validators'],
+        'validators',
+        'Flask-Cors'],
     extras_require={
         'U2F': ['python-u2flib-host']
     },
