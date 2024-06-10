@@ -1,14 +1,12 @@
 from string import Template
 import webbrowser
 from flask import Flask
-from flask_cors import CORS
 import threading
 import sys
 from random import randrange
 
 ## create Flask app
 app = Flask(__name__)
-CORS(app)
 
 server = None
 contents = ""

@@ -47,7 +47,7 @@ setup(
         'boto3',
         'ConfigParser',
         'validators',
-        'Flask-Cors'],
+        'Flask'],
     extras_require={
         'U2F': ['python-u2flib-host']
     },
