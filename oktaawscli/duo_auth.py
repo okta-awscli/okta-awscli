@@ -94,6 +94,6 @@ def open_duo_web(stateToken, script, host, signature, callback):
         </script>
     """)
     contents = template.substitute(stateToken=stateToken, script=script, host=host, signature=signature, callback=callback)
-    port = randrange(8080, 8099)
+    port = randrange(8000, 8099)
     start_server(port)
     webbrowser.open_new("http://localhost:" + str(port))
