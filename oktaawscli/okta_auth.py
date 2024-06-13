@@ -150,8 +150,8 @@ Please contact you administrator in order to unlock the account!""")
         """ Returns the SAML assertion from HTML """
         assertion = self.get_simple_assertion(html) or self.get_mfa_assertion(html)
 
-        if not assertion:
-            self.logger.error("SAML assertion not valid: " + assertion)
+        if assertion is None:
+            self.logger.error("SAML assertion not valid")
             sys.exit(-1)
         return assertion
 
