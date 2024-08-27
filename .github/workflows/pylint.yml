@@ -18,9 +18,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pylint
+        python -m pip install --upgrade pip pipenv
+        pipenv install --dev
     - name: Analysing the code with pylint
       run: |
-        pylint --errors-only oktaawscli
+        pipenv run pylint --errors-only oktaawscli

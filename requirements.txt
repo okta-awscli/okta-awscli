@@ -1,6 +1,0 @@
-requests==2.27.1
-click==7.0
-beautifulsoup4==4.11.1
-boto3==1.21.22
-ConfigParser==3.5.0
-validators==0.11.2
