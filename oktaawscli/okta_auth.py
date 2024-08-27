@@ -55,8 +55,10 @@ class OktaAuth():
                 state_token = resp_json['stateToken']
                 mfa_base = OktaAuthMfaBase(self.logger, state_token, self.factor, self.totp_token)
                 session_token = mfa_base.verify_mfa(factors_list)
+                return session_token
             elif resp_json['status'] == 'SUCCESS':
                 session_token = resp_json['sessionToken']
+                return session_token
             elif resp_json['status'] == 'MFA_ENROLL':
                 self.logger.warning("""MFA not enrolled. Cannot continue.
 Please enroll an MFA factor in the Okta Web UI first!""")
@@ -71,9 +73,6 @@ Please contact you administrator in order to unlock the account!""")
         else:
             self.logger.error(resp_json)
             sys.exit(1)
-
-
-        return session_token
 
 
     def get_session(self, session_token):
