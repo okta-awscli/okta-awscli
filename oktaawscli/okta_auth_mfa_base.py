@@ -7,6 +7,7 @@ try:
     U2F_ALLOWED = True
 except ImportError:
     U2F_ALLOWED = False
+from oktaawscli.duo_auth import open_duo_web, try_kill_duo_server
 
 class OktaAuthMfaBase():
     """ Handles base org Okta MFA """
@@ -20,7 +21,7 @@ class OktaAuthMfaBase():
     def verify_mfa(self, factors_list):
         """ Performs MFA auth against Okta """
 
-        supported_factor_types = ["token:software:totp", "push"]
+        supported_factor_types = ["token:software:totp", "push", "web"]
         if U2F_ALLOWED:
             supported_factor_types.append("u2f")
 
@@ -59,6 +60,8 @@ class OktaAuthMfaBase():
                         factor_name = "Okta Verify"
                 elif factor_provider == "FIDO":
                     factor_name = "u2f"
+                elif factor_provider == "DUO":
+                    factor_name = "Duo Security"
                 else:
                     factor_name = "Unsupported factor type: %s" % factor_provider
 
@@ -101,22 +104,30 @@ class OktaAuthMfaBase():
             if resp_json['status'] == "SUCCESS":
                 return resp_json['sessionToken']
             elif resp_json['status'] == "MFA_CHALLENGE" and factor['factorType'] !='u2f':
-                print("Waiting for push verification...")
+                if factor['factorType'] == 'web' and factor['provider'] == "DUO":
+                    print("Opening browser for further action...")
+                    open_duo_web(resp_json['stateToken'], resp_json['_embedded']["factor"]["_embedded"]["verification"]["_links"]["script"]["href"], resp_json['_embedded']["factor"]["_embedded"]["verification"]["host"], resp_json['_embedded']["factor"]["_embedded"]["verification"]["signature"], resp_json['_embedded']["factor"]["_embedded"]["verification"]["_links"]["complete"]["href"])
+                else:
+                    print("Waiting for push verification...")
                 correct_answer_shown = False
                 while True:
                     resp = requests.post(
                         resp_json['_links']['next']['href'], json=req_data)
                     resp_json = resp.json()
                     if resp_json['status'] == 'SUCCESS':
+                        try_kill_duo_server()
                         return resp_json['sessionToken']
                     elif resp_json['status'] == 'PASSWORD_EXPIRED':
                         print("Your Okta password is expired")
+                        try_kill_duo_server()
                         sys.exit(1)
                     elif resp_json['factorResult'] == 'TIMEOUT':
                         print("Verification timed out")
+                        try_kill_duo_server()
                         sys.exit(1)
                     elif resp_json['factorResult'] == 'REJECTED':
                         print("Verification was rejected")
+                        try_kill_duo_server()
                         sys.exit(1)
                     else:
                         if not correct_answer_shown:

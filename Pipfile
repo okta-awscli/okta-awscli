@@ -11,6 +11,8 @@ boto3 = "==1.21.22"
 configparser = "==3.5.0"
 validators = "==0.11.2"
 okta-awscli = {path = "."}
+Flask = "==1.1.2"
+
 
 [dev-packages]
 pylint = "*"

@@ -41,6 +41,7 @@ class OktaAuth():
     def primary_auth(self):
         """ Performs primary auth against Okta """
 
+        session_token = None
         auth_data = {
             "username": self.username,
             "password": self.password
