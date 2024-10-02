@@ -10,8 +10,8 @@ from oktaawscli.okta_auth import OktaAuth
 from oktaawscli.okta_auth_config import OktaAuthConfig
 from oktaawscli.aws_auth import AwsAuth
 
-def okta_switch(logger):
-    okta_profiles = sorted(OktaAuthConfig.get_okta_profiles())
+def okta_switch(config, logger):
+    okta_profiles = sorted(config.get_okta_profiles())
     okta_profile_selected = 0 if len(okta_profiles) == 1 else None
     if okta_profile_selected is None:
         print("Available Okta profiles:")
@@ -23,12 +23,11 @@ def okta_switch(logger):
             
     return okta_profiles[okta_profile_selected]
 
-def get_credentials(aws_auth, okta_profile, profile,
+def get_credentials(okta_auth_config, aws_auth, okta_profile, profile,
                     verbose, logger, totp_token, cache, refresh_role, 
                     okta_username=None, okta_password=None):
     """ Gets credentials from Okta """
 
-    okta_auth_config = OktaAuthConfig(logger)
     okta = OktaAuth(okta_profile, verbose, logger, totp_token, 
         okta_auth_config, okta_username, okta_password)
 
@@ -101,11 +100,12 @@ to ~/.okta-credentials.cache\n')
 @click.option('-U', '--username', 'okta_username', help="Okta username")
 @click.option('-P', '--password', 'okta_password', help="Okta password")
 @click.option('--config', is_flag=True, help="Okta config initialization/addition")
+@click.option('--config-file', 'config_file', default="~/.okta-aws", help="Location of Okta config file. Defaults to ~/.okta-aws")
 @click.option('-s', '--switch', is_flag=True, default=False, is_eager=True, help="Switch to another okta profile and refresh the token")
 @click.argument('awscli_args', nargs=-1, type=click.UNPROCESSED)
 def main(okta_profile, profile, verbose, version,
          debug, force, cache, lookup, awscli_args,
-         refresh_role, token, okta_username, okta_password, config, switch):
+         refresh_role, token, okta_username, okta_password, config, config_file, switch):
     """ Authenticate to awscli using Okta """
     if version:
         print(__version__)
@@ -123,14 +123,21 @@ def main(okta_profile, profile, verbose, version,
         handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
+    config_path = os.path.abspath(os.path.expanduser(config_file))
+
+    okta_auth_config = OktaAuthConfig(config_path=config_path, logger=logger)
+
     if config:
-        OktaAuthConfig.configure(logger)
+        okta_auth_config.configure()
+    elif not okta_auth_config.get_okta_profiles():
+        logger.error("The config file is empty or missing. Run okta-awscli --config --config-file %s to create it." % config_file)
+        return 1
 
     if not okta_profile:
         okta_profile = "default"
     
     if switch:
-        okta_profile = okta_switch(logger)
+        okta_profile = okta_switch(okta_auth_config, logger)
 
     aws_auth = AwsAuth(profile, okta_profile, lookup, verbose, logger)
     if force or not aws_auth.check_sts_token():
@@ -139,7 +146,7 @@ def main(okta_profile, profile, verbose, version,
             logger.info("Force option selected, \
                 getting new credentials anyway.")
         get_credentials(
-            aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role, okta_username, okta_password
+            okta_auth_config, aws_auth, okta_profile, profile, verbose, logger, token, cache, refresh_role, okta_username, okta_password
         )
 
     if awscli_args:

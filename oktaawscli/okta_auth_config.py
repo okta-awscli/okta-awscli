@@ -10,26 +10,24 @@ import validators
 
 class OktaAuthConfig():
     """ Config helper class """
-    def __init__(self, logger):
+    def __init__(self, config_path, logger):
         self.logger = logger
-        self.config_path = os.path.expanduser('~') + '/.okta-aws'
+        self.config_path = config_path
         self._value = RawConfigParser()
         self._value.read(self.config_path)
     
-    @staticmethod
-    def configure(logger):
+    def configure(self):
         value = RawConfigParser()
-        config_path = os.path.expanduser('~') + '/.okta-aws'
-        if os.path.exists(config_path):
-            value.read(config_path)
+        if os.path.exists(self.config_path):
+            value.read(self.config_path)
             print(f"You have preconfigured Okta profiles: {value.sections()}")
-            print(f"This command will append new profile to the existing {config_path} config file")
+            print(f"This command will append new profile to the existing {self.config_path} config file")
         else:
-            print(f"This command will create a new {config_path} config file")
+            print(f"This command will create a new {self.config_path} config file")
 
         confirm = input('Would you like to proceed? [y/n]: ')
         if confirm == 'y':
-            logger.info(f"Creating new {config_path} file")
+            self.logger.info(f"Creating new {self.config_path} file")
             okta_profile = input('Enter Okta profile name: ')
             if not okta_profile:
                 okta_profile = 'default'
@@ -49,11 +47,11 @@ class OktaAuthConfig():
                 value.set(okta_profile, 'app-link', app_link)
             value.set(okta_profile, 'duration', duration)
 
-            with open(config_path, 'w') as configfile:
+            with open(self.config_path, 'w') as configfile:
                 value.write(configfile)
 
-            print(f"Configuration {config_path} successfully updated. Now you can authenticate to Okta")
-            print(f"Execute 'okta-awscli -o {okta_profile} -p {profile} sts get-caller-identity' to authenticate and retrieve credentials")
+            print(f"Configuration {self.config_path} successfully updated. Now you can authenticate to Okta")
+            print(f"Execute 'okta-awscli -o {okta_profile} -p {profile} --config-file {self.config_path} sts get-caller-identity' to authenticate and retrieve credentials")
             sys.exit(0)
         else:
             sys.exit(0)
@@ -181,9 +179,5 @@ class OktaAuthConfig():
         with open(self.config_path, 'w+') as configfile:
             self._value.write(configfile)
 
-    @staticmethod
-    def get_okta_profiles():
-        value = RawConfigParser()
-        config_path = os.path.expanduser('~') + '/.okta-aws'
-        value.read(config_path)
-        return value.sections()
+    def get_okta_profiles(self):
+        return self._value.sections()
