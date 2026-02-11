@@ -1,9 +1,13 @@
 # Changelog
+##  0.5.6  2026-02-11
+### Added
+- Support for the aws-eusc (AWS European Sovereign Cloud) partition
+
 ## [0.5.5] 2024-03-19
 - Bugfix [#199](https://github.com/okta-awscli/okta-awscli/issues/199) duplicates of data inside config file
 - Bump certifi from 2021.10.8 to 2022.12.7
 - Bugfix/feature [#141](https://github.com/okta-awscli/okta-awscli/issues/141) require beautifulsoup4 instead of dummy package bs4
-- Bugfix for non-working factor provided by config and totp token given by `-t` argument if user has more than 1 factors 
+- Bugfix for non-working factor provided by config and totp token given by `-t` argument if user has more than 1 factors
 - Respect AWS_SHARED_CREDENTIALS_FILE environment variable when set
 
 ## [0.5.4] 2022-04-28

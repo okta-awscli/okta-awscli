@@ -15,6 +15,7 @@ from subprocess import call
 class AwsPartition(Enum):
     AWS = 1 
     AWS_US_GOV = 2
+    AWS_EUSC = 3
 
 
 class AwsAuth():
@@ -91,6 +92,8 @@ of roles assigned to you.""" % self.role)
         logger.debug("Getting STS token against ARN partition: %s" % aws_partition)
         if aws_partition == AwsPartition.AWS_US_GOV:
             sts = boto3.client('sts', region_name='us-gov-west-1')
+        elif aws_partition == AwsPartition.AWS_EUSC:
+            sts = boto3.client('sts', region_name='eusc-de-east-1')
         else:
             sts = boto3.client('sts')
 
@@ -136,6 +139,8 @@ of roles assigned to you.""" % self.role)
         self.logger.debug("Checking STS token against ARN partition: %s" % self.aws_partition)
         if self.aws_partition == AwsPartition.AWS_US_GOV:
             session = boto3.Session(profile_name=self.profile, region_name='us-gov-west-1')
+        elif self.aws_partition == AwsPartition.AWS_EUSC:
+            session = boto3.Session(profile_name=self.profile, region_name='eusc-de-east-1')
         else:
             session = boto3.Session(profile_name=self.profile)
 
@@ -214,7 +219,12 @@ of roles assigned to you.""" % self.role)
                 secret_access_key = creds['SecretAccessKey']
                 session_token = creds['SessionToken']
                 arn_region = role.principal_arn.split(':')[1]
-                iam_region = 'us-gov-west-1' if arn_region == 'aws-us-gov' else 'us-east-1'
+                if arn_region == 'aws-us-gov':
+                    iam_region = 'us-gov-west-1'
+                elif arn_region == 'aws-eusc':
+                    iam_region = 'eusc-de-east-1'
+                else:
+                    iam_region = 'us-east-1'
 
                 client = boto3.client('iam',
                                       region_name = iam_region,
@@ -242,6 +252,8 @@ of roles assigned to you.""" % self.role)
         arn_aws_partition = role_arn.split(':')[1]
         if arn_aws_partition == 'aws-us-gov':
             return AwsPartition.AWS_US_GOV
+        elif arn_aws_partition == 'aws-eusc':
+            return AwsPartition.AWS_EUSC
         else:
             return AwsPartition.AWS
 
